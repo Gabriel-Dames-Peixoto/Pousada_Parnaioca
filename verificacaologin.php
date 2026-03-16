@@ -21,7 +21,7 @@
         $_SESSION["perfil"] = $row["perfil"];
         $_SESSION["tempo"] = time();
 
-        header("location: inicio.php");
+        header("location: index.php");
         
         
     }else{

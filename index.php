@@ -1,30 +1,33 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title></title>
-    </head>
-    <body>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="1.css">
+    <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
+    <title>Pousada Parnoica</title>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <?php
+                    include_once 'Menu.php';
+                ?>
+            </ul>
+        </nav>
+    </header>
 
-        <h4>Área restrita / Home</h4>
+    <main>
+        <h1>Bem-vindo à Pousada Parnoica!</h1>
+        <p>Desfrute de uma estadia confortável e acolhedora em nossa pousada.
+        Oferecemos quartos aconchegantes, atendimento personalizado e uma localização privilegiada.</p>
+        <img src="./imagens/pousada.png" alt="Imagem da Pousada Parnoica" style="width:100%; height:auto;">
+    </main>
 
-        <form action="verificacaologin.php" method="post">
-            
-            Login:<br/>
-            <input type="text" name="login" /><br/>
-            
-            Senha:<br/>
-            <input type="password" name="senha"/><br/>
-            
-            <input type="submit" value="Login"/>
-            
-        </form>
-        
-        <?php
-            if(!empty($_GET["msg"])){
-            $msg = $_GET["msg"];            
-            echo $msg;
-            }
-        ?>
-    </body>
+    <footer>
+        <p>&copy; 2026 Pousada Parnoica. Todos os direitos reservados.</p>
+    </footer>
+
+</body>
 </html>
