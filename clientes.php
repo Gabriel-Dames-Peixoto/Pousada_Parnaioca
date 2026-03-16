@@ -48,7 +48,7 @@
                         <td>".htmlspecialchars($row['email'])."</td>
                         <td>
                             <a href='editar.php?id=".htmlspecialchars($row['id'])."'>Editar</a> |
-                            <a href='deletar.php?id=".htmlspecialchars($row['id'])."' onclick='return confirm(\"Tem certeza?\")'>Deletar</a>
+                            <a href='deletar.php?id=".htmlspecialchars($row['id'])."' onclick='return confirm(\"Tem certeza?\");'>Deletar</a>
                         </td>
                       </tr>";
             }
