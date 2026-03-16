@@ -22,7 +22,7 @@
         <h1>Bem-vindo à Pousada Parnoica!</h1>
         <p>Desfrute de uma estadia confortável e acolhedora em nossa pousada.
         Oferecemos quartos aconchegantes, atendimento personalizado e uma localização privilegiada.</p>
-        <img src="./imagens/pousada.png" alt="Imagem da Pousada Parnoica" style="width:100%; height:auto;">
+        <img src="imagens\pousadap.png" alt="Imagem da Pousada Parnoica" style="width:50%; height:auto;">
     </main>
 
     <footer>
