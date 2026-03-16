@@ -1,10 +1,51 @@
-/* Configurações Globais */
-container-botoes {
+/* Centraliza o conteúdo principal e o formulário */
+main {
     display: flex;
-    gap: 10px; /* Espaço entre os botões */
-    justify-content: center; /* Centraliza se estiver dentro do main */
-    margin-top: 15px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    text-align: center;
 }
+
+/* Organiza os campos do formulário */
+form {
+    display: inline-block; /* Faz o form respeitar o centro do main */
+    text-align: right;     /* Alinha as labels à direita para um visual limpo */
+    max-width: 500px;
+    width: 100%;
+}
+
+/* Ajusta o espaçamento entre labels e inputs */
+form label {
+    display: inline-block;
+    width: 160px;          /* Define um tamanho fixo para as labels não sambarem */
+    margin-bottom: 15px;
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+form input {
+    width: 250px;
+    padding: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* Garante que o botão de cadastro fique centralizado sozinho */
+input[type="submit"] {
+    width: auto;
+    display: block;
+    margin: 20px auto 0;
+    padding: 10px 30px;
+    cursor: pointer;
+    background-color: #2c3e50; /* Cor que você já usa no header */
+    color: white;
+    border: none;
+    border-radius: 4px;
+}
+/* Configurações Globais */
 * {
     margin: 0;
     padding: 0;

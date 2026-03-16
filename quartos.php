@@ -20,10 +20,10 @@
 
     <main>
         <h1>Quartos disponiveis</h1>
-        <a href="gravarquartos.php">
+        <br/><a href="gravarquartos.php">
             <button type="button">Cadastrar novo quarto</button>
-        </a>
-        <?php
+        </a><br/>
+        <p><?php
             include_once 'conexao.php';
 
             $sql = "SELECT * FROM quartos";
@@ -42,7 +42,7 @@
             }
 
             mysqli_close($con);
-        ?>
+        ?></p>
     </main>
 
     <footer>
