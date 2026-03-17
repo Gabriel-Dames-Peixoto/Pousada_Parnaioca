@@ -82,7 +82,6 @@
                         <th>Ações</th>
                     </tr>";
             while ($row = $result->fetch_assoc()) {
-                // ALTERAÇÃO: Define uma cor diferente para inativos (opcional)
                 $estilo = ($row['status'] == 0) ? "style='color: #ff3d3d;'" : "";
                 $textoStatus = ($row['status'] == 1) ? "Ativo" : "Inativo";
 
@@ -94,8 +93,8 @@
                         <td>".htmlspecialchars($row['email'])."</td>
                         <td>".$textoStatus."</td>
                         <td>
-                            <a href='editar.php?id=".htmlspecialchars($row['id'])."'>Editar</a> |
-                            <a href='inativar.php?id=".htmlspecialchars($row['id'])."' onclick='return confirm(\"Tem certeza?\");'>Inativar</a>
+                            <a href='editar.php?id=".htmlspecialchars($row['id'])."'>Editar</a>
+                            
                         </td>
                       </tr>";
             }
