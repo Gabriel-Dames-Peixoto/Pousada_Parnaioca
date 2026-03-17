@@ -10,7 +10,7 @@
     
 
    echo $sql = "select * from usuarios where 
-            login = '".$login."' AND senha = '".$senha."'";
+            login = '$login' AND senha = '$senha'";
     
     $result = mysqli_query($con, $sql);
     
@@ -21,7 +21,7 @@
         $_SESSION["perfil"] = $row["perfil"];
         $_SESSION["tempo"] = time();
 
-        header("location: index.php");
+        header("location: inicio.php");
         
         
     }else{

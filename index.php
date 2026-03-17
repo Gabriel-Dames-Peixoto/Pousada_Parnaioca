@@ -1,33 +1,56 @@
 <!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="1.css">
-    <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
-    <title>Pousada Parnoica</title>
-</head>
-<body>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="2.css">
+        <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
+        <title>Pousada Parnoica</title>
+    </head>
+    
     <header>
         <nav>
             <ul>
                 <?php
-                    include_once 'Menu.php';
+                   
                 ?>
             </ul>
         </nav>
     </header>
-
+<body>
     <main>
-        <h1>Bem-vindo à Pousada Parnoica!</h1>
-        <p>Desfrute de uma estadia confortável e acolhedora em nossa pousada.
-        Oferecemos quartos aconchegantes, atendimento personalizado e uma localização privilegiada.</p>
-        <img src="imagens\pousadap.png" alt="Imagem da Pousada Parnoica" style="width:50%; height:auto;">
-    </main>
-
-    <footer>
-        <p>&copy; 2026 Pousada Parnoica. Todos os direitos reservados.</p>
-    </footer>
-
+    <div class="container-login">
+        <div class="login-box">
+            <h2>Login</h2>
+            
+            <?php
+            if (isset($_GET['erro'])) {
+                echo '<div class="alert alert-danger">' . htmlspecialchars($_GET['erro']) . '</div>';
+            }
+            if (isset($_GET['sucesso'])) {
+                echo '<div class="alert alert-success">' . htmlspecialchars($_GET['sucesso']) . '</div>';
+            }
+            ?>
+            
+            <form method="POST" action="verificacaologin.php" class="form-login">
+                <div class="form-group">
+                    <label for="text">Usuario:</label>
+                    <input type="text" id="text" name="text" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="senha">Senha:</label>
+                    <input type="password" id="senha" name="senha" required>
+                </div>
+                
+                <button type="submit" class="btn-login">Entrar</button>
+            </form>
+            
+            <p class="link-cadastro">
+                Não tem conta? <a href="cadastro.php">Cadastre-se aqui</a>
+            </p>
+        </div>
+    </div>
+</main>
 </body>
 </html>
