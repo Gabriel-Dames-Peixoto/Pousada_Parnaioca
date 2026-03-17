@@ -54,54 +54,57 @@
             </form>
         </MAIN>
         <?php
-        session_start();
-        include_once './conexao.php';
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $nome = $_POST['nome'] ?? '';
-            $data_nascimento = $_POST['data_nascimento'] ?? '';
-            $cpf = $_POST['cpf'] ?? '';
-            $email = $_POST['email'] ?? '';
-            $telefone = $_POST['telefone'] ?? '';
-            $estado = $_POST['estado'] ?? '';
-            $cidade = $_POST['cidade'] ?? '';
-            
-            if ($nome && $data_nascimento && $cpf && $email && $telefone && $estado && $cidade) {
-                // Verifica se o cliente já existe
-                $sql_check = "SELECT cpf FROM clientes WHERE cpf = ?";
+            session_start();
+            include_once './conexao.php';
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $nome = $_POST['nome'] ?? '';
+                $data_nascimento = $_POST['data_nascimento'] ?? '';
+                $cpf = $_POST['cpf'] ?? '';
+                $email = $_POST['email'] ?? '';
+                $telefone = $_POST['telefone'] ?? '';
+                $estado = $_POST['estado'] ?? '';
+                $cidade = $_POST['cidade'] ?? '';
                 
-                if ($stmt_check = $con->prepare($sql_check)) {
-                    $stmt_check->bind_param("s", $cpf);
-                    $stmt_check->execute();
-                    $stmt_check->store_result();
+                if ($nome && $data_nascimento && $cpf && $email && $telefone && $estado && $cidade) {
+                    $sql_check = "SELECT cpf FROM clientes WHERE cpf = ?";
                     
-                    if ($stmt_check->num_rows > 0) {
-                        echo "<p>Cliente já cadastrado.</p>";
-                    } else {
-                        $sql = "INSERT INTO clientes (nome, data_nascimento, cpf, email, telefone, estado, cidade) 
-                                VALUES (?, ?, ?, ?, ?, ?, ?)";
+                    if ($stmt_check = $con->prepare($sql_check)) {
+                        $stmt_check->bind_param("s", $cpf);
+                        $stmt_check->execute();
+                        $stmt_check->store_result();
                         
-                        if ($stmt = $con->prepare($sql)) {
-                            $stmt->bind_param("sssssss", $nome, $data_nascimento, $cpf, $email, $telefone, $estado, $cidade);
-                            
-                            if ($stmt->execute()) {
-                                echo "<p>Cliente cadastrado com sucesso!</p>";
-                            } else {
-                                echo "<p>Erro ao cadastrar cliente. . $stmt->error . </p>";
-                            }
-                            $stmt->close();
+                        if ($stmt_check->num_rows > 0) {
+                            echo "<p>Cliente já cadastrado.</p>";
                         } else {
-                            echo "<p>Erro na preparação da consulta. . $con->error . </p>";
+                            $sql = "INSERT INTO clientes (nome, data_nascimento, cpf, email, telefone, estado, cidade) 
+                                    VALUES (?, ?, ?, ?, ?, ?, ?)";
+                            
+                            if ($stmt = $con->prepare($sql)) {
+                                $stmt->bind_param("sssssss", $nome, $data_nascimento, $cpf, $email, $telefone, $estado, $cidade);
+                                
+                                if ($stmt->execute()) {
+                                    echo "<div class='sucesso'><p>Cliente cadastrado com sucesso! Redirecionando...</p></div>";
+                                    
+                                    // ALTERAÇÃO: Redireciona para clientes.php após 3 segundos
+                                    header("refresh:3;url=clientes.php");
+                                    // -------------------------------------------------------
+
+                                } else {
+                                    echo "<div class='erro'><p>Erro ao cadastrar cliente: " . $stmt->error . "</p></div>";
+                                }
+                                $stmt->close();
+                            } else {
+                                echo "<div class='erro'><p>Erro na preparação da consulta: " . $con->error . "</p></div>";
+                            }
                         }
+                        $stmt_check->close();
                     }
-                    $stmt_check->close();
+                } else {
+                    echo "<div class='aviso'><p>Preencha todos os campos.</p></div>";
                 }
-            } else {
-                echo "<p>Preencha todos os campos.</p>";
             }
-        }
-        mysqli_close($con);
+            mysqli_close($con);
         ?>
-        
     
     </body>
 </html>

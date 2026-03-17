@@ -29,7 +29,7 @@
         include_once './conexao.php';
 
         $search = (isset($_GET['search']) ? $con->real_escape_string($_GET['search']) : '');
-        $sql = "SELECT id, nome, data_nascimento, cpf, email FROM clientes";
+        $sql = "SELECT id, nome, data_nascimento, cpf, email FROM clientes WHERE status = 1";
         if ($search != '') {
             $sql .= " WHERE nome LIKE '%$search%' OR email LIKE '%$search%'";
         }
@@ -48,7 +48,7 @@
                         <td>".htmlspecialchars($row['email'])."</td>
                         <td>
                             <a href='editar.php?id=".htmlspecialchars($row['id'])."'>Editar</a> |
-                            <a href='deletar.php?id=".htmlspecialchars($row['id'])."' onclick='return confirm(\"Tem certeza?\");'>Deletar</a>
+                            <a href='inativar.php?id=".htmlspecialchars($row['id'])."' onclick='return confirm(\"Tem certeza?\");'>Inativar</a>
                         </td>
                       </tr>";
             }
