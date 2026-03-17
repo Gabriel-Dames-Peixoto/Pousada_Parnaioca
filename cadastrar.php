@@ -53,7 +53,9 @@
                 <input type="submit" value="Cadastrar">
             </form>
         </MAIN>
+        <MAIN>
         <?php
+        
             session_start();
             include_once './conexao.php';
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -66,10 +68,10 @@
                 $cidade = $_POST['cidade'] ?? '';
                 
                 if ($nome && $data_nascimento && $cpf && $email && $telefone && $estado && $cidade) {
-                    $sql_check = "SELECT cpf FROM clientes WHERE cpf = ?";
+                    $sql_check = "SELECT cpf, telefone FROM clientes WHERE cpf = ? and telefone = ?";
                     
                     if ($stmt_check = $con->prepare($sql_check)) {
-                        $stmt_check->bind_param("s", $cpf);
+                        $stmt_check->bind_param("ss", $cpf, $telefone);
                         $stmt_check->execute();
                         $stmt_check->store_result();
                         
@@ -104,7 +106,8 @@
                 }
             }
             mysqli_close($con);
+        
         ?>
-    
+    </MAIN>    
     </body>
 </html>

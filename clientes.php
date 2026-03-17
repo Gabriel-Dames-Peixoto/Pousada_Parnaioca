@@ -20,6 +20,12 @@
 
         <h1>Clientes</h1>
         <form method="GET" action="">
+            <select name="status" onchange="this.form.submit()">
+                
+                <option value="1" <?php if (isset($_GET['status']) && $_GET['status'] === '1') echo 'selected'; ?>>Ativos</option>
+                <option value="0" <?php if (isset($_GET['status']) && $_GET['status'] === '0') echo 'selected'; ?>>Inativos</option>
+            </select>
+
             <input type="text" name="search" placeholder="Pesquisar cliente" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
             <button type="submit">Pesquisar</button>
             <button type="button" onclick="window.location.href='cadastrar.php'">Novo Cliente</button>
@@ -27,15 +33,23 @@
 
        <?php
         include_once './conexao.php';
-
+        
+        $status = (isset($_GET['status']) ? $_GET['status'] : '');
         $search = (isset($_GET['search']) ? $con->real_escape_string($_GET['search']) : '');
-        $sql = "SELECT id, nome, data_nascimento, cpf, email FROM clientes WHERE status = 1";
-        if ($search != '') {
-            $sql .= " WHERE nome LIKE '%$search%' OR email LIKE '%$search%'";
+        $sql = "SELECT id, nome, data_nascimento, cpf, email FROM clientes WHERE status = ?";
+        if ($status !== '') {
+            $sql .= " AND status = ?";
         }
         $sql .= " ORDER BY nome";
 
-        $result = $con->query($sql);
+        $stmt = $con->prepare($sql);
+        if ($status !== '') {
+            $stmt->bind_param("ii", $status, $status);
+        } else {
+            $stmt->bind_param("i", $status);
+        }
+        $stmt->execute();
+        $result = $stmt->get_result();
 
         if ($result && $result->num_rows > 0) {
             echo "<table border='1' cellpadding='5'><tr><th>ID</th><th>Nome</th><th>Data de Nascimento</th><th>CPF</th><th>Email</th><th>Ações</th></tr>";
