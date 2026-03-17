@@ -58,7 +58,7 @@
             $types .= "sss";
         }
 
-        $sql .= " ORDER BY nome";
+        $sql .= " ORDER BY nome, status ASC";
 
         $stmt = $con->prepare($sql);
 
@@ -107,5 +107,8 @@
         $con->close();
         ?>
     </main>
+    <footer>
+        <p>&copy; 2026 Pousada Parnoica. Todos os direitos reservados.</p>
+    </footer>
     </body>
 </html>

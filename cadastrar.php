@@ -32,7 +32,17 @@
                 </div>
                 <div>
                     <label for="cpf">CPF:</label>
-                    <input type="cpf" id="cpf" maxlength="14" placeholder="000.000.000-00" required name="cpf"><br>
+                    <script>
+                        document.getElementById('cpf').addEventListener('input', function() {
+                            let value = this.value.replace(/\D/g, '');
+                            if (value.length > 11) value = value.substring(0, 11);
+                            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                            value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                            this.value = value;
+                        });
+                    </script>
+                    <input type="text" id="cpf" maxlength="14" placeholder="000.000.000-00" required name="cpf"><br>
                 </div>
                 <div>
                     <label for="email">E-mail:</label>
