@@ -32,7 +32,7 @@
             if (mysqli_num_rows($result) > 0) {
                 while($row = mysqli_fetch_assoc($result)) {
                     echo "<div class='quarto'>";
-                    echo "<h2>" . $row["tipo"] . "</h2>";
+                    echo "<h2>" . $row["quarto"] . "</h2>";
                     echo "<p>Preço: R$ " . $row["preco"] . "</p>";
                     echo "<p>" . $row["descricao"] . "</p>";
                     echo "</div>";
