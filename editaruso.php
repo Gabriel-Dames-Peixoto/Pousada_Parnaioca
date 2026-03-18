@@ -2,7 +2,7 @@
 session_start();
 include_once './conexao.php';
 
-if (!isset($_SESSION['login'])) {
+if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
     header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
     exit();
 }
