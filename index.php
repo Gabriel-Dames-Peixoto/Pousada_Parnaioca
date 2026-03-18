@@ -34,8 +34,8 @@
             
             <form method="POST" action="verificacaologin.php" class="form-login">
                 <div class="form-group">
-                    <label for="text">Usuario:</label>
-                    <input type="text" id="text" name="text" required>
+                    <label for="login">Usuario:</label>
+                    <input type="text" id="login" name="login" required>
                 </div>
                 
                 <div class="form-group">

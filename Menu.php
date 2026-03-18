@@ -4,4 +4,4 @@
                 <li><a href="contato.php">Contato</a></li>
                 <li><a href="clientes.php">Clientes</a></li>
                 <li><a href="funcionarios.php">Funcionários</a></li>
-                <li><a href="index.php">Sair</a></li>
+                <li><a href="sair.php">Sair</a></li>
