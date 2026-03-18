@@ -40,7 +40,7 @@ if (!isset($_SESSION['login'])) {
                 }
                 ?>
                 
-                <form method="POST" action="verificacaocadastro.php" class="form-login">
+                <form method="POST" action="gravar2.php" class="form-login">
                     <div class="form-group">
                         <label for="usuario">Usuário:</label>
                         <input type="text" id="usuario" name="usuario" required>
@@ -55,8 +55,8 @@ if (!isset($_SESSION['login'])) {
                         <label for="perfil">Perfil:</label>
                         <select id="perfil" name="perfil" required>
                             <option value="">Selecione um perfil</option>
-                            <option value="cliente">Cliente</option>
-                            <option value="admin">Administrador</option>
+                            <option value="user">Usuario</option>
+                            <option value="adm">Administrador</option>
                         </select>
                     </div>
                     
