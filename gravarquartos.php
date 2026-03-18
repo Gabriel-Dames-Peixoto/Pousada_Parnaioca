@@ -1,7 +1,7 @@
 <?php
 session_start();
 include_once './conexao.php';
-if (!isset($_SESSION['login']) || $_SESSION['perfil'] === 'adm') {
+if (!isset($_SESSION['login']) || $_SESSION['perfil'] !== 'adm') {
     // Se não houver login na sessão, manda de volta para o index
     header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
     exit();
@@ -60,12 +60,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </nav>
     </header>
 <body>
+    <main>
     <h1>Cadastro de Quartos</h1>
     
     <?php echo $mensagem; ?>
 
     <form action="" method="post">
-        <label for="Quarto">Número do Quarto:</label>
+        <label for="Quarto">Quarto:</label>
         <input type="text" id="Quarto" name="Quarto" required><br><br>
 
         <label for="tipo">Tipo:</label>
@@ -78,10 +79,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="number" id="preco" name="preco" step="0.01" required><br><br>
 
         <input type="submit" value="Gravar">
-    </form>
+    
     
     <p><a href="quartos.php">Voltar para Quartos</a></p>
-
+    </form>
+    </main>
     <?php mysqli_close($con); ?>
 </body>
 </html>

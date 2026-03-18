@@ -1,3 +1,12 @@
+<?php
+session_start();
+include_once './conexao.php';
+if (!isset($_SESSION['login'])) {
+    // Se não houver login na sessão, manda de volta para o index
+    header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
+    exit();
+}
+?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -20,9 +29,19 @@
 
     <main>
         <h1>Quartos disponiveis</h1>
-        <br/><a href="gravarquartos.php">
-            <button type="button">Cadastrar novo quarto</button>
-        </a><br/>
+        
+            <?php include_once 'conexao.php'; 
+                // Verifica se o usuário logado é Administrador
+                if (isset($_SESSION['perfil']) && $_SESSION['perfil'] === 'adm'): ?>
+                
+                <br/>
+                <a href="gravarquartos.php">
+                    <button type="button">Cadastrar novo quarto</button>
+                </a>
+                <br/>
+
+            <?php endif; ?>
+        
         <p><?php
             include_once 'conexao.php';
 
