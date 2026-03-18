@@ -47,7 +47,7 @@
             </form>
             
             <p class="link-cadastrouso">
-                Não tem conta? <a href="cadastrousu.php">Cadastre-se aqui</a>
+                Não tem conta? <a href="cadastrouso.php">Cadastre-se aqui</a>
             </p>
         </div>
     </div>

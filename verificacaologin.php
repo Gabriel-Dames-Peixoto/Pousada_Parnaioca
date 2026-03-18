@@ -1,32 +1,61 @@
 <?php
-    session_start();
-    include_once './conexao.php';
-    //session -> espaço de memória no BROWSER
-    $login = $_POST["login"];
-    $senha = md5($_POST["senha"]);
-    
-    //http://php.net/manual/pt_BR/function.mysql-real-escape-string.php
-    
-    
+session_start();
+include_once './conexao.php';
 
-   echo $sql = "select * from usuarios where 
-            login = '$login' AND senha = '$senha'";
-    
-    $result = mysqli_query($con, $sql);
-    
-    if(mysqli_num_rows($result) >= 1){
-        $row = mysqli_fetch_array($result);
+// 1. Recebe os dados e limpa espaços em branco acidentais
+$login = isset($_POST["login"]) ? trim($_POST["login"]) : '';
+$senha = isset($_POST["senha"]) ? $_POST["senha"] : ''; 
 
-        $_SESSION["login"] = $row["login"]; //guardando no navegador(sessao) o valor do login
-        $_SESSION["perfil"] = $row["perfil"];
-        $_SESSION["tempo"] = time();
+if (empty($login) || empty($senha)) {
+    $msg = "Preencha todos os campos.";
+    header("Location: index.php?msg=" . urlencode($msg));
+    exit();
+}
 
-        header("location: inicio.php");
+// 2. Prepara a consulta
+$sql = "SELECT login, senha, perfil FROM usuarios WHERE login = ?";
+$stmt = mysqli_prepare($con, $sql);
+
+if ($stmt) {
+    // Vincula o parâmetro e executa
+    mysqli_stmt_bind_param($stmt, "s", $login);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+
+    // Verifica se o usuário existe
+    if ($row = mysqli_fetch_assoc($result)) {
         
-        
-    }else{
-        $msg = "Login/Senha invalido(s)";
-        header("location: index.php?msg=".$msg);
-        
+        // 3. Verificação de senha (comparando MD5)
+        if (md5($senha) === $row["senha"]) {
+            
+            // Regenera o ID da sessão por segurança após o login
+            session_regenerate_id(true);
+
+            $_SESSION["login"] = $row["login"];
+            $_SESSION["perfil"] = $row["perfil"];
+            $_SESSION["tempo"] = time();
+
+            header("Location: inicio.php");
+            exit(); 
+            
+        } else {
+            $msg = "Login ou Senha inválidos";
+            header("Location: index.php?msg=" . urlencode($msg));
+            exit();
+        }
+    } else {
+        // Usuário não encontrado
+        $msg = "Login ou Senha inválidos";
+        header("Location: index.php?msg=" . urlencode($msg));
+        exit();
     }
     
+    mysqli_stmt_close($stmt); // Fecha o statement
+} else {
+    // Log de erro interno (evite mostrar detalhes do erro SQL para o usuário final)
+    error_log("Erro no MySQL: " . mysqli_error($con));
+    die("Ocorreu um erro interno. Tente novamente mais tarde.");
+}
+
+mysqli_close($con);
+?>
