@@ -25,3 +25,15 @@ CREATE TABLE clientes (
   status varchar(255) DEFAULT '1',
   PRIMARY KEY (id)
 );
+
+CREATE TABLE frigobar (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    valor DECIMAL(10,2) NOT NULL,
+    quarto_id INT NOT NULL,
+    
+    CONSTRAINT fk_quarto
+    FOREIGN KEY (quarto_id) REFERENCES quartos(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);

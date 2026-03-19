@@ -67,31 +67,50 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
             } else {
                 echo "<p>Nenhum quarto selecionado.</p>";
             }
-
-            mysqli_close($con);
             
         ?></p>
-        <h2>Frigobar</h2>
-        <p><?php
-            if (isset($_GET['id'])) {
-                $id = $_GET['id'];
-                $sql = "SELECT nome, valor FROM frigobar WHERE quarto_id = ?";
-                $stmt = $con->prepare($sql);
-                $stmt->bind_param("i", $id);
-                $stmt->execute();
-                $result = $stmt->get_result();
-                if ($result->num_rows > 0) {
-                    while ($row = $result->fetch_assoc()) {
-                        echo "<p>" . htmlspecialchars($row["nome"]) . " - R$ " . number_format($row["valor"], 2, ',', '.') . "</p>";
-                    }
-                } else {
-                    echo "<p>Frigobar vazio.</p>";
+<div class="frigobar-section">
+    <h3>Itens do Frigobar</h3>
+
+    <form method="GET" action="informacoes_quarto.php" style="margin-bottom: 15px;">
+        <input type="hidden" name="id" value="<?= htmlspecialchars($_GET['id'] ?? '') ?>">
+        <input type="text" name="busca_item" placeholder="Buscar item no frigobar..." 
+               value="<?= htmlspecialchars($_GET['busca_item'] ?? '') ?>">
+        <button type="submit">🔍</button>
+        <input type="button" value="cadastrar item" onclick="window.location.href='cFrigobar.php?id=<?= htmlspecialchars($_GET['id'] ?? '') ?>'">
+    </form>
+
+    <?php
+    if (isset($_GET['id'])) {
+        $id = $_GET['id'];
+        $busca = isset($_GET['busca_item']) ? "%" . $_GET['busca_item'] . "%" : "%";
+
+        // SQL ajustado para busca
+        $sql = "SELECT nome, valor FROM frigobar WHERE quarto_id = ? AND nome LIKE ?";
+        
+        // Verificamos se a conexão ainda está aberta
+        if ($con && !$con->connect_error) {
+            $stmt = $con->prepare($sql);
+            $stmt->bind_param("is", $id, $busca);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            if ($result->num_rows >= 1) {
+                while ($row = $result->fetch_assoc()) {
+                    echo "<p><strong>" . htmlspecialchars($row["nome"]) . "</strong> - R$ " . number_format($row["valor"], 2, ',', '.') . "</p>";
                 }
-                $stmt->close();
             } else {
-                echo "<p>Nenhum quarto selecionado.</p>";
+                echo "<p>Nenhum item encontrado.</p>";
             }
-        ?></p>
+            $stmt->close();
+        } else {
+            echo "<p class='erro'>Erro: A conexão com o banco foi perdida.</p>";
+        }
+    } else {
+        echo "<p>Nenhum quarto selecionado.</p>";
+    }
+    ?>
+</div></p>
     </main>
 </body>
 </html>
