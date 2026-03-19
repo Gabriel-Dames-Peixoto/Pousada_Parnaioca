@@ -48,14 +48,14 @@ if (!isset($_SESSION['login'])) {
             $sql = "SELECT * FROM quartos";
             $result = mysqli_query($con, $sql);
 
-            if (mysqli_num_rows($result) > 0) {
-                while($row = mysqli_fetch_assoc($result)) {
-                    echo "<div class='quarto'>";
-                    echo "<h2>" . $row["quarto"] . "</h2>";
-                    echo "<p>Preço: R$ " . $row["preco"] . "</p>";
-                    echo "<p>" . $row["descricao"] . "</p>";
-                    echo "</div>";
-                }
+                        if (mysqli_num_rows($result) > 0) {
+                            while($row = mysqli_fetch_assoc($result)) {
+                                echo "<div class='quarto'>";
+                                echo "<h2>" . $row["quarto"] . "</h2>";
+                                echo "<p>Preço: R$ " . number_format($row["preco"], 2, ',', '.') . "</p>";
+                                echo "<p>" . $row["descricao"] . "</p>";
+                                echo "</div>";
+                            }
             } else {
                 echo "Nenhum quarto disponível.";
             }
