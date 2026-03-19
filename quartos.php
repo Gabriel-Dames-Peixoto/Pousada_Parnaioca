@@ -54,6 +54,7 @@ if (!isset($_SESSION['login'])) {
                                 echo "<h2>" . $row["quarto"] . "</h2>";
                                 echo "<p>Preço: R$ " . number_format($row["preco"], 2, ',', '.') . "</p>";
                                 echo "<p>" . $row["descricao"] . "</p>";
+                                echo "<p><a href='informacoes_quarto.php?id=" . $row["id"] . "'>Informações adicionais</a></p>";
                                 echo "</div>";
                             }
             } else {
