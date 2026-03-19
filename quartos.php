@@ -34,11 +34,11 @@ if (!isset($_SESSION['login'])) {
                 // Verifica se o usuário logado é Administrador
                 if (isset($_SESSION['perfil']) && $_SESSION['perfil'] === 'adm'): ?>
                 
-                <br/>
+                
                 <a href="gravarquartos.php">
                     <button type="button">Cadastrar novo quarto</button>
                 </a>
-                <br/>
+                
 
             <?php endif; ?>
         
@@ -52,8 +52,7 @@ if (!isset($_SESSION['login'])) {
                             while($row = mysqli_fetch_assoc($result)) {
                                 echo "<div class='quarto'>";
                                 echo "<h2>" . $row["quarto"] . "</h2>";
-                                echo "<p>Preço: R$ " . number_format($row["preco"], 2, ',', '.') . "</p>";
-                                echo "<p>" . $row["descricao"] . "</p>";
+                                echo "Preço: R$ " . number_format($row["preco"], 2, ',', '.') . "<br>";
                                 echo "<p><a href='informacoes_quarto.php?id=" . $row["id"] . "'>Informações adicionais</a></p>";
                                 echo "</div>";
                             }
