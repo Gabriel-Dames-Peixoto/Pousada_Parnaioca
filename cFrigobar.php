@@ -29,37 +29,66 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
 
     <main>
         <h1>Cadastro de itens do Frigobar</h1>
-        <form action="" method="post">
-            <label for="nome">Nome do Item:</label>
-            <input type="text" id="nome" name="nome" required><br><br>
+            <form action="" method="post">
+                <?php
+                    // Ajustado para aceitar tanto 'id' (vindo do botão) quanto 'quarto_id'
+                    $quarto_id_url = $_GET['id'] ?? $_GET['quarto_id'] ?? $_SESSION['quarto_id'] ?? null;
+                            
+                if ($quarto_id_url) {
+                    // Query corrigida: removido 'quarto_id' que não existe na tabela quartos
+                    $resQuarto = $con->query("SELECT id, quarto FROM quartos WHERE id = " . intval($quarto_id_url));
+                    $quarto = $resQuarto->fetch_assoc();
+                    
+                    echo "<label for='quarto_id'>Quarto:</label>";
+                    echo "<input type='text' id='quarto_id' value='" . $quarto['quarto'] . "' disabled><br><br>";
+                    echo "<input type='hidden' name='quarto_id' value='" . $quarto['id'] . "'>";
+                }
+                ?>
 
-            <label for="valor">Valor (R$):</label>
-            <input type="text" id="valor" name="valor" placeholder="0,00" required><br><br>
+                <label for="nome">Nome do Item:</label>
+                <input type="text" id="nome" name="nome" required><br><br>
 
-            <input type="submit" value="Gravar">
-        </form>
+                <label for="quantidade">Quantidade:</label>
+                <input type="number" id="quantidade" name="quantidade" min="1" required><br><br>
 
-        <?php
+                <label for="valor">Valor (R$):</label>
+                <input type="text" id="valor" name="valor" placeholder="0,00" 
+                    pattern="[0-9]+([,\.][0-9]{1,2})?" 
+                    title="Digite um valor numérico (ex: 10,50)" required><br><br>
+
+                <input type="submit" value="Gravar">
+            </form>
+
+            <?php
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $nome = trim($_POST['nome'] ?? '');
-                $valor = str_replace(',', '.', trim($_POST['valor'] ?? ''));
+                $valor_bruto = trim($_POST['valor'] ?? '');
+                $valor_limpo = preg_replace('/[^0-9,.]/', '', $valor_bruto); 
+                $valor_formatado = str_replace(',', '.', $valor_limpo);
+                $valor_final = floatval($valor_formatado);
+                $quarto_id = $_POST['quarto_id'] ?? null; 
 
-                if (!empty($nome) && !empty($valor) && is_numeric($valor)) {
-                    $query = "INSERT INTO frigobar (nome, valor) VALUES (?, ?)";
-                    $stmt = $conexao->prepare($query);
-                    $stmt->bind_param("sd", $nome, (float)$valor);
+                if (!empty($nome) && $valor_final > 0 && !empty($quarto_id)) {
+                    // Removi o 'id' do INSERT para deixar o banco usar o Auto_Increment
+                    $query = "INSERT INTO frigobar (id, nome, quantidade, valor, quarto_id) VALUES (NULL, ?, ?, ?, ?)";
+                    $stmt = $con->prepare($query);
+                    
+                    // s = string, d = double (valor), i = integer (quarto_id)
+                    $stmt->bind_param("sdi", $nome, $valor_final, $quarto_id);
 
                     if ($stmt->execute()) {
                         echo "<p style='color: green;'>Item cadastrado com sucesso!</p>";
+                        echo "<input type='button' value='Voltar para informações do quarto' 
+                        onclick='window.location.href=\"informacoes_quarto.php?id=" . htmlspecialchars($quarto_id) . "\"'>";
                     } else {
-                        echo "<p style='color: red;'>Erro ao cadastrar item.</p>";
+                        echo "<p style='color: red;'>Erro ao cadastrar: " . $stmt->error . "</p>";
                     }
                     $stmt->close();
                 } else {
-                    echo "<p style='color: red;'>Dados inválidos.</p>";
+                    echo "<p style='color: red;'>Preencha todos os campos corretamente.</p>";
                 }
             }
-        ?>
+            ?>
     </main>
 </body>
 </html>

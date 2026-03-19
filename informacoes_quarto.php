@@ -86,7 +86,7 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
         $busca = isset($_GET['busca_item']) ? "%" . $_GET['busca_item'] . "%" : "%";
 
         // SQL ajustado para busca
-        $sql = "SELECT nome, valor FROM frigobar WHERE quarto_id = ? AND nome LIKE ?";
+        $sql = "SELECT nome, quantidade, valor FROM frigobar WHERE quarto_id = ? AND nome LIKE ?";
         
         // Verificamos se a conexão ainda está aberta
         if ($con && !$con->connect_error) {
@@ -97,7 +97,8 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
 
             if ($result->num_rows >= 1) {
                 while ($row = $result->fetch_assoc()) {
-                    echo "<p><strong>" . htmlspecialchars($row["nome"]) . "</strong> - R$ " . number_format($row["valor"], 2, ',', '.') . "</p>";
+                    echo "<p><strong>" . htmlspecialchars($row["nome"]) . "</strong> - R$ " . 
+                    number_format($row["valor"], 2, ',', '.') . " (Quantidade: " . $row["quantidade"] . ")</p>";
                 }
             } else {
                 echo "<p>Nenhum item encontrado.</p>";
