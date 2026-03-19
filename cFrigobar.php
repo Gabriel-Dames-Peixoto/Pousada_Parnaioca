@@ -61,5 +61,5 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
             }
         ?>
     </main>
-        <?php>
-
+</body>
+</html>
