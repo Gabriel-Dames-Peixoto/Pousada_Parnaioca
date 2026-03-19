@@ -75,14 +75,14 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
         <p><?php
             if (isset($_GET['id'])) {
                 $id = $_GET['id'];
-                $sql = "SELECT * FROM frigobar WHERE quarto_id = ?";
+                $sql = "SELECT nome, valor FROM frigobar WHERE quarto_id = ?";
                 $stmt = $con->prepare($sql);
                 $stmt->bind_param("i", $id);
                 $stmt->execute();
                 $result = $stmt->get_result();
                 if ($result->num_rows > 0) {
                     while ($row = $result->fetch_assoc()) {
-                        echo "<p>" . htmlspecialchars($row["item"]) . " - R$ " . number_format($row["preco"], 2, ',', '.') . "</p>";
+                        echo "<p>" . htmlspecialchars($row["nome"]) . " - R$ " . number_format($row["valor"], 2, ',', '.') . "</p>";
                     }
                 } else {
                     echo "<p>Frigobar vazio.</p>";
