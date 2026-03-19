@@ -66,6 +66,7 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
                 $valor_limpo = preg_replace('/[^0-9,.]/', '', $valor_bruto); 
                 $valor_formatado = str_replace(',', '.', $valor_limpo);
                 $valor_final = floatval($valor_formatado);
+                $quantidade = intval($_POST['quantidade'] ?? 0);
                 $quarto_id = $_POST['quarto_id'] ?? null; 
 
                 if (!empty($nome) && $valor_final > 0 && !empty($quarto_id)) {
@@ -74,7 +75,7 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
                     $stmt = $con->prepare($query);
                     
                     // s = string, d = double (valor), i = integer (quarto_id)
-                    $stmt->bind_param("sdi", $nome, $valor_final, $quarto_id);
+                    $stmt->bind_param("sidi", $nome, $quantidade, $valor_final, $quarto_id);
 
                     if ($stmt->execute()) {
                         echo "<p style='color: green;'>Item cadastrado com sucesso!</p>";
