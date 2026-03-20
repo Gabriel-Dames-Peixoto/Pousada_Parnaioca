@@ -52,8 +52,9 @@ if (!isset($_SESSION['login'])) {
                             while($row = mysqli_fetch_assoc($result)) {
                                 echo "<div class='quarto'>";
                                 echo "<h2>" . $row["quarto"] . "</h2>";
-                                echo "Preço: R$ " . number_format($row["preco"], 2, ',', '.') . "<br>";
-                                echo "<p><a href='informacoes_quarto.php?id=" . $row["id"] . "'>Informações adicionais</a></p>";
+                                echo "Preço a partir de 5 noites: R$ " . number_format($row["preco"], 2, ',', '.') . "<br>
+                                (Aberto a negociação dependendo da quantidade de dias, da temporada e da disponibilidade)<br>";
+                                echo "<p><a href='informacoes_quarto.php?id=" . $row["id"] . "'>Informações adicionais</a></p><br>";
                                 echo "</div>";
                             }
             } else {
