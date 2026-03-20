@@ -22,13 +22,16 @@ if ($stmt) {
     if ($row = mysqli_fetch_assoc($result)) {
         
         if (md5($senha) === $row["senha"]) {
-            
+            date_default_timezone_set('America/Sao_Paulo');
             if ($row["status"] == 1) {
                 session_regenerate_id(true);
                 $_SESSION["login"] = $row["login"];
                 $_SESSION["perfil"] = $row["perfil"];
                 $_SESSION["status"] = $row["status"];
                 $_SESSION["tempo"] = time();
+                $arquivolog = fopen("Login.log", "a");
+                fwrite($arquivolog, date("d-m-Y H:i:s") . " - Login realizado: " . $row["login"] . "\n");
+                fclose($arquivolog);
                 header("Location: inicio.php");
                 exit();
             } else {
