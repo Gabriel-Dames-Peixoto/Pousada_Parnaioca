@@ -12,7 +12,6 @@
         <nav>
             <ul>
                 <?php
-                   
                 ?>
             </ul>
         </nav>
@@ -47,12 +46,9 @@
             </form>
             
             <p class="link-cadastrouso">
-                Não tem conta? <a href="cadastrouso.php">Cadastre-se aqui</a>
-            </p>
-            <p class="link-contato">
+                Não tem conta? <a href="cadastrouso.php">Cadastre-se aqui</a><br>
                 Caso o login não estja funcionando! <a href="contato.php">Entre em cotato</a>
             </p>
-
         </div>
     </div>
 </main>

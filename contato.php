@@ -13,12 +13,14 @@
     <?php session_start(); ?>
     <nav>
         <ul>
-            <li><a href="index.php">Início</a></li>
             <?php 
-            if(isset($_SESSION['login']) && $_SESSION['status'] == 0): 
-                include_once 'Menu.php'; 
-            endif; 
-            ?>
+            if(isset($_SESSION['login']) && $_SESSION['status'] === '1'):
+
+                include_once 'menu.php';
+            else:
+                echo '<li><a href="index.php">Início</a></li>';
+            ?> 
+            <?php endif; ?> 
         </ul>
     </nav>
 </header>

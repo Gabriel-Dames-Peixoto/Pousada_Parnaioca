@@ -35,7 +35,13 @@ if (!$dados_quarto) {
     <title>Pousada Parnoica - Detalhes</title>
 </head>
 <body>
-    <header><nav><ul><?php include_once 'Menu.php'; ?></ul></nav></header>
+    <header>
+        <nav>
+            <ul>
+                <?php include_once 'Menu.php'; ?>
+            </ul>
+        </nav>
+    </header>
 
     <main>
         <section class="quarto-info">
