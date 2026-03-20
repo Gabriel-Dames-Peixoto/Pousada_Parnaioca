@@ -31,6 +31,7 @@ CREATE TABLE frigobar (
     nome VARCHAR(100) NOT NULL,
     valor DECIMAL(10,2) NOT NULL,
     quarto_id INT NOT NULL,
+    status ENUM('1', '0') NOT NULL DEFAULT '1',
     
     CONSTRAINT fk_quarto
     FOREIGN KEY (quarto_id) REFERENCES quartos(id)
