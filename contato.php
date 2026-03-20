@@ -10,7 +10,32 @@
 
 <body>
 <header>
-    <?php session_start(); ?>
+    <?php session_start();
+    if (session_status() === PHP_SESSION_NONE) session_start(); 
+    include_once './conexao.php';
+
+    $exibirMenuCompleto = false;
+
+    // Se houver sessão, vamos validar no banco de dados agora
+    if (isset($_SESSION['login'])) {
+        $login_atual = $_SESSION['login'];
+        $stmt_check = $con->prepare("SELECT status FROM usuarios WHERE login = ?");
+        $stmt_check->bind_param("s", $login_atual);
+        $stmt_check->execute();
+        $res_check = $stmt_check->get_result();
+        
+        if ($row_check = $res_check->fetch_assoc()) {
+            // Se o status no banco for 0 (Ativo), ele pode ver o menu
+            if ($row_check['status'] == 0) {
+                $exibirMenuCompleto = true;
+            } else {
+                // Se foi bloqueado, "limpamos" a sessão mas não destruímos ainda
+                unset($_SESSION['login']); 
+            }
+        }
+        $stmt_check->close();
+    }
+    ?>
     <nav>
         <ul>
             <?php 
