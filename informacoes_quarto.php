@@ -40,7 +40,8 @@ if (!$dados_quarto) {
     <main>
         <section class="quarto-info">
             <h1>Quarto: <?= htmlspecialchars($dados_quarto['quarto']) ?></h1>
-            <p><strong>Preço:</strong> R$ <?= number_format($dados_quarto['preco'], 2, ',', '.') ?></p>
+            <p><strong>Preço a partir de 5 noites:</strong> R$ <?= number_format($dados_quarto['preco'], 2, ',', '.') 
+            . "<br>(Aberto a negociação dependendo da quantidade de dias, da temporada e da disponibilidade)<br>"?></p>
             <p><strong>Descrição:</strong> <?= nl2br(htmlspecialchars($dados_quarto['descricao'])) ?></p>
         </section>
 
