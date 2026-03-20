@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="1.css">
+    <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
+    <title>Pousada Parnoica</title>
+</head>
+
+<body>
+<header>
+    <?php session_start(); ?>
+    <nav>
+        <ul>
+            <li><a href="index.php">Início</a></li>
+            <?php 
+            if(isset($_SESSION['login']) && $_SESSION['status'] == 0): 
+                include_once 'Menu.php'; 
+            endif; 
+            ?>
+        </ul>
+    </nav>
+</header>
+
+    <main>
+        <h1>Contato</h1>
+        <p>Se você tiver alguma dúvida, precisar de assistência ou precisar reativar o seu usuário,
+             não hesite em entrar em contato conosco. Estamos aqui para ajudar!</p>
+        
+        <h2>Informações de Contato</h2>
+        <ul>
+            <li><strong>Endereço:</strong> Rua das Flores, 123, Centro, Cidade, Estado</li>
+            <li><strong>Telefone:</strong> (11) 1234-5678</li>
+            <li><strong>Email:</strong> contato@pousadaparnoica.com.br</li>
+        </ul>
+    </main>
+</body>
+</html>
