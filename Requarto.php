@@ -85,7 +85,7 @@ if (isset($_POST['reservar'])) {
     $stmt->bind_param("iidss", $quarto_id, $cliente_id, $valorFinal, $checkin, $checkout);
     $stmt->execute();
 
-    header("Location: Requarto.php?id=$quarto_id&sucesso=1");
+    header("Location: quartos.php?id=$quarto_id&sucesso=1");
     exit();
 }
 

@@ -53,7 +53,6 @@ if (!isset($_SESSION['login'])) {
 
             echo "<div class='quarto'>";
 
-            // 🔥 VERIFICAR SE ESTÁ OCUPADO HOJE
             $stmt_status = $con->prepare("
                 SELECT COUNT(*) as total 
                 FROM reservas
@@ -80,7 +79,6 @@ if (!isset($_SESSION['login'])) {
 
             echo "<a href='informacoes_quarto.php?id=" . $row["id"] . "'>Informações adicionais</a><br>";
 
-            // 🔥 BOTÃO RESERVAR (só se estiver disponível hoje)
             if (!$ocupado) {
                 echo "<a href='Requarto.php?id=" . $row["id"] . "'>Reservar</a><br>";
             } else {
