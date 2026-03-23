@@ -14,7 +14,7 @@ if (!$id_quarto) {
 }
 
 // Buscar dados do quarto
-$stmt_q = $con->prepare("SELECT quarto, preco, descricao FROM quartos WHERE id = ?");
+$stmt_q = $con->prepare("SELECT quarto, preco, descricao, status FROM quartos WHERE id = ?");
 $stmt_q->bind_param("i", $id_quarto);
 $stmt_q->execute();
 $dados_quarto = $stmt_q->get_result()->fetch_assoc();
@@ -30,6 +30,16 @@ if (isset($_POST['reservar'])) {
     $quarto_id = $_POST['quarto_id'];
     $cliente_id = $_POST['cliente_id'];
     $dias = (int) $_POST['dias'];
+
+    // Validação
+    if (!$cliente_id || !$dias || $dias <= 0) {
+        die("Dados inválidos.");
+    }
+
+    // Verificar se já está reservado
+    if ($dados_quarto['status'] == 0) {
+        die("Este quarto já está reservado.");
+    }
 
     $precoBase = $dados_quarto['preco'];
     $valorFinal = $precoBase;
@@ -52,8 +62,8 @@ if (isset($_POST['reservar'])) {
     $stmt2->bind_param("i", $quarto_id);
     $stmt2->execute();
 
-    // REDIRECT (evita duplicação)
-    header("Location: reservas.php?id=$quarto_id&sucesso=1");
+    // Redirecionar (evita duplicação)
+    header("Location: Requarto.php?id=$quarto_id&sucesso=1");
     exit();
 }
 
@@ -68,10 +78,11 @@ $busca = filter_input(INPUT_GET, 'busca_cliente', FILTER_SANITIZE_SPECIAL_CHARS)
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="2.css">
     <link rel="shortcut icon" href="./imagens/ipousada.png">
-    <title>Pousada Parnoica - Cadastro</title>
+    <title>Pousada Parnoica - Reserva</title>
 </head>
 
 <body>
+
 <header>
     <nav>
         <ul>
@@ -89,16 +100,37 @@ $busca = filter_input(INPUT_GET, 'busca_cliente', FILTER_SANITIZE_SPECIAL_CHARS)
         (Valor varia conforme quantidade de dias)
     </p>
 
+    <!-- STATUS DO QUARTO -->
+    <p>
+        <strong>Status:</strong>
+        <?= $dados_quarto['status'] == 1 ? "Disponível" : "<span style='color:red;'>Reservado</span>" ?>
+    </p>
+
     <!-- MENSAGEM -->
     <?php if (isset($_GET['sucesso'])): ?>
         <p style="color:green;">Reserva realizada com sucesso!</p>
+        <button onclick="window.location.href='quartos.php'">Voltar para Quartos</button>
     <?php endif; ?>
 
+    <hr>
+
+    <!-- BUSCA DE CLIENTE -->
     <form method="GET">
         <input type="hidden" name="id" value="<?= $id_quarto ?>">
         <input type="text" name="busca_cliente" placeholder="Buscar por nome ou CPF" value="<?= htmlspecialchars($busca) ?>">
         <button type="submit">Buscar</button>
+    </form>
+
+    <br>
+
+    <!-- FORM DE RESERVA -->
+    <?php if ($dados_quarto['status'] == 1): ?>
+    <form method="POST">
+
         <input type="hidden" name="quarto_id" value="<?= $id_quarto ?>">
+
+        <label>Selecionar cliente:</label><br>
+
         <select name="cliente_id" required>
             <?php
             $sql_clientes = "SELECT * FROM clientes WHERE nome LIKE ? OR cpf LIKE ?";
@@ -117,6 +149,8 @@ $busca = filter_input(INPUT_GET, 'busca_cliente', FILTER_SANITIZE_SPECIAL_CHARS)
             ?>
         </select>
 
+        <br><br>
+
         <label>Quantidade de dias:</label><br>
         <input type="number" name="dias" min="1" required>
 
@@ -128,10 +162,12 @@ $busca = filter_input(INPUT_GET, 'busca_cliente', FILTER_SANITIZE_SPECIAL_CHARS)
         <br><br>
 
         <button type="submit" name="reservar">Reservar</button>
-        <?php if (isset($_GET['sucesso'])): ?>
-            <button type="button" onclick="window.location.href='quartos.php'">Voltar para Quartos</button>
-        <?php endif; ?>
+
     </form>
+    <?php else: ?>
+        <p style="color:red;">Este quarto já está reservado.</p>
+    <?php endif; ?>
+
 </main>
 
 <script>
@@ -148,25 +184,27 @@ document.addEventListener("DOMContentLoaded", function() {
     const inputDias = document.querySelector('input[name="dias"]');
     const campoValor = document.getElementById('valor_final');
 
-    inputDias.addEventListener('input', function() {
-        let dias = parseInt(this.value);
-        let valor = precoBase;
+    if (inputDias) {
+        inputDias.addEventListener('input', function() {
+            let dias = parseInt(this.value);
+            let valor = precoBase;
 
-        if (!dias || dias <= 0) {
-            campoValor.value = "";
-            return;
-        }
+            if (!dias || dias <= 0) {
+                campoValor.value = "";
+                return;
+            }
 
-        if (dias < 5) {
-            let desconto = (5 - dias) * 0.10;
-            valor = precoBase * (1 - desconto);
-        } else if (dias > 5) {
-            let acrescimo = (dias - 5) * 0.10;
-            valor = precoBase * (1 + acrescimo);
-        }
+            if (dias < 5) {
+                let desconto = (5 - dias) * 0.10;
+                valor = precoBase * (1 - desconto);
+            } else if (dias > 5) {
+                let acrescimo = (dias - 5) * 0.10;
+                valor = precoBase * (1 + acrescimo);
+            }
 
-        campoValor.value = formatarMoeda(valor);
-    });
+            campoValor.value = formatarMoeda(valor);
+        });
+    }
 });
 </script>
 
