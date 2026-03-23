@@ -38,10 +38,11 @@ if (!isset($_SESSION['login'])) {
                 <a href="gravarquartos.php">
                     <button type="button">Cadastrar novo quarto</button>
                 </a>
-                
-
-            <?php endif; ?>
-        
+                <a href="reservas.php">
+                    <button type="button">Gerenciar reservas</button>
+                </a>
+                <?php endif; ?>
+                    
         <p><?php
             include_once 'conexao.php';
 
@@ -51,10 +52,14 @@ if (!isset($_SESSION['login'])) {
                         if (mysqli_num_rows($result) > 0) {
                             while($row = mysqli_fetch_assoc($result)) {
                                 echo "<div class='quarto'>";
-                                echo "<h2>" . $row["quarto"] . "</h2>";
+                                $statusTexto = $row["status"] == 1 ? "Disponível" : "Reservado";
+                                echo "<h2>" . $row["quarto"] . " - " . $statusTexto . "</h2>";
                                 echo "Preço a partir de 5 noites: R$ " . number_format($row["preco"], 2, ',', '.') . "<br>
                                 (Aberto a negociação dependendo da quantidade de dias, da temporada e da disponibilidade)<br>";
-                                echo "<p><a href='informacoes_quarto.php?id=" . $row["id"] . "'>Informações adicionais</a></p><br>";
+                                echo "<p><a href='informacoes_quarto.php?id=" . $row["id"] . "'>Informações adicionais</a> <br>";
+                                if(isset($_SESSION['perfil']) && $_SESSION['perfil'] === 'adm'):
+                                    echo "<a href='edquarto.php?id=" . $row["id"] . "'>Editar</a>";
+                                endif;
                                 echo "</div>";
                             }
             } else {

@@ -65,7 +65,8 @@ if (!$dados_quarto) {
                     <option value="0" <?= $status_filter === '0' ? 'selected' : '' ?>>Inativos</option>
                 </select>
 
-                <input type="text" name="busca_item" placeholder="Buscar item..." value="<?= htmlspecialchars($_GET['busca_item'] ?? '') ?>">
+                <input type="text" name="busca_item" placeholder="Buscar item..." 
+                    value="<?= htmlspecialchars($_GET['busca_item'] ?? '') ?>">
                 <button type="submit">🔍</button>
                 <?php if ($_SESSION['perfil'] === 'adm'): ?>
                     <button type="button" onclick="window.location.href='cFrigobar.php?id=<?= $id_quarto ?>'">Cadastrar Item</button>
@@ -125,6 +126,8 @@ if (!$dados_quarto) {
 
         <div class="actions-footer" style="margin-top: 20px;">
             <input type="button" value="Voltar para Quartos" onclick="window.location.href='quartos.php'">
+            <input type="button" value="Reservar" onclick="window.location.href='Requarto.php?id=<?= $id_quarto ?>'">
+
         </div>
     </main>
 </body>

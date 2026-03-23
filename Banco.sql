@@ -11,6 +11,7 @@ CREATE TABLE quartos (
     tipo VARCHAR(50),
     preco DECIMAL(10, 2),
     descricao TEXT
+    status enum('1', '0') NOT NULL DEFAULT '1'
 );
 
 CREATE TABLE clientes (
@@ -37,4 +38,14 @@ CREATE TABLE frigobar (
     FOREIGN KEY (quarto_id) REFERENCES quartos(id)
     ON DELETE CASCADE
     ON UPDATE CASCADE
+);
+
+CREATE TABLE reservas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    quarto_id INT,
+    cliente_id INT,
+    data_reserva DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (quarto_id) REFERENCES quartos(id),
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id)
 );

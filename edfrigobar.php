@@ -2,7 +2,6 @@
 session_start();
 include_once './conexao.php';
 
-// Verificação de login e nível de acesso
 if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil'] !== 'adm') {
     header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
     exit();

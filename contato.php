@@ -16,7 +16,7 @@
 
     $exibirMenuCompleto = false;
 
-    // Se houver sessão, vamos validar no banco de dados agora
+    
     if (isset($_SESSION['login'])) {
         $login_atual = $_SESSION['login'];
         $stmt_check = $con->prepare("SELECT status FROM usuarios WHERE login = ?");
