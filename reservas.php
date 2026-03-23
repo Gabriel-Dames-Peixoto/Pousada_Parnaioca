@@ -10,6 +10,9 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
 <!DOCTYPE html>
 <html>
 <head>
+    
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="2.css">
@@ -43,77 +46,107 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
             <button type="button" onclick="window.location.href='cadastrouso2.php'">Novo Usuário</button>
         </form> 
         <?php
-            $search = isset($_GET['search']) ? $_GET['search'] : '';
+            $sql = "SELECT * FROM quartos ORDER BY id ASC";
+            $result = mysqli_query($con, $sql);
 
-            $sql = "SELECT id, quarto, tipo, preco, status FROM quartos WHERE 1=1";
+            if ($result && mysqli_num_rows($result) > 0) {
 
-            $params = [];
-            $types = "";
+                while ($row = mysqli_fetch_assoc($result)) {
 
-            $status = isset($_GET['status']) ? $_GET['status'] : '';
-            if ($status !== '') {
-                $sql .= " AND status = ?";
-                $params[] = $status;
-                $types .= "i";
-            }
+                    // Buscar reservas do quarto
+                    $stmt_res = $con->prepare("
+                        SELECT data_checkin, data_checkout 
+                        FROM reservas 
+                        WHERE quarto_id = ? AND status = 'ativa'
+                    ");
+                    $stmt_res->bind_param("i", $row['id']);
+                    $stmt_res->execute();
+                    $res = $stmt_res->get_result();
 
-            if ($search !== '') {
-                $sql .= " AND (id LIKE ? OR quarto LIKE ? OR tipo LIKE ? OR status LIKE ?)";
-                $term = "%$search%";
-                $params[] = $term;
-                $params[] = $term;
-                $params[] = $term;
-                $params[] = $term;
-                $types .= "ssss";
-            }
+                    $reservas = [];
+                    while ($r = $res->fetch_assoc()) {
+                        $reservas[] = $r;
+                    }
 
-            $sql .= " ORDER BY id ASC";
+                    $jsonReservas = json_encode($reservas);
 
-            $stmt = $con->prepare($sql);
+                    echo "<div class='quarto-box'>";
+                    echo "<h2 onclick='toggleCalendario(".$row['id'].")' style='cursor:pointer;'>
+                             ".htmlspecialchars($row['quarto'])."
+                        </h2>";
 
-            if ($types !== "") {
-                $stmt->bind_param($types, ...$params);
-            }
+                    echo "<div id='calendario-".$row['id']."' style='display:none;'>";
 
-            $stmt->execute();
-            $result = $stmt->get_result();
+                    echo "<div class='calendario' data-reservas='".htmlspecialchars($jsonReservas)."'></div>";
 
-            if ($result && $result->num_rows > 0) {
-                echo "<table border='1' cellpadding='5'>
-                    <tr>
-                    <th>ID</th>
-                    <th>Quarto</th>
-                    <th>Tipo</th>
-                    <th>Preço</th>
-                    <th>Status</th>
-                    <th>Ações</th>
-                    </tr>";
-                while ($row = $result->fetch_assoc()) {
-                $estilo = ($row['status'] == 0) ? "style='color: #ff3d3d;'" : "";
-                $textoStatus = ($row['status'] == 1) ? "Disponível" : "Reservado";
+                    echo "<br><a href='Requarto.php?id=".$row['id']."'>Reservar</a>";
 
-                echo "<tr $estilo>
-                    <td>".htmlspecialchars($row['id'])."</td>
-                    <td>".htmlspecialchars($row['quarto'])."</td>
-                    <td>".htmlspecialchars($row['tipo'])."</td>
-                    <td>".htmlspecialchars($row['preco'])."</td>
-                    <td>". $textoStatus ."</td>
-                    <td>
-                        <a href='Requarto.php?id=".htmlspecialchars($row['id'])."'>Reservar</a>
-                    </td>
-                    </tr>";
+                    echo "</div>";
+                    echo "<hr>";
                 }
-                echo "</table>";
-            } else {
-                echo "<p>Nenhum usuário encontrado.</p>";
-            }
 
-            $stmt->close();
-            $con->close();
+            } else {
+                echo "Nenhum quarto encontrado.";
+            }
         ?>
+
     </main>
     <footer>
         <p>&copy; 2026 Pousada Parnoica. Todos os direitos reservados.</p>
     </footer>
+    <script>
+        function toggleCalendario(id) {
+            let el = document.getElementById("calendario-" + id);
+            el.style.display = el.style.display === "none" ? "block" : "none";
+
+            if (!el.dataset.loaded) {
+                gerarCalendario(el);
+                el.dataset.loaded = true;
+            }
+        }
+
+        function gerarCalendario(container) {
+            const calendarioDiv = container.querySelector(".calendario");
+            const reservas = JSON.parse(calendarioDiv.dataset.reservas);
+
+            let hoje = new Date();
+
+            for (let i = 0; i < 30; i++) {
+                let dia = new Date();
+                dia.setDate(hoje.getDate() + i);
+
+                let ocupado = false;
+
+                reservas.forEach(r => {
+                    let inicio = new Date(r.data_checkin);
+                    let fim = new Date(r.data_checkout);
+
+                    if (dia >= inicio && dia <= fim) {
+                        ocupado = true;
+                    }
+                });
+
+                let span = document.createElement("span");
+                span.innerText = dia.getDate();
+
+                span.style.display = "inline-block";
+                span.style.width = "30px";
+                span.style.margin = "2px";
+                span.style.textAlign = "center";
+                span.style.padding = "5px";
+
+                if (ocupado) {
+                    span.style.background = "#ff4d4d"; // vermelho
+                    span.style.color = "#fff";
+                } else {
+                    span.style.background = "#4CAF50"; // verde
+                    span.style.color = "#fff";
+                }
+
+                calendarioDiv.appendChild(span);
+            }
+        }
+    </script>
+
     </body>
 </html>
