@@ -124,14 +124,22 @@ footer {
     color: white;
 }
 
-quarto-box {
+.quarto-box {
     border: 1px solid #ccc;
     padding: 10px;
     margin-bottom: 15px;
     border-radius: 8px;
 }
 
-calendario table {
+.calendario table {
     width: 100%;
     border-collapse: collapse;
+}
+.calendario th, .calendario td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+}
+.calendario th {
+    background-color: #f4f4f4;
 }

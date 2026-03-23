@@ -2,7 +2,6 @@
 session_start();
 include_once './conexao.php';
 if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
-    // Se não houver login na sessão, manda de volta para o index
     header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
     exit();
 }
@@ -53,7 +52,7 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
 
                 while ($row = mysqli_fetch_assoc($result)) {
 
-                    // Buscar reservas do quarto
+                    
                     $stmt_res = $con->prepare("
                         SELECT data_checkin, data_checkout 
                         FROM reservas 
@@ -98,13 +97,13 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
         function toggleCalendario(id) {
             let el = document.getElementById("calendario-" + id);
             el.style.display = el.style.display === "none" ? "block" : "none";
-
+            
             if (!el.dataset.loaded) {
                 gerarCalendario(el);
                 el.dataset.loaded = true;
             }
         }
-
+        
         function gerarCalendario(container) {
             const calendarioDiv = container.querySelector(".calendario");
             const reservas = JSON.parse(calendarioDiv.dataset.reservas);
@@ -125,7 +124,7 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
                         ocupado = true;
                     }
                 });
-
+                
                 let span = document.createElement("span");
                 span.innerText = dia.getDate();
 
@@ -134,19 +133,19 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
                 span.style.margin = "2px";
                 span.style.textAlign = "center";
                 span.style.padding = "5px";
-
+                
                 if (ocupado) {
-                    span.style.background = "#ff4d4d"; // vermelho
+                    span.style.background = "#ff4d4d"; 
                     span.style.color = "#fff";
                 } else {
-                    span.style.background = "#4CAF50"; // verde
+                    span.style.background = "#4CAF50"; 
                     span.style.color = "#fff";
                 }
-
+                
                 calendarioDiv.appendChild(span);
             }
         }
-    </script>
 
+    </script>
     </body>
 </html>

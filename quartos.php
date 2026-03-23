@@ -67,7 +67,7 @@ if (!isset($_SESSION['login'])) {
 
             $ocupado = $result_status['total'] > 0;
 
-            // STATUS VISUAL
+            
             $statusTexto = $ocupado 
                 ? "<span style='color:red;'>🔴 Reservado</span>" 
                 : "<span style='color:green;'>🟢 Disponível</span>";
@@ -85,7 +85,6 @@ if (!isset($_SESSION['login'])) {
                 echo "<span style='color:gray;'>Indisponível no momento</span><br>";
             }
 
-            // ADMIN
             if (isset($_SESSION['perfil']) && $_SESSION['perfil'] === 'adm') {
                 echo "<a href='edquarto.php?id=" . $row["id"] . "'>Editar</a>";
             }
