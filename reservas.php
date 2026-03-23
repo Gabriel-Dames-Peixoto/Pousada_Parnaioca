@@ -40,9 +40,8 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
                 <option value="1" <?php if (isset($_GET['status']) && $_GET['status'] === '1') echo 'selected'; ?>>disponível</option>
                 <option value="0" <?php if (isset($_GET['status']) && $_GET['status'] === '0') echo 'selected'; ?>>reservados</option>
             </select>
-            <input type="text" name="search" placeholder="Pesquisar usuário" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+            <input type="text" name="search" placeholder="Pesquisar quarto" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
             <button type="submit">Pesquisar</button>
-            <button type="button" onclick="window.location.href='cadastrouso2.php'">Novo Usuário</button>
         </form> 
         <?php
             $sql = "SELECT * FROM quartos ORDER BY id ASC";
