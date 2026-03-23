@@ -138,6 +138,13 @@ $busca = filter_input(INPUT_GET, 'busca_cliente', FILTER_SANITIZE_SPECIAL_CHARS)
 document.addEventListener("DOMContentLoaded", function() {
     const precoBase = <?= $dados_quarto['preco'] ?>;
 
+    const formatarMoeda = (valor) => {
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL',
+        }).format(valor);
+    };
+
     const inputDias = document.querySelector('input[name="dias"]');
     const campoValor = document.getElementById('valor_final');
 
@@ -158,7 +165,7 @@ document.addEventListener("DOMContentLoaded", function() {
             valor = precoBase * (1 + acrescimo);
         }
 
-        campoValor.value = "R$ " + valor.toFixed(2);
+        campoValor.value = formatarMoeda(valor);
     });
 });
 </script>
