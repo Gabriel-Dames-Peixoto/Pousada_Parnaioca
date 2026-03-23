@@ -14,7 +14,7 @@ if (!$id_quarto) {
 }
 
 // Buscar dados do quarto
-$stmt_q = $con->prepare("SELECT quarto, preco, descricao, status FROM quartos WHERE id = ?");
+$stmt_q = $con->prepare("SELECT quarto, preco, descricao FROM quartos WHERE id = ?");
 $stmt_q->bind_param("i", $id_quarto);
 $stmt_q->execute();
 $dados_quarto = $stmt_q->get_result()->fetch_assoc();
@@ -24,23 +24,46 @@ if (!$dados_quarto) {
     die("Quarto não encontrado.");
 }
 
-// PROCESSAMENTO DO POST
+// PROCESSAMENTO
 if (isset($_POST['reservar'])) {
 
     $quarto_id = $_POST['quarto_id'];
     $cliente_id = $_POST['cliente_id'];
-    $dias = (int) $_POST['dias'];
+    $checkin = $_POST['checkin'];
+    $checkout = $_POST['checkout'];
 
-    // Validação
-    if (!$cliente_id || !$dias || $dias <= 0) {
+    if (!$cliente_id || !$checkin || !$checkout) {
         die("Dados inválidos.");
     }
 
-    // Verificar se já está reservado
-    if ($dados_quarto['status'] == 0) {
-        die("Este quarto já está reservado.");
+    // VERIFICAR CONFLITO (SUA QUERY APLICADA)
+    $stmt_check = $con->prepare("
+        SELECT * FROM reservas 
+        WHERE quarto_id = ? 
+        AND status = 'ativa'
+        AND (
+            data_checkin <= ? AND data_checkout >= ?
+        )
+    ");
+
+    $stmt_check->bind_param("iss", $quarto_id, $checkout, $checkin);
+    $stmt_check->execute();
+    $reserva_existente = $stmt_check->get_result();
+
+    if ($reserva_existente->num_rows > 0) {
+        die("❌ Este quarto já está reservado nesse período.");
     }
 
+    // CALCULAR DIAS
+    $data1 = new DateTime($checkin);
+    $data2 = new DateTime($checkout);
+    $dias = $data1->diff($data2)->days;
+
+    if ($dias <= 0) {
+        die("Check-out deve ser após o check-in.");
+    }
+
+    // CALCULAR VALOR
     $precoBase = $dados_quarto['preco'];
     $valorFinal = $precoBase;
 
@@ -52,22 +75,21 @@ if (isset($_POST['reservar'])) {
         $valorFinal = $precoBase * (1 + $acrescimo);
     }
 
-    // Inserir reserva
-    $stmt = $con->prepare("INSERT INTO reservas (quarto_id, cliente_id, valor_total) VALUES (?, ?, ?)");
-    $stmt->bind_param("iid", $quarto_id, $cliente_id, $valorFinal);
+    // INSERIR RESERVA
+    $stmt = $con->prepare("
+        INSERT INTO reservas 
+        (quarto_id, cliente_id, valor_total, data_checkin, data_checkout, status) 
+        VALUES (?, ?, ?, ?, ?, 'ativa')
+    ");
+
+    $stmt->bind_param("iidss", $quarto_id, $cliente_id, $valorFinal, $checkin, $checkout);
     $stmt->execute();
 
-    // Atualizar status do quarto
-    $stmt2 = $con->prepare("UPDATE quartos SET status = 0 WHERE id = ?");
-    $stmt2->bind_param("i", $quarto_id);
-    $stmt2->execute();
-
-    // Redirecionar (evita duplicação)
     header("Location: Requarto.php?id=$quarto_id&sucesso=1");
     exit();
 }
 
-// BUSCA DE CLIENTE
+// BUSCA CLIENTE
 $busca = filter_input(INPUT_GET, 'busca_cliente', FILTER_SANITIZE_SPECIAL_CHARS) ?? '';
 ?>
 
@@ -77,8 +99,7 @@ $busca = filter_input(INPUT_GET, 'busca_cliente', FILTER_SANITIZE_SPECIAL_CHARS)
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="2.css">
-    <link rel="shortcut icon" href="./imagens/ipousada.png">
-    <title>Pousada Parnoica - Reserva</title>
+    <title>Reserva de Quarto</title>
 </head>
 
 <body>
@@ -96,41 +117,31 @@ $busca = filter_input(INPUT_GET, 'busca_cliente', FILTER_SANITIZE_SPECIAL_CHARS)
 
     <p>
         <strong>Preço base (5 noites):</strong>
-        R$ <?= number_format($dados_quarto['preco'], 2, ',', '.') ?><br>
-        (Valor varia conforme quantidade de dias)
+        R$ <?= number_format($dados_quarto['preco'], 2, ',', '.') ?>
     </p>
 
-    <!-- STATUS DO QUARTO -->
-    <p>
-        <strong>Status:</strong>
-        <?= $dados_quarto['status'] == 1 ? "Disponível" : "<span style='color:red;'>Reservado</span>" ?>
-    </p>
-
-    <!-- MENSAGEM -->
     <?php if (isset($_GET['sucesso'])): ?>
-        <p style="color:green;">Reserva realizada com sucesso!</p>
-        <button onclick="window.location.href='quartos.php'">Voltar para Quartos</button>
+        <p style="color:green;">✅ Reserva realizada com sucesso!</p>
+        <button onclick="window.location.href='quartos.php'">Voltar</button>
     <?php endif; ?>
 
     <hr>
 
-    <!-- BUSCA DE CLIENTE -->
+    <!-- BUSCA -->
     <form method="GET">
         <input type="hidden" name="id" value="<?= $id_quarto ?>">
-        <input type="text" name="busca_cliente" placeholder="Buscar por nome ou CPF" value="<?= htmlspecialchars($busca) ?>">
+        <input type="text" name="busca_cliente" placeholder="Buscar cliente" value="<?= htmlspecialchars($busca) ?>">
         <button type="submit">Buscar</button>
     </form>
 
     <br>
 
-    <!-- FORM DE RESERVA -->
-    <?php if ($dados_quarto['status'] == 1): ?>
+    <!-- RESERVA -->
     <form method="POST">
 
         <input type="hidden" name="quarto_id" value="<?= $id_quarto ?>">
 
-        <label>Selecionar cliente:</label><br>
-
+        <label>Cliente:</label><br>
         <select name="cliente_id" required>
             <?php
             $sql_clientes = "SELECT * FROM clientes WHERE nome LIKE ? OR cpf LIKE ?";
@@ -151,8 +162,13 @@ $busca = filter_input(INPUT_GET, 'busca_cliente', FILTER_SANITIZE_SPECIAL_CHARS)
 
         <br><br>
 
-        <label>Quantidade de dias:</label><br>
-        <input type="number" name="dias" min="1" required>
+        <label>Check-in:</label><br>
+        <input type="date" name="checkin" required>
+
+        <br><br>
+
+        <label>Check-out:</label><br>
+        <input type="date" name="checkout" required>
 
         <br><br>
 
@@ -164,47 +180,55 @@ $busca = filter_input(INPUT_GET, 'busca_cliente', FILTER_SANITIZE_SPECIAL_CHARS)
         <button type="submit" name="reservar">Reservar</button>
 
     </form>
-    <?php else: ?>
-        <p style="color:red;">Este quarto já está reservado.</p>
-    <?php endif; ?>
-
 </main>
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
+
     const precoBase = <?= $dados_quarto['preco'] ?>;
 
     const formatarMoeda = (valor) => {
         return new Intl.NumberFormat('pt-BR', {
             style: 'currency',
-            currency: 'BRL',
+            currency: 'BRL'
         }).format(valor);
     };
 
-    const inputDias = document.querySelector('input[name="dias"]');
+    const checkin = document.querySelector('input[name="checkin"]');
+    const checkout = document.querySelector('input[name="checkout"]');
     const campoValor = document.getElementById('valor_final');
 
-    if (inputDias) {
-        inputDias.addEventListener('input', function() {
-            let dias = parseInt(this.value);
-            let valor = precoBase;
+    function calcularValor() {
 
-            if (!dias || dias <= 0) {
-                campoValor.value = "";
-                return;
-            }
+        if (!checkin.value || !checkout.value) {
+            campoValor.value = "";
+            return;
+        }
 
-            if (dias < 5) {
-                let desconto = (5 - dias) * 0.10;
-                valor = precoBase * (1 - desconto);
-            } else if (dias > 5) {
-                let acrescimo = (dias - 5) * 0.10;
-                valor = precoBase * (1 + acrescimo);
-            }
+        let data1 = new Date(checkin.value);
+        let data2 = new Date(checkout.value);
 
-            campoValor.value = formatarMoeda(valor);
-        });
+        let dias = (data2 - data1) / (1000 * 60 * 60 * 24);
+
+        if (dias <= 0) {
+            campoValor.value = "Datas inválidas";
+            return;
+        }
+
+        let valor = precoBase;
+
+        if (dias < 5) {
+            valor *= (1 - (5 - dias) * 0.10);
+        } else if (dias > 5) {
+            valor *= (1 + (dias - 5) * 0.10);
+        }
+
+        campoValor.value = formatarMoeda(valor);
     }
+
+    checkin.addEventListener("change", calcularValor);
+    checkout.addEventListener("change", calcularValor);
+
 });
 </script>
 
