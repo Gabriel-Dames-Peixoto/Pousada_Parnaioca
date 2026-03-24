@@ -1,7 +1,7 @@
                 <li><a href="inicio.php">Início</a></li>
                 <li><a href="quartos.php">Quartos</a></li>
-                <?php if(isset($_SESSION['perfil']) && $_SESSION['perfil'] === 'adm'): ?>
                 <li><a href="reservas.php">Reservas</a></li>
+                <?php if(isset($_SESSION['perfil']) && $_SESSION['perfil'] === 'adm'): ?>
                 <li><a href="clientes.php">Clientes</a></li>
                 <li><a href="usuarios.php">Usuários</a></li>
                 <?php endif; ?>
