@@ -89,7 +89,6 @@ if (isset($_POST['reservar'])) {
     exit();
 }
 
-// BUSCA CLIENTE
 $busca = filter_input(INPUT_GET, 'busca_cliente', FILTER_SANITIZE_SPECIAL_CHARS) ?? '';
 ?>
 
