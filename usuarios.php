@@ -35,7 +35,7 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
             </select>
             <input type="text" name="search" placeholder="Pesquisar usuário" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
             <button type="submit">Pesquisar</button>
-            <button type="button" onclick="window.location.href='cadastrouso2.php'">Novo Usuário</button>
+            <button type="button" onclick="window.location.href='cadastrouso.php'">Novo Usuário</button>
         </form> 
 
        <?php

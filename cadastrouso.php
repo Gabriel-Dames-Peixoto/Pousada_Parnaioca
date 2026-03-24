@@ -1,3 +1,12 @@
+<?php
+session_start();
+include_once './conexao.php';
+if (!isset($_SESSION['login']) || $_SESSION['status'] !== '1') {
+    // Se não houver login na sessão, manda de volta para o index
+    header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
+    exit();
+}
+?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -31,7 +40,7 @@
                 }
                 ?>
                 
-                <form method="POST" action="gravar.php" class="form-login">
+                <form method="POST" action="gravar2.php" class="form-login">
                     <div class="form-group">
                         <label for="usuario">Usuário:</label>
                         <input type="text" id="usuario" name="usuario" required>
@@ -46,17 +55,14 @@
                         <label for="perfil">Perfil:</label>
                         <select id="perfil" name="perfil" required>
                             <option value="">Selecione um perfil</option>
-                            <option value="user">Cliente</option>
+                            <option value="user">Usuario</option>
                             <option value="adm">Administrador</option>
                         </select>
                     </div>
                     
                     <button type="submit" class="btn-login">Cadastrar</button>
+                    <a href="usuarios.php" class="btn-cancel">Cancelar</a>
                 </form>
-                
-                <p class="link-cadastrouso">
-                    Já tem conta? <a href="index.php">Faça login aqui</a>
-                </p>
             </div>
         </div>
     </main>
