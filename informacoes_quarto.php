@@ -95,8 +95,11 @@ if (isset($_POST['reservar'])) {
             <?php if ($dados_reserva): ?>
                 <p style="background-color: #fff3cd; padding: 10px; border-left: 5px solid #ffc107;">
                     <strong>📅 Status:</strong> Reservado de 
+                    
                     <?= date('d/m/Y', strtotime($dados_reserva['data_checkin'])) ?> até 
-                    <?= date('d/m/Y', strtotime($dados_reserva['data_checkout'])) ?>
+                    <?= date('d/m/Y', strtotime($dados_reserva['data_checkout'])) ?>,
+
+                    <br><small>(Este quarto não estará disponível para novas reservas nesse período)</small>
                 </p>
             <?php else: ?>
                 <p style="color: green; font-weight: bold;">✅ Disponível para reserva.</p>
