@@ -24,6 +24,45 @@ $stmt_q->close();
 if (!$dados_quarto) {
     die("Quarto não encontrado.");
 }
+// 2.1 BUSCAR RESERVA ATIVA PARA ESTE QUARTO (Para exibir as datas na tela)
+$stmt_res = $con->prepare("SELECT data_checkin, data_checkout FROM reservas WHERE quarto_id = ? AND status = 'ativa' LIMIT 1");
+$stmt_res->bind_param("i", $id_quarto);
+$stmt_res->execute();
+$dados_reserva = $stmt_res->get_result()->fetch_assoc();
+$stmt_res->close();
+
+if (isset($_POST['reservar'])) {
+    $quarto_id = $_POST['quarto_id'];
+    $cliente_id = $_POST['cliente_id'];
+    $checkin = $_POST['checkin'];
+    $checkout = $_POST['checkout'];
+
+    if (!$cliente_id || !$checkin || !$checkout) {
+        die("Dados inválidos.");
+    }
+
+    $stmt_check = $con->prepare("
+        SELECT * FROM reservas 
+        WHERE quarto_id = ? 
+        AND status = 'ativa'
+        AND (
+            data_checkin <= ? AND data_checkout >= ?
+        )
+    ");
+
+    $stmt_check->bind_param("iss", $quarto_id, $checkout, $checkin);
+    $stmt_check->execute();
+    $reserva_existente = $stmt_check->get_result();
+
+    if ($reserva_existente->num_rows > 0) {
+        die("❌ Este quarto já está reservado nesse período.");
+    }
+
+    $data1 = new DateTime($checkin);
+    $data2 = new DateTime($checkout);
+    $dias = $data1->diff($data2)->days;
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -46,13 +85,23 @@ if (!$dados_quarto) {
     <main>
         <section class="quarto-info">
             <h1>Quarto: <?= htmlspecialchars($dados_quarto['quarto']) ?></h1>
-            <p><strong>Preço a partir de 5 noites:</strong> R$ <?= number_format($dados_quarto['preco'], 2, ',', '.') 
-            . "<br>(Aberto a negociação dependendo da quantidade de dias, da temporada e da disponibilidade)<br>"?></p>
+            <p><strong>Preço a partir de 5 noites:</strong> R$ <?= number_format($dados_quarto['preco'], 2, ',', '.') ?>
+            <br><small>(Aberto a negociação dependendo da quantidade de dias, temporada e disponibilidade)</small></p>
+            
             <p><strong>Descrição:</strong> <?= nl2br(htmlspecialchars($dados_quarto['descricao'])) ?></p>
-            <p><strong>Capacidade:</strong> <?= nl2br(htmlspecialchars($dados_quarto['capacidade'])) ?></p>
-            <p><strong>Vagas de Estacionamento:</strong> <?= nl2br(htmlspecialchars($dados_quarto['vagas_estacionamento'])) ?></p>
-        </section>
+            <p><strong>Capacidade:</strong> <?= htmlspecialchars($dados_quarto['capacidade']) ?> pessoas</p>
+            <p><strong>Vagas de Estacionamento:</strong> <?= htmlspecialchars($dados_quarto['vagas_estacionamento']) ?></p>
 
+            <?php if ($dados_reserva): ?>
+                <p style="background-color: #fff3cd; padding: 10px; border-left: 5px solid #ffc107;">
+                    <strong>📅 Status:</strong> Reservado de 
+                    <?= date('d/m/Y', strtotime($dados_reserva['data_checkin'])) ?> até 
+                    <?= date('d/m/Y', strtotime($dados_reserva['data_checkout'])) ?>
+                </p>
+            <?php else: ?>
+                <p style="color: green; font-weight: bold;">✅ Disponível para reserva.</p>
+            <?php endif; ?>
+        </section>
         <hr>
 
         <section class="frigobar-section">
