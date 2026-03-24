@@ -52,7 +52,7 @@ $quarto_data = $resQuarto->fetch_assoc();
     </header>
 <body>
     <main>
-    <h1>Cadastro de Quartos</h1>
+    <h1>Editar Quarto <?php echo htmlspecialchars($quarto_data['quarto']); ?></h1>
     
     <?php echo $mensagem; ?>
 
@@ -71,6 +71,11 @@ $quarto_data = $resQuarto->fetch_assoc();
         <label for="preco">Preço:</label>
         <input type="number" id="preco" name="preco" step="0.01" value="<?php echo htmlspecialchars($dados_quarto['preco']); ?>" required><br><br>
 
+        <label for="Status">Status</label>
+        <select id="Status" name="Status" required>
+            <option value="disponivel" <?php if ($dados_quarto['status'] === '1') echo 'selected'; ?>>Disponível</option>
+            <option value="indisponivel" <?php if ($dados_quarto['status'] === '2') echo 'selected'; ?>>Indisponível</option>
+        </select><br><br>
         <input type="submit" value="Gravar">
     
     
