@@ -147,8 +147,8 @@ if (isset($_POST['reservar'])) {
                             <th>Item</th>
                             <th>Valor</th>
                             <th>Qtd</th>
-                            <th>Status</th>
                             <?php if ($_SESSION['perfil'] === 'adm'): ?>
+                                <th>Status</th>
                                 <th>Ações</th>
                             <?php endif; ?>
                         </tr>
@@ -162,8 +162,8 @@ if (isset($_POST['reservar'])) {
                                 <td><?= htmlspecialchars($row['nome']) ?></td>
                                 <td>R$ <?= number_format($row['valor'], 2, ',', '.') ?></td>
                                 <td><?= htmlspecialchars($row['quantidade']) ?></td>
-                                <td style="color: <?= $corStatus ?>; font-weight: bold;"><?= $textoStatus ?></td>
                                 <?php if ($_SESSION['perfil'] === 'adm'): ?>
+                                    <td style="color: <?= $corStatus ?>; font-weight: bold;"><?= $textoStatus ?></td>
                                     <td>
                                         <a href="edFrigobar.php?id=<?= $row['id'] ?>">Editar</a>
                                     </td>
