@@ -86,7 +86,7 @@ if (isset($_POST['reservar'])) {
         <section class="quarto-info">
             <h1>Quarto: <?= htmlspecialchars($dados_quarto['quarto']) ?></h1>
             <p><strong>Preço a partir de 5 noites:</strong> R$ <?= number_format($dados_quarto['preco'], 2, ',', '.') ?>
-            <br><small>(Aberto a negociação dependendo da quantidade de dias, temporada e disponibilidade)</small></p>
+            <br><small>(Preço pode variar dependendo da quantidade de dias e da temporada)</small></p>
             
             <p><strong>Descrição:</strong> <?= nl2br(htmlspecialchars($dados_quarto['descricao'])) ?></p>
             <p><strong>Capacidade:</strong> <?= htmlspecialchars($dados_quarto['capacidade']) ?> pessoas</p>
