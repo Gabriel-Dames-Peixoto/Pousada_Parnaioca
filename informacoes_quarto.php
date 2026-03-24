@@ -15,7 +15,7 @@ if (!$id_quarto) {
     die("Nenhum quarto selecionado.");
 }
 
-$stmt_q = $con->prepare("SELECT quarto, preco, descricao FROM quartos WHERE id = ?");
+$stmt_q = $con->prepare("SELECT quarto, preco, descricao, capacidade, vagas_estacionamento FROM quartos WHERE id = ?");
 $stmt_q->bind_param("i", $id_quarto);
 $stmt_q->execute();
 $dados_quarto = $stmt_q->get_result()->fetch_assoc();
@@ -49,6 +49,8 @@ if (!$dados_quarto) {
             <p><strong>Preço a partir de 5 noites:</strong> R$ <?= number_format($dados_quarto['preco'], 2, ',', '.') 
             . "<br>(Aberto a negociação dependendo da quantidade de dias, da temporada e da disponibilidade)<br>"?></p>
             <p><strong>Descrição:</strong> <?= nl2br(htmlspecialchars($dados_quarto['descricao'])) ?></p>
+            <p><strong>Capacidade:</strong> <?= nl2br(htmlspecialchars($dados_quarto['capacidade'])) ?></p>
+            <p><strong>Vagas de Estacionamento:</strong> <?= nl2br(htmlspecialchars($dados_quarto['vagas_estacionamento'])) ?></p>
         </section>
 
         <hr>

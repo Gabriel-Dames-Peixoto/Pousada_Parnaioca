@@ -14,7 +14,7 @@ if (!$id_quarto) {
 }
 
 // Buscar dados do quarto
-$stmt_q = $con->prepare("SELECT quarto, preco, descricao FROM quartos WHERE id = ?");
+$stmt_q = $con->prepare("SELECT quarto, preco, descricao, capacidade, vagas_estacionamento FROM quartos WHERE id = ?");
 $stmt_q->bind_param("i", $id_quarto);
 $stmt_q->execute();
 $dados_quarto = $stmt_q->get_result()->fetch_assoc();
@@ -160,6 +160,9 @@ $busca = filter_input(INPUT_GET, 'busca_cliente', FILTER_SANITIZE_SPECIAL_CHARS)
         </select>
 
         <br><br>
+
+        <label>Quantidade de pessoas:</label>
+        <input type="number" name="quantidade_pessoas" min="1" max="<?= $dados_quarto['capacidade'] ?>" required><br><br>
 
         <label>Check-in:</label><br>
         <input type="date" name="checkin" required>

@@ -11,6 +11,8 @@ CREATE TABLE quartos (
     tipo VARCHAR(50),
     preco DECIMAL(10, 2),
     descricao TEXT
+    capacidade INT,
+    vagas_estacionamento INT,
     status enum('1', '0') NOT NULL DEFAULT '1'
 );
 
