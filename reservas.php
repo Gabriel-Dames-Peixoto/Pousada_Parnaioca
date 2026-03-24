@@ -65,8 +65,10 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
 
             echo "<div class='calendario' data-id='".$row['id']."' data-reservas='".$jsonReservas."'></div>";
 
-            echo "<br><a href='Requarto.php?id=".$row['id']."'>Reservar</a>";
-
+            echo "<br><a href='Requarto.php?id=".$row['id']."'>Reservar </a>";
+            if (isset($_SESSION['perfil']) && $_SESSION['perfil'] === 'adm') {
+                echo "<a href='CanReserva.php?id=" . $row["id"] . "'>| Cancelar Reserva</a>";
+            }
             echo "</div>";
             echo "</div>";
         }

@@ -55,8 +55,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $update_stmt->bind_param("i", $id_reserva);
     if ($update_stmt->execute()) {
         echo "<p style='color:green;'>Reserva cancelada com sucesso!</p>";
+        header("Refresh: 2; URL=reservas.php");
     } else {
         echo "<p style='color:red;'>Erro ao cancelar a reserva. Tente novamente.</p>";
     }
 }
-    
+
