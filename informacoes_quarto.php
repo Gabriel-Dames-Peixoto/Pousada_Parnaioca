@@ -113,12 +113,13 @@ if (isset($_POST['reservar'])) {
             <form method="GET" action="" class="filter-form">
                 <input type="hidden" name="id" value="<?= $id_quarto ?>">
                 
+                <?php if ($_SESSION['perfil'] === 'adm'): ?>
                 <select name="item_status" onchange="this.form.submit()">
                     <option value="" <?= $status_filter === '' ? 'selected' : '' ?>>Todos os Status</option>
                     <option value="1" <?= $status_filter === '1' ? 'selected' : '' ?>>Ativos</option>
                     <option value="0" <?= $status_filter === '0' ? 'selected' : '' ?>>Inativos</option>
                 </select>
-
+                <?php endif; ?>
                 <input type="text" name="busca_item" placeholder="Buscar item..." 
                     value="<?= htmlspecialchars($_GET['busca_item'] ?? '') ?>">
                 <button type="submit">🔍</button>
