@@ -32,7 +32,7 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
 
     <main>
         <h1>Finalizar Reservas</h1>
-            <form method="POST" action="CanReserva.php">
+            <form method="POST" action="FiReserva.php">
                 <label for="id_reserva">ID da Reserva:</label>
                 <input type="number" id="id_reserva" name="id_reserva" required>
                 <button type="submit">Finalizar Reserva</button>
