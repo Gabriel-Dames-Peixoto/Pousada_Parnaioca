@@ -2,7 +2,7 @@
 session_start();
 include_once './conexao.php';
 
-if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
+if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil'] !== 'adm') {
     header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
     exit();
 }
@@ -58,7 +58,9 @@ while ($row = mysqli_fetch_assoc($result)) {
 
     echo "<div id='calendario-".$row['id']."' class='container-calendario'>";
     echo "<div class='calendario' data-id='".$row['id']."' data-reservas='".$jsonReservas."'></div>";
-    echo "<br><a href='Requarto.php?id=".$row['id']."'>Reservar</a>" . " | " . "<a href='CanReserva.php?id=".$row['id']."'>Cancelar</a>";
+    echo "<br><a href='Requarto.php?id=".$row['id']."'>Reservar</a>" . " | " 
+            . "<a href='CanReserva.php?id=".$row['id']."'>Cancelar</a>" . " | " 
+            . "<a href='FiReserva.php?id=".$row['id']."'>Finalizar reserva</a>";
     echo "</div>";
 
     echo "</div>";
