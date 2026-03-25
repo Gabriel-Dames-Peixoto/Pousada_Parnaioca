@@ -16,7 +16,7 @@ if ($stmt) {
     
     if (mysqli_stmt_execute($stmt)) {
         // Redireciona com mensagem de sucesso
-        header("Location: index.php?sucesso=" . urlencode("Cadastro realizado com sucesso!"));
+        header("Location: usuarios.php?sucesso=" . urlencode("Cadastro realizado com sucesso!"));
         exit();
     } else {
         header("Location: cadastrouso.php?erro=" . urlencode("Erro ao gravar no banco."));

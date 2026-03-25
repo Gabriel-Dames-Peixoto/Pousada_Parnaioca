@@ -151,3 +151,40 @@ main {
 .dia:hover {
     transform: scale(1.05);
 }
+
+/* Header do calendário */
+.cal-header {
+    grid-column: span 7;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #2c3e50;
+    color: white;
+    padding: 5px;
+    border-radius: 6px;
+}
+
+.cal-header button {
+    background: #3498db;
+    border: none;
+    color: white;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.cal-header button:hover {
+    background: #2980b9;
+}
+
+/* Dia passado */
+.dia-passado {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
+}
+
+/* Melhora hover */
+.dia-livre:hover {
+    background-color: #45a049;
+}

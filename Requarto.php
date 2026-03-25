@@ -14,7 +14,7 @@ if (!$id_quarto) {
 }
 
 // Buscar dados do quarto
-$stmt_q = $con->prepare("SELECT quarto, preco, descricao, capacidade, vagas_estacionamento FROM quartos WHERE id = ?");
+$stmt_q = $con->prepare("SELECT quarto, preco, descricao, capacidade FROM quartos WHERE id = ?");
 $stmt_q->bind_param("i", $id_quarto);
 $stmt_q->execute();
 $dados_quarto = $stmt_q->get_result()->fetch_assoc();
@@ -36,7 +36,13 @@ if (isset($_POST['reservar'])) {
         die("Dados inválidos.");
     }
 
-    // VERIFICAR CONFLITO (SUA QUERY APLICADA)
+    // VALIDAR DATA PASSADA
+    $hoje = date('Y-m-d');
+    if ($checkin < $hoje) {
+        die("❌ Não é permitido reservar datas passadas.");
+    }
+
+    // VERIFICAR CONFLITO
     $stmt_check = $con->prepare("
         SELECT * FROM reservas 
         WHERE quarto_id = ? 
@@ -68,11 +74,9 @@ if (isset($_POST['reservar'])) {
     $valorFinal = $precoBase;
 
     if ($dias < 5) {
-        $desconto = (5 - $dias) * 0.10;
-        $valorFinal = $precoBase * (1 - $desconto);
+        $valorFinal *= (1 - (5 - $dias) * 0.10);
     } elseif ($dias > 5) {
-        $acrescimo = ($dias - 5) * 0.10;
-        $valorFinal = $precoBase * (1 + $acrescimo);
+        $valorFinal *= (1 + ($dias - 5) * 0.10);
     }
 
     // INSERIR RESERVA
@@ -85,7 +89,7 @@ if (isset($_POST['reservar'])) {
     $stmt->bind_param("iidss", $quarto_id, $cliente_id, $valorFinal, $checkin, $checkout);
     $stmt->execute();
 
-    header("Location: quartos.php?id=$quarto_id&sucesso=1");
+    header("Location: quartos.php?sucesso=1");
     exit();
 }
 
@@ -96,7 +100,6 @@ $busca = filter_input(INPUT_GET, 'busca_cliente', FILTER_SANITIZE_SPECIAL_CHARS)
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="2.css">
     <title>Reserva de Quarto</title>
 </head>
@@ -118,11 +121,6 @@ $busca = filter_input(INPUT_GET, 'busca_cliente', FILTER_SANITIZE_SPECIAL_CHARS)
         <strong>Preço base (5 noites):</strong>
         R$ <?= number_format($dados_quarto['preco'], 2, ',', '.') ?>
     </p>
-
-    <?php if (isset($_GET['sucesso'])): ?>
-        <p style="color:green;">✅ Reserva realizada com sucesso!</p>
-        <button onclick="window.location.href='quartos.php'">Voltar</button>
-    <?php endif; ?>
 
     <hr>
 
@@ -162,7 +160,9 @@ $busca = filter_input(INPUT_GET, 'busca_cliente', FILTER_SANITIZE_SPECIAL_CHARS)
         <br><br>
 
         <label>Quantidade de pessoas:</label>
-        <input type="number" name="quantidade_pessoas" min="1" max="<?= $dados_quarto['capacidade'] ?>" required><br><br>
+        <input type="number" name="quantidade_pessoas" min="1" max="<?= $dados_quarto['capacidade'] ?>" required>
+
+        <br><br>
 
         <label>Check-in:</label><br>
         <input type="date" name="checkin" required>
@@ -209,11 +209,18 @@ document.addEventListener("DOMContentLoaded", function() {
 
         let data1 = new Date(checkin.value);
         let data2 = new Date(checkout.value);
+        let hoje = new Date();
+        hoje.setHours(0,0,0,0);
 
         let dias = (data2 - data1) / (1000 * 60 * 60 * 24);
 
         if (dias <= 0) {
             campoValor.value = "Datas inválidas";
+            return;
+        }
+
+        if (data1 < hoje) {
+            campoValor.value = "Data inválida (passado)";
             return;
         }
 

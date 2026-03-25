@@ -40,7 +40,7 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] !== '1') {
                 }
                 ?>
                 
-                <form method="POST" action="gravar2.php" class="form-login">
+                <form method="POST" action="gravar.php" class="form-login">
                     <div class="form-group">
                         <label for="usuario">Usuário:</label>
                         <input type="text" id="usuario" name="usuario" required>

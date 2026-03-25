@@ -45,7 +45,7 @@
                 <button type="submit" class="btn-login">Entrar</button>
             </form>
             
-            <p class="link-contato">
+            <br><br><p class="link-contato">
                 Caso o login não estja funcionando! <a href="contato.php">Entre em cotato</a>
             </p>
         </div>
