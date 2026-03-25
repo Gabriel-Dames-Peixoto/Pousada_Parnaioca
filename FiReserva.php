@@ -23,19 +23,22 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
 <header>
     <nav>
         <ul>
-            <?php include_once 'menu.php'; ?>
+            <?php 
+                include_once 'menu.php'; 
+            ?>
         </ul>
     </nav>
 </header>
 
-<main>
-    <h1>Finalizar Reservas</h1>
-    <label for="id_reserva">ID da Reserva:</label>
-            <input type="number" id="id_reserva" name="id_reserva" required>
-            <button type="submit">Finalizar Reserva</button>
-        </form>
+    <main>
+        <h1>Finalizar Reservas</h1>
+            <form method="POST" action="CanReserva.php">
+                <label for="id_reserva">ID da Reserva:</label>
+                <input type="number" id="id_reserva" name="id_reserva" required>
+                <button type="submit">Finalizar Reserva</button>
+            </form>
     </main>
-    </body>
+</body>
 </html>
 <?php
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -56,10 +59,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $update_stmt = $con->prepare("UPDATE reservas SET status = 'finalizada' WHERE id = ?");
     $update_stmt->bind_param("i", $id_reserva);
     if ($update_stmt->execute()) {
-        echo "<p style='color:green;'>Reserva cancelada com sucesso!</p>";
+        echo "<p style='color:green;'>Reserva finalizada com sucesso!</p>";
         header("Refresh: 2; URL=reservas.php");
     } else {
-        echo "<p style='color:red;'>Erro ao cancelar a reserva. Tente novamente.</p>";
+        echo "<p style='color:red;'>Erro ao finalizar a reserva. Tente novamente.</p>";
     }
 }
 
