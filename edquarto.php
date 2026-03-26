@@ -1,7 +1,7 @@
 <?php
 session_start();
 include_once './conexao.php';
-if (!isset($_SESSION['login']) || $_SESSION['perfil'] !== 'adm') {
+if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil'] !== 'adm') {
     // Se não houver login na sessão, manda de volta para o index
     header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
     exit();
@@ -89,7 +89,7 @@ $quarto_data = $resQuarto->fetch_assoc();
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 1. Pegando os nomes corretos conforme o 'name' do input no HTML
     $id_quarto = $_POST['id_quarto'] ?? null;
-    $numero = $_POST['Quarto'] ?? ''; 
+    $quarto = $_POST['Quarto'] ?? ''; 
     $tipo = $_POST['tipo'] ?? '';
     $descricao = $_POST['descricao'] ?? '';
     $preco = $_POST['preco'] ?? '';
@@ -100,9 +100,10 @@ $quarto_data = $resQuarto->fetch_assoc();
         
         if ($stmt = $con->prepare($sql)) {
 
-            $stmt->bind_param("ssdsi", $numero, $tipo, $preco, $descricao, $id_quarto);
+            $stmt->bind_param("ssdsi", $quarto, $tipo, $preco, $descricao, $id_quarto);
             
             if ($stmt->execute()) {
+                registrarLog("Dados do quarto $quarto foram atualizados por " . $_SESSION['login'], "UPDATE");
                 $mensagem = "<div class='sucesso'><p>Quarto atualizado com sucesso! Redirecionando...</p></div>";
                 header("refresh:3;url=quartos.php");
             } else {

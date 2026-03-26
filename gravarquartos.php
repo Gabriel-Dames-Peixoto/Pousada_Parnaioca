@@ -1,7 +1,8 @@
 <?php
 session_start();
 include_once './conexao.php';
-if (!isset($_SESSION['login']) || $_SESSION['perfil'] !== 'adm') {
+
+if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 ||$_SESSION['perfil'] !== 'adm') {
     // Se não houver login na sessão, manda de volta para o index
     header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
     exit();
@@ -10,23 +11,24 @@ $mensagem = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 1. Pegando os nomes corretos conforme o 'name' do input no HTML
-    $numero = $_POST['Quarto'] ?? ''; 
+    $quarto = $_POST['Quarto'] ?? ''; 
     $tipo = $_POST['tipo'] ?? '';
     $descricao = $_POST['descricao'] ?? '';
     $preco = $_POST['preco'] ?? '';
     $capacidade = $_POST['capacidade'] ?? '';
     $vagas_estacionamento = $_POST['vagas_estacionamento'] ?? '';
 
-    if ($numero && $tipo && $descricao && $preco) {
+    if ($quarto && $tipo && $descricao && $preco) {
         // 2. SQL ajustado
         $sql = "INSERT INTO quartos (quarto, tipo, preco, descricao, capacidade, vagas_estacionamento) VALUES (?, ?, ?, ?, ?, ?)";
         
         if ($stmt = $con->prepare($sql)) {
             // 3. Tipos: s (string) para quarto, s (tipo), d (double) para preco, s (descricao)
             // Ordem deve seguir o SQL: quarto, tipo, preco, descricao
-            $stmt->bind_param("ssdsss", $numero, $tipo, $preco, $descricao, $capacidade, $vagas_estacionamento);
+            $stmt->bind_param("ssdsss", $quarto, $tipo, $preco, $descricao, $capacidade, $vagas_estacionamento);
             
             if ($stmt->execute()) {
+                registrarLog("O quarto $quarto foi cadastrado por " . $_SESSION['login'], "INSERT");
                 $mensagem = "<div class='sucesso'><p>Quarto cadastrado com sucesso! Redirecionando...</p></div>";
                 header("refresh:3;url=quartos.php");
             } else {

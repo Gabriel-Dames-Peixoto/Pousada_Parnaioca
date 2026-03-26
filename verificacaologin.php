@@ -2,6 +2,7 @@
 session_start();
 include_once './conexao.php';
 
+
 $login = isset($_POST["login"]) ? trim($_POST["login"]) : '';
 $senha = isset($_POST["senha"]) ? $_POST["senha"] : ''; 
 

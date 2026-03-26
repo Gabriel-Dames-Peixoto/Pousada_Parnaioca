@@ -96,7 +96,8 @@
                                 
                                 if ($stmt->execute()) {
                                     echo "<div class='sucesso'><p>Cliente cadastrado com sucesso! Redirecionando...</p></div>";
-                                    
+                                    registrarLog("O cliente $nome foi cadastrado por " . $_SESSION['login'], "INSERT");
+
                                     // ALTERAÇÃO: Redireciona para clientes.php após 3 segundos
                                     header("refresh:3;url=clientes.php");
                                     // -------------------------------------------------------

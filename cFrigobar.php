@@ -78,6 +78,7 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
                     $stmt->bind_param("sidi", $nome, $quantidade, $valor_final, $quarto_id);
 
                     if ($stmt->execute()) {
+                        registrarLog("O item $nome foi cadastrado no frigobar do quarto $quarto por " . $_SESSION['login'], "INSERT");
                         echo "<p style='color: green;'>Item cadastrado com sucesso!</p>";
                         echo "<input type='button' value='Voltar para informações do quarto' 
                         onclick='window.location.href=\"informacoes_quarto.php?id=" . htmlspecialchars($quarto_id) . "\"'>";

@@ -13,6 +13,7 @@
 <?php
 session_start();
 include_once './conexao.php';
+include_once './Alteracao.php';
 
 $logado = false;
 

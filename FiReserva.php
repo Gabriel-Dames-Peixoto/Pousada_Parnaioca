@@ -59,6 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $update_stmt = $con->prepare("UPDATE reservas SET status = 'finalizada' WHERE id = ?");
     $update_stmt->bind_param("i", $id_reserva);
     if ($update_stmt->execute()) {
+        registrarLog("Reserva $id_reserva foi finalizada por " . $_SESSION['login'], "UPDATE");
         echo "<p style='color:green;'>Reserva finalizada com sucesso!</p>";
         header("Refresh: 2; URL=reservas.php");
     } else {

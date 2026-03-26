@@ -48,6 +48,7 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
                 $stmt->bind_param("ssssssi", $nome, $email, $telefone, $estado, $cidade, $status, $id);
                 
                 if ($stmt->execute()) {
+                    registrarLog("Dados do cliente $nome foram atualizados por " . $_SESSION['login'], "UPDATE");
                     echo "<p class='sucesso'>Cadastro atualizado com sucesso! Redirecionando...</p>";
                     header("refresh:3;url=clientes.php");
                 } else {

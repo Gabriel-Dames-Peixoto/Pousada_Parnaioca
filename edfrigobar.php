@@ -1,6 +1,7 @@
 <?php
 session_start();
 include_once './conexao.php';
+include_once './Alteracao.php';
 
 if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil'] !== 'adm') {
     header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
@@ -90,6 +91,7 @@ $quarto_data = $resQuarto->fetch_assoc();
                 $stmt->bind_param("sidii", $nome, $quantidade, $valor_final, $_POST['status'], $id_edit);
 
                 if ($stmt->execute()) {
+                     registrarLog("O item $nome do frigobar do quarto $resquarto alterado por " . $_SESSION['login'], "UPDATE");
                     echo "<p style='color: green;'>Item atualizado com sucesso!</p>";
                     // Redireciona de volta após 2 segundos
                     echo "<script>setTimeout(function(){ window.location.href='informacoes_quarto.php?id=$quarto_id'; }, 2000);</script>";

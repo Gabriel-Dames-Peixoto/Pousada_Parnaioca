@@ -31,6 +31,12 @@ if (isset($_POST['reservar'])) {
     $cliente_id = $_POST['cliente_id'];
     $checkin = $_POST['checkin'];
     $checkout = $_POST['checkout'];
+    $stmt_nome = $con->prepare("SELECT nome FROM clientes WHERE id = ?");
+    $stmt_nome->bind_param("i", $cliente_id);
+    $stmt_nome->execute();
+    $res_nome = $stmt_nome->get_result()->fetch_assoc();
+    $nome_cliente_log = $res_nome['nome'] ?? "ID $cliente_id"; // Fallback caso não encontre
+    $stmt_nome->close();
 
     if (!$cliente_id || !$checkin || !$checkout) {
         die("Dados inválidos.");
@@ -85,9 +91,13 @@ if (isset($_POST['reservar'])) {
         (quarto_id, cliente_id, valor_total, data_checkin, data_checkout, status) 
         VALUES (?, ?, ?, ?, ?, 'ativa')
     ");
-
+    $dataInicio = $data1->format('d/m/Y');
+    $dataFim = $data2->format('d/m/Y');
+    $nomeQuarto = $dados_quarto['quarto'];
     $stmt->bind_param("iidss", $quarto_id, $cliente_id, $valorFinal, $checkin, $checkout);
     $stmt->execute();
+    registrarLog("A reserva do quarto $nomeQuarto foi realizada para o cliente $nome_cliente_log no período de 
+    $dataInicio à $dataFim pelo usuário " . $_SESSION['login'], "INSERT");
 
     header("Location: reservas.php?sucesso=1");
     exit();

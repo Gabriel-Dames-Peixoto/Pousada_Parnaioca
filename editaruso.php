@@ -2,7 +2,8 @@
 session_start();
 include_once './conexao.php';
 
-if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
+
+if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil'] !== 'adm') {
     header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
     exit();
 }
@@ -28,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     if ($stmt->execute()) {
         // Usamos um echo e um redirecionamento via JS ou Refresh
+        registrarLog("Dados do usuario $login foram atualizados por " . $_SESSION['login'], "UPDATE");
         echo "<script>alert('Usuário atualizado com sucesso!'); window.location.href='usuarios.php';</script>";
         exit(); 
     } else {
