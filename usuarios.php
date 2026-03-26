@@ -40,55 +40,61 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
             <button type="button" onclick="window.location.href='cadastrouso.php'">Novo Usuário</button>
         </form>
 
-        <?php
-        $search = isset($_GET['search']) ? $_GET['search'] : '';
+        <div class="table-container">
 
-        $sql = "SELECT idusuario, login, perfil, status FROM usuarios WHERE 1=1";
+            <?php
+            $search = isset($_GET['search']) ? $_GET['search'] : '';
 
-        $params = [];
-        $types = "";
+            $sql = "SELECT idusuario, login, perfil, status FROM usuarios WHERE 1=1";
 
-        $status = isset($_GET['status']) ? $_GET['status'] : '';
-        if ($status !== '') {
-            $sql .= " AND status = ?";
-            $params[] = $status;
-            $types .= "i";
-        }
+            $params = [];
+            $types = "";
 
-        if ($search !== '') {
-            $sql .= " AND (login LIKE ? OR perfil LIKE ? or status LIKE ?)";
-            $term = "%$search%";
-            $params[] = $term;
-            $params[] = $term;
-            $params[] = $term;
-            $types .= "sss";
-        }
+            $status = isset($_GET['status']) ? $_GET['status'] : '';
+            if ($status !== '') {
+                $sql .= " AND status = ?";
+                $params[] = $status;
+                $types .= "i";
+            }
 
-        $sql .= " ORDER BY login ASC";
+            if ($search !== '') {
+                $sql .= " AND (login LIKE ? OR perfil LIKE ? or status LIKE ?)";
+                $term = "%$search%";
+                $params[] = $term;
+                $params[] = $term;
+                $params[] = $term;
+                $types .= "sss";
+            }
 
-        $stmt = $con->prepare($sql);
+            $sql .= " ORDER BY login ASC";
 
-        if ($types !== "") {
-            $stmt->bind_param($types, ...$params);
-        }
+            $stmt = $con->prepare($sql);
 
-        $stmt->execute();
-        $result = $stmt->get_result();
+            if ($types !== "") {
+                $stmt->bind_param($types, ...$params);
+            }
 
-        if ($result && $result->num_rows > 0) {
-            echo "<table border='1' cellpadding='5'>
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            if ($result && $result->num_rows > 0) {
+                echo "<table>
                 <tr>
-                <th>ID</th>
-                <th>Login</th>
-                <th>Perfil</th>
-                <th>Status</th>
-                <th>Ações</th>
+                    <th>ID</th>
+                    <th>Login</th>
+                    <th>Perfil</th>
+                    <th>Status</th>
+                    <th>Ações</th>
                 </tr>";
-            while ($row = $result->fetch_assoc()) {
-                $estilo = ($row['status'] == 0) ? "style='color: #ff3d3d;'" : "";
-                $textoStatus = ($row['status'] == 1) ? "Ativo" : "Inativo";
 
-                echo "<tr $estilo>
+                while ($row = $result->fetch_assoc()) {
+
+                    $ativo = $row['status'] == 1;
+
+                    $classe = $ativo ? "ativo" : "inativo";
+                    $textoStatus = $ativo ? "🟢 Ativo" : "🔴 Inativo";
+
+                    echo "<tr class='$classe'>
                 <td>" . htmlspecialchars($row['idusuario']) . "</td>
                 <td>" . htmlspecialchars($row['login']) . "</td>
                 <td>" . htmlspecialchars($row['perfil']) . "</td>
@@ -97,18 +103,19 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
                     <a href='editaruso.php?idusuario=" . htmlspecialchars($row['idusuario']) . "'>Editar</a>
                 </td>
                   </tr>";
+                }
+                echo "</table>";
+            } else {
+                echo "<p>Nenhum usuário encontrado.</p>";
             }
-            echo "</table>";
-        } else {
-            echo "<p>Nenhum usuário encontrado.</p>";
-        }
 
-        $stmt->close();
-        $con->close();
-        ?>
+            $stmt->close();
+            $con->close();
+            ?>
+        </div>
     </main>
     <footer>
-        <p>&copy; 2026 Pousada Parnoica. Todos os direitos reservados.</p>
+        <p>&copy; 2026 Pousada Parnaioca. Todos os direitos reservados.</p>
     </footer>
 </body>
 

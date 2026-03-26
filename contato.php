@@ -14,7 +14,6 @@
     <?php
     session_start();
     include_once './conexao.php';
-    include_once './Alteracao.php';
 
     $logado = false;
 
@@ -71,7 +70,7 @@
     </main>
 
     <footer>
-        <p>&copy; 2026 Pousada Parnoica. Todos os direitos reservados.</p>
+        <p>&copy; 2026 Pousada Parnaioca. Todos os direitos reservados.</p>
     </footer>
 
 </body>
