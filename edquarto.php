@@ -52,6 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
 
         if ($stmt->execute()) {
+            registrarLog("Dados do quarto $quarto foram atualizados por " . $_SESSION['login'], "UPDATE");  
             $mensagem = "<div style='color:green;'>✅ Quarto atualizado com sucesso!</div>";
             header("refresh:2;url=quartos.php");
         } else {
@@ -147,7 +148,7 @@ if ($id_quarto) {
     </main>
 
     <footer>
-        <p>&copy; 2026 Pousada Parnoica</p>
+        <p>&copy; 2026 Pousada Parnaioca</p>
     </footer>
 
 </body>
