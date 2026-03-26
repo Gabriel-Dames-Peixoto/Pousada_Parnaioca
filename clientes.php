@@ -109,7 +109,7 @@ $search = $_GET['search'] ?? '';
 
                 while ($row = $result->fetch_assoc()) {
 
-                    $ativo = $row['status'] === 1;
+                    $ativo = $row['status'] == 1;
 
                     $classe = $ativo ? "ativo" : "inativo";
                     $textoStatus = $ativo ? "🟢 Ativo" : "🔴 Inativo";
