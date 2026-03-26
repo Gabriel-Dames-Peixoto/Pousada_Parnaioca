@@ -3,6 +3,7 @@ create table usuarios(
     login varchar(100) unique,
     senha varchar(32),
     perfil enum('adm','user')
+    status varchar(255) DEFAULT 1,
 );
 
 CREATE TABLE quartos (
@@ -47,7 +48,15 @@ CREATE TABLE reservas (
     quarto_id INT,
     cliente_id INT,
     data_reserva DATETIME DEFAULT CURRENT_TIMESTAMP,
-
+    valor_total decimal(10,2) default NULL,
+    data_checkin date default null,
+    data_checkout date default null,
+    status enum('ativa','cancelada','finalizada') DEFAULT 'ativa',
+    KEY quarto_id (quarto_id),
+    KEY cliente_id (cliente_id),
+    
+    CONSTRAINT `reservas_ibfk_1`,
+    CONSTRAINT `reservas_ibfk_2`, 
     FOREIGN KEY (quarto_id) REFERENCES quartos(id),
     FOREIGN KEY (cliente_id) REFERENCES clientes(id)
 );
