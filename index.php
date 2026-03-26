@@ -54,6 +54,11 @@
             </div>
         </div>
     </main>
+
+    <footer>
+        <p>&copy; 2026 Pousada Parnaioca. Todos os direitos reservados.</p>
+    </footer>
+
 </body>
 
 </html>
