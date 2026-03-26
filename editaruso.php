@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $senha = $_POST['senha'];
     $perfil = $_POST['perfil'];
     $status = $_POST['status'];
-    
+
     if (!empty($_POST['senha'])) {
         $senha = md5($_POST['senha']);
         $sql = "UPDATE usuarios SET login = ?, senha = ?, perfil = ?, status = ? WHERE idusuario = ?";
@@ -26,12 +26,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt = $con->prepare($sql);
         $stmt->bind_param("sssi", $login, $perfil, $status, $idusuario);
     }
-    
+
     if ($stmt->execute()) {
         // Usamos um echo e um redirecionamento via JS ou Refresh
         registrarLog("Dados do usuario $login foram atualizados por " . $_SESSION['login'], "UPDATE");
         echo "<script>alert('Usuário atualizado com sucesso!'); window.location.href='usuarios.php';</script>";
-        exit(); 
+        exit();
     } else {
         $erro_update = "Erro ao atualizar: " . $stmt->error;
     }
@@ -56,14 +56,16 @@ if ($id_busca) {
 
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="2.css">
-        <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
-        <title>Pousada Parnoica</title>
-    </head>
-    <body>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="2.css">
+    <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
+    <title>Pousada Parnoica</title>
+</head>
+
+<body>
     <header>
         <nav>
             <ul>
@@ -112,4 +114,5 @@ if ($id_busca) {
         </section>
     </main>
 </body>
+
 </html>

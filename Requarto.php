@@ -108,6 +108,7 @@ $busca = filter_input(INPUT_GET, 'busca_cliente', FILTER_SANITIZE_SPECIAL_CHARS)
 
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="2.css">
@@ -116,140 +117,141 @@ $busca = filter_input(INPUT_GET, 'busca_cliente', FILTER_SANITIZE_SPECIAL_CHARS)
 
 <body>
 
-<header>
-    <nav>
-        <ul>
-            <?php include_once 'menu.php'; ?>
-        </ul>
-    </nav>
-</header>
+    <header>
+        <nav>
+            <ul>
+                <?php include_once 'menu.php'; ?>
+            </ul>
+        </nav>
+    </header>
 
-<main>
-    <h1>Reservar quarto <?= htmlspecialchars($dados_quarto['quarto']) ?></h1>
+    <main>
+        <h1>Reservar quarto <?= htmlspecialchars($dados_quarto['quarto']) ?></h1>
 
-    <p>
-        <strong>Preço base (5 noites):</strong>
-        R$ <?= number_format($dados_quarto['preco'], 2, ',', '.') ?>
-    </p>
+        <p>
+            <strong>Preço base (5 noites):</strong>
+            R$ <?= number_format($dados_quarto['preco'], 2, ',', '.') ?>
+        </p>
 
-    <hr>
+        <hr>
 
-    <!-- BUSCA -->
-    <form method="GET">
-        <input type="hidden" name="id" value="<?= $id_quarto ?>">
-        <input type="text" name="busca_cliente" placeholder="Buscar cliente" value="<?= htmlspecialchars($busca) ?>">
-        <button type="submit">Buscar</button>
-    </form>
+        <!-- BUSCA -->
+        <form method="GET">
+            <input type="hidden" name="id" value="<?= $id_quarto ?>">
+            <input type="text" name="busca_cliente" placeholder="Buscar cliente" value="<?= htmlspecialchars($busca) ?>">
+            <button type="submit">Buscar</button>
+        </form>
 
-    <br>
+        <br>
 
-    <!-- RESERVA -->
-    <form method="POST">
+        <!-- RESERVA -->
+        <form method="POST">
 
-        <input type="hidden" name="quarto_id" value="<?= $id_quarto ?>">
+            <input type="hidden" name="quarto_id" value="<?= $id_quarto ?>">
 
-        <label>Cliente:</label><br>
-        <select name="cliente_id" required>
-            <?php
-            $sql_clientes = "SELECT * FROM clientes WHERE nome LIKE ? OR cpf LIKE ?";
-            $stmt_c = $con->prepare($sql_clientes);
+            <label>Cliente:</label><br>
+            <select name="cliente_id" required>
+                <?php
+                $sql_clientes = "SELECT * FROM clientes WHERE nome LIKE ? OR cpf LIKE ?";
+                $stmt_c = $con->prepare($sql_clientes);
 
-            $term = "%$busca%";
-            $stmt_c->bind_param("ss", $term, $term);
-            $stmt_c->execute();
-            $res_c = $stmt_c->get_result();
+                $term = "%$busca%";
+                $stmt_c->bind_param("ss", $term, $term);
+                $stmt_c->execute();
+                $res_c = $stmt_c->get_result();
 
-            while ($cliente = $res_c->fetch_assoc()) {
-                echo "<option value='{$cliente['id']}'>
+                while ($cliente = $res_c->fetch_assoc()) {
+                    echo "<option value='{$cliente['id']}'>
                         {$cliente['nome']} - {$cliente['cpf']}
                       </option>";
+                }
+                ?>
+            </select>
+
+            <br><br>
+
+            <label>Quantidade de pessoas:</label>
+            <input type="number" name="quantidade_pessoas" min="1" max="<?= $dados_quarto['capacidade'] ?>" required>
+
+            <br><br>
+
+            <label>Check-in:</label><br>
+            <input type="date" name="checkin" required>
+
+            <br><br>
+
+            <label>Check-out:</label><br>
+            <input type="date" name="checkout" required>
+
+            <br><br>
+
+            <label>Valor calculado:</label><br>
+            <input type="text" id="valor_final" readonly>
+
+            <br><br>
+
+            <button type="submit" name="reservar">Reservar</button>
+
+        </form>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+
+            const precoBase = <?= $dados_quarto['preco'] ?>;
+
+            const formatarMoeda = (valor) => {
+                return new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                }).format(valor);
+            };
+
+            const checkin = document.querySelector('input[name="checkin"]');
+            const checkout = document.querySelector('input[name="checkout"]');
+            const campoValor = document.getElementById('valor_final');
+
+            function calcularValor() {
+
+                if (!checkin.value || !checkout.value) {
+                    campoValor.value = "";
+                    return;
+                }
+
+                let data1 = new Date(checkin.value);
+                let data2 = new Date(checkout.value);
+                let hoje = new Date();
+                hoje.setHours(0, 0, 0, 0);
+
+                let dias = (data2 - data1) / (1000 * 60 * 60 * 24);
+
+                if (dias <= 0) {
+                    campoValor.value = "Datas inválidas";
+                    return;
+                }
+
+                if (data1 < hoje) {
+                    campoValor.value = "Data inválida (passado)";
+                    return;
+                }
+
+                let valor = precoBase;
+
+                if (dias < 5) {
+                    valor *= (1 - (5 - dias) * 0.10);
+                } else if (dias > 5) {
+                    valor *= (1 + (dias - 5) * 0.10);
+                }
+
+                campoValor.value = formatarMoeda(valor);
             }
-            ?>
-        </select>
 
-        <br><br>
+            checkin.addEventListener("change", calcularValor);
+            checkout.addEventListener("change", calcularValor);
 
-        <label>Quantidade de pessoas:</label>
-        <input type="number" name="quantidade_pessoas" min="1" max="<?= $dados_quarto['capacidade'] ?>" required>
-
-        <br><br>
-
-        <label>Check-in:</label><br>
-        <input type="date" name="checkin" required>
-
-        <br><br>
-
-        <label>Check-out:</label><br>
-        <input type="date" name="checkout" required>
-
-        <br><br>
-
-        <label>Valor calculado:</label><br>
-        <input type="text" id="valor_final" readonly>
-
-        <br><br>
-
-        <button type="submit" name="reservar">Reservar</button>
-
-    </form>
-</main>
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-
-    const precoBase = <?= $dados_quarto['preco'] ?>;
-
-    const formatarMoeda = (valor) => {
-        return new Intl.NumberFormat('pt-BR', {
-            style: 'currency',
-            currency: 'BRL'
-        }).format(valor);
-    };
-
-    const checkin = document.querySelector('input[name="checkin"]');
-    const checkout = document.querySelector('input[name="checkout"]');
-    const campoValor = document.getElementById('valor_final');
-
-    function calcularValor() {
-
-        if (!checkin.value || !checkout.value) {
-            campoValor.value = "";
-            return;
-        }
-
-        let data1 = new Date(checkin.value);
-        let data2 = new Date(checkout.value);
-        let hoje = new Date();
-        hoje.setHours(0,0,0,0);
-
-        let dias = (data2 - data1) / (1000 * 60 * 60 * 24);
-
-        if (dias <= 0) {
-            campoValor.value = "Datas inválidas";
-            return;
-        }
-
-        if (data1 < hoje) {
-            campoValor.value = "Data inválida (passado)";
-            return;
-        }
-
-        let valor = precoBase;
-
-        if (dias < 5) {
-            valor *= (1 - (5 - dias) * 0.10);
-        } else if (dias > 5) {
-            valor *= (1 + (dias - 5) * 0.10);
-        }
-
-        campoValor.value = formatarMoeda(valor);
-    }
-
-    checkin.addEventListener("change", calcularValor);
-    checkout.addEventListener("change", calcularValor);
-
-});
-</script>
+        });
+    </script>
 
 </body>
+
 </html>

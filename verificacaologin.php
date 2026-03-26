@@ -4,7 +4,7 @@ include_once './conexao.php';
 
 
 $login = isset($_POST["login"]) ? trim($_POST["login"]) : '';
-$senha = isset($_POST["senha"]) ? $_POST["senha"] : ''; 
+$senha = isset($_POST["senha"]) ? $_POST["senha"] : '';
 
 if (empty($login) || empty($senha)) {
     $msg = "Preencha todos os campos.";
@@ -21,7 +21,7 @@ if ($stmt) {
     $result = mysqli_stmt_get_result($stmt);
 
     if ($row = mysqli_fetch_assoc($result)) {
-        
+
         if (md5($senha) === $row["senha"]) {
             date_default_timezone_set('America/Sao_Paulo');
             if ($row["status"] == 1) {
@@ -57,4 +57,3 @@ if ($stmt) {
 }
 
 mysqli_close($con);
-?>

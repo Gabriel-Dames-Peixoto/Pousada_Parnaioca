@@ -16,14 +16,14 @@ if ($id > 0) {
 
     // 2. Agora fazemos o UPDATE no status
     $sql = "UPDATE clientes SET status = 0 WHERE id = ?";
-    
+
     if ($stmt = $con->prepare($sql)) {
         $stmt->bind_param("i", $id);
-        
+
         if ($stmt->execute()) {
             // Log agora com o nome real do banco de dados
-            registrarLog("O cliente $nome_cliente (ID $id) foi inativado por " . $_SESSION['login'], "UPDATE"); 
-            
+            registrarLog("O cliente $nome_cliente (ID $id) foi inativado por " . $_SESSION['login'], "UPDATE");
+
             header("Location: clientes.php?mensagem=inativado");
             exit(); // Boa prática após o header
         } else {
@@ -36,4 +36,3 @@ if ($id > 0) {
 }
 
 mysqli_close($con);
-?>

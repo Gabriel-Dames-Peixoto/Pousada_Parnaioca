@@ -10,14 +10,16 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
 
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="2.css">
-        <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
-        <title>Pousada Parnoica</title>
-    </head>
-    <body>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="2.css">
+    <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
+    <title>Pousada Parnoica</title>
+</head>
+
+<body>
     <header>
         <nav>
             <ul>
@@ -42,47 +44,47 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
 
         <div class="table-container">
             <?php
-                include_once './conexao.php';
-                        
-                $status = isset($_GET['status']) ? $_GET['status'] : '';
-                $search = isset($_GET['search']) ? $_GET['search'] : '';
-                
-                // 1. Base da Query: 1=1 permite adicionar ANDs livremente
-                $sql = "SELECT id, nome, data_nascimento, cpf, email, status FROM clientes WHERE 1=1";
-                
-                // 2. Lógica de filtros dinâmicos
-                $params = [];
-                $types = "";
+            include_once './conexao.php';
 
-                if ($status !== '') {
-                    $sql .= " AND status = ?";
-                    $params[] = $status;
-                    $types .= "i";
-                }
+            $status = isset($_GET['status']) ? $_GET['status'] : '';
+            $search = isset($_GET['search']) ? $_GET['search'] : '';
 
-                if ($search !== '') {
-                    $sql .= " AND (nome LIKE ? OR email LIKE ? OR cpf LIKE ?)";
-                    $searchTerm = "%$search%";
-                    $params[] = $searchTerm;
-                    $params[] = $searchTerm;
-                    $params[] = $searchTerm;
-                    $types .= "sss";
-                }
+            // 1. Base da Query: 1=1 permite adicionar ANDs livremente
+            $sql = "SELECT id, nome, data_nascimento, cpf, email, status FROM clientes WHERE 1=1";
 
-                $sql .= " ORDER BY nome, status ASC";
+            // 2. Lógica de filtros dinâmicos
+            $params = [];
+            $types = "";
 
-                $stmt = $con->prepare($sql);
+            if ($status !== '') {
+                $sql .= " AND status = ?";
+                $params[] = $status;
+                $types .= "i";
+            }
 
-                // 3. Bind dinâmico de parâmetros (se houver filtros)
-                if ($types !== "") {
-                    $stmt->bind_param($types, ...$params);
-                }
+            if ($search !== '') {
+                $sql .= " AND (nome LIKE ? OR email LIKE ? OR cpf LIKE ?)";
+                $searchTerm = "%$search%";
+                $params[] = $searchTerm;
+                $params[] = $searchTerm;
+                $params[] = $searchTerm;
+                $types .= "sss";
+            }
 
-                $stmt->execute();
-                $result = $stmt->get_result();
+            $sql .= " ORDER BY nome, status ASC";
 
-                if ($result && $result->num_rows > 0) {
-                    echo "<table border='1' cellpadding='5'>
+            $stmt = $con->prepare($sql);
+
+            // 3. Bind dinâmico de parâmetros (se houver filtros)
+            if ($types !== "") {
+                $stmt->bind_param($types, ...$params);
+            }
+
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            if ($result && $result->num_rows > 0) {
+                echo "<table border='1' cellpadding='5'>
                             <tr>
                                 <th>ID</th>
                                 <th>Nome</th>
@@ -92,35 +94,36 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
                                 <th>Status</th>
                                 <th>Ações</th>
                             </tr>";
-                    while ($row = $result->fetch_assoc()) {
-                        $estilo = ($row['status'] == 0) ? "style='color: #ff3d3d;'" : "";
-                        $textoStatus = ($row['status'] == 1) ? "Ativo" : "Inativo";
+                while ($row = $result->fetch_assoc()) {
+                    $estilo = ($row['status'] == 0) ? "style='color: #ff3d3d;'" : "";
+                    $textoStatus = ($row['status'] == 1) ? "Ativo" : "Inativo";
 
-                        echo "<tr $estilo>
-                                <td>".htmlspecialchars($row['id'])."</td>
-                                <td>".htmlspecialchars($row['nome'])."</td>
-                                <td>".htmlspecialchars($row['data_nascimento'])."</td>
-                                <td>".htmlspecialchars($row['cpf'])."</td>
-                                <td>".htmlspecialchars($row['email'])."</td>
-                                <td>".$textoStatus."</td>
+                    echo "<tr $estilo>
+                                <td>" . htmlspecialchars($row['id']) . "</td>
+                                <td>" . htmlspecialchars($row['nome']) . "</td>
+                                <td>" . htmlspecialchars($row['data_nascimento']) . "</td>
+                                <td>" . htmlspecialchars($row['cpf']) . "</td>
+                                <td>" . htmlspecialchars($row['email']) . "</td>
+                                <td>" . $textoStatus . "</td>
                                 <td>
-                                    <a href='editar.php?id=".htmlspecialchars($row['id'])."'>Editar</a>
+                                    <a href='editar.php?id=" . htmlspecialchars($row['id']) . "'>Editar</a>
                                     
                                 </td>
                             </tr>";
-                    }
-                    echo "</table>";
-                } else {
-                    echo "<p>Nenhum cliente encontrado.</p>";
                 }
+                echo "</table>";
+            } else {
+                echo "<p>Nenhum cliente encontrado.</p>";
+            }
 
-                $stmt->close();
-                $con->close();
+            $stmt->close();
+            $con->close();
             ?>
         </div>
     </main>
     <footer>
         <p>&copy; 2026 Pousada Parnoica. Todos os direitos reservados.</p>
     </footer>
-    </body>
+</body>
+
 </html>

@@ -7,7 +7,7 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
     exit();
 }
 $mensagem = "";
-$id_quarto = $_GET['id'] ?? null; 
+$id_quarto = $_GET['id'] ?? null;
 $dados_quarto = [];
 
 if ($id_quarto) {
@@ -16,7 +16,7 @@ if ($id_quarto) {
     $stmt_load->bind_param("i", $id_quarto);
     $stmt_load->execute();
     $result = $stmt_load->get_result();
-    
+
     if ($result->num_rows > 0) {
         $dados_quarto = $result->fetch_assoc();
     } else {
@@ -33,75 +33,78 @@ $quarto_data = $resQuarto->fetch_assoc();
 
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="2.css">
-        <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
-        <title>Pousada Parnoica</title>
-    </head>
-    
-    <header>
-        <nav>
-            <ul>
-                <?php
-                    include_once 'Menu.php';
-                ?>
-            </ul>
-        </nav>
-    </header>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="2.css">
+    <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
+    <title>Pousada Parnoica</title>
+</head>
+
+<header>
+    <nav>
+        <ul>
+            <?php
+            include_once 'Menu.php';
+            ?>
+        </ul>
+    </nav>
+</header>
+
 <body>
     <main>
-    <h1>Editar Quarto <?php echo htmlspecialchars($quarto_data['quarto']); ?></h1>
-    
-    <?php echo $mensagem; ?>
+        <h1>Editar Quarto <?php echo htmlspecialchars($quarto_data['quarto']); ?></h1>
 
-    <form action="" method="post">
-        <input type="hidden" name="id_quarto" value="<?php echo $id_quarto; ?>">
+        <?php echo $mensagem; ?>
 
-        <label for="Quarto">Quarto:</label>
-        <input type="text" id="Quarto" name="Quarto" value="<?php echo htmlspecialchars($dados_quarto['quarto']); ?>" required><br><br>
+        <form action="" method="post">
+            <input type="hidden" name="id_quarto" value="<?php echo $id_quarto; ?>">
 
-        <label for="tipo">Tipo:</label>
-        <input type="text" id="tipo" name="tipo" value="<?php echo htmlspecialchars($dados_quarto['tipo']); ?>" required><br><br>
+            <label for="Quarto">Quarto:</label>
+            <input type="text" id="Quarto" name="Quarto" value="<?php echo htmlspecialchars($dados_quarto['quarto']); ?>" required><br><br>
 
-        <label for="descricao">Descrição:</label>
-        <textarea id="descricao" name="descricao" required><?php echo htmlspecialchars($dados_quarto['descricao']); ?></textarea><br><br>
+            <label for="tipo">Tipo:</label>
+            <input type="text" id="tipo" name="tipo" value="<?php echo htmlspecialchars($dados_quarto['tipo']); ?>" required><br><br>
 
-        <label for="preco">Preço:</label>
-        <input type="number" id="preco" name="preco" step="0.01" value="<?php echo htmlspecialchars($dados_quarto['preco']); ?>" required><br><br>
+            <label for="descricao">Descrição:</label>
+            <textarea id="descricao" name="descricao" required><?php echo htmlspecialchars($dados_quarto['descricao']); ?></textarea><br><br>
 
-        <label for="Status">Status</label>
-        <select id="Status" name="Status" required>
-            <option value="disponivel" <?php if ($dados_quarto['status'] === '1') echo 'selected'; ?>>Disponível</option>
-            <option value="indisponivel" <?php if ($dados_quarto['status'] === '2') echo 'selected'; ?>>Indisponível</option>
-        </select><br><br>
-        <input type="submit" value="Gravar">
-    
-    
-    <p><a href="quartos.php">Voltar para Quartos</a></p>
-    </form>
+            <label for="preco">Preço:</label>
+            <input type="number" id="preco" name="preco" step="0.01" value="<?php echo htmlspecialchars($dados_quarto['preco']); ?>" required><br><br>
+
+            <label for="Status">Status</label>
+            <select id="Status" name="Status" required>
+                <option value="disponivel" <?php if ($dados_quarto['status'] === '1') echo 'selected'; ?>>Disponível</option>
+                <option value="indisponivel" <?php if ($dados_quarto['status'] === '2') echo 'selected'; ?>>Indisponível</option>
+            </select><br><br>
+            <input type="submit" value="Gravar">
+
+
+            <p><a href="quartos.php">Voltar para Quartos</a></p>
+        </form>
     </main>
-    
+
 </body>
+
 </html>
 <?php
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 1. Pegando os nomes corretos conforme o 'name' do input no HTML
     $id_quarto = $_POST['id_quarto'] ?? null;
-    $quarto = $_POST['Quarto'] ?? ''; 
+    $quarto = $_POST['Quarto'] ?? '';
     $tipo = $_POST['tipo'] ?? '';
     $descricao = $_POST['descricao'] ?? '';
     $preco = $_POST['preco'] ?? '';
 
-    if ($id_quarto &&$numero && $tipo && $descricao && $preco) {
+    if ($id_quarto && $numero && $tipo && $descricao && $preco) {
         // 2. SQL ajustado
         $sql = "UPDATE quartos SET quarto=?, tipo=?, preco=?, descricao=? WHERE id=?";
-        
+
         if ($stmt = $con->prepare($sql)) {
 
             $stmt->bind_param("ssdsi", $quarto, $tipo, $preco, $descricao, $id_quarto);
-            
+
             if ($stmt->execute()) {
                 registrarLog("Dados do quarto $quarto foram atualizados por " . $_SESSION['login'], "UPDATE");
                 $mensagem = "<div class='sucesso'><p>Quarto atualizado com sucesso! Redirecionando...</p></div>";
@@ -118,6 +121,6 @@ $quarto_data = $resQuarto->fetch_assoc();
     }
 }
 ?>
-    <footer>
-        <p>&copy; 2026 Pousada Parnoica. Todos os direitos reservados.</p>
-    </footer>
+<footer>
+    <p>&copy; 2026 Pousada Parnoica. Todos os direitos reservados.</p>
+</footer>

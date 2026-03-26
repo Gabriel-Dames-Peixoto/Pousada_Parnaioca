@@ -9,14 +9,16 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
 
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="2.css">
-        <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
-        <title>Pousada Parnoica</title>
-    </head>
-    <body>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="2.css">
+    <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
+    <title>Pousada Parnoica</title>
+</head>
+
+<body>
     <header>
         <nav>
             <ul>
@@ -28,7 +30,7 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
 
         <h1>Usuários</h1>
         <form method="GET" action="usuarios.php">
-             <select name="status" onchange="this.form.submit()">
+            <select name="status" onchange="this.form.submit()">
                 <option value="">Todos</option>
                 <option value="1" <?php if (isset($_GET['status']) && $_GET['status'] === '1') echo 'selected'; ?>>Ativos</option>
                 <option value="0" <?php if (isset($_GET['status']) && $_GET['status'] === '0') echo 'selected'; ?>>Inativos</option>
@@ -36,9 +38,9 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
             <input type="text" name="search" placeholder="Pesquisar usuário" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
             <button type="submit">Pesquisar</button>
             <button type="button" onclick="window.location.href='cadastrouso.php'">Novo Usuário</button>
-        </form> 
+        </form>
 
-       <?php
+        <?php
         $search = isset($_GET['search']) ? $_GET['search'] : '';
 
         $sql = "SELECT idusuario, login, perfil, status FROM usuarios WHERE 1=1";
@@ -83,16 +85,16 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
                 <th>Ações</th>
                 </tr>";
             while ($row = $result->fetch_assoc()) {
-            $estilo = ($row['status'] == 0) ? "style='color: #ff3d3d;'" : "";
-            $textoStatus = ($row['status'] == 1) ? "Ativo" : "Inativo";
+                $estilo = ($row['status'] == 0) ? "style='color: #ff3d3d;'" : "";
+                $textoStatus = ($row['status'] == 1) ? "Ativo" : "Inativo";
 
-            echo "<tr $estilo>
-                <td>".htmlspecialchars($row['idusuario'])."</td>
-                <td>".htmlspecialchars($row['login'])."</td>
-                <td>".htmlspecialchars($row['perfil'])."</td>
-                <td>". $textoStatus ."</td>
+                echo "<tr $estilo>
+                <td>" . htmlspecialchars($row['idusuario']) . "</td>
+                <td>" . htmlspecialchars($row['login']) . "</td>
+                <td>" . htmlspecialchars($row['perfil']) . "</td>
+                <td>" . $textoStatus . "</td>
                 <td>
-                    <a href='editaruso.php?idusuario=".htmlspecialchars($row['idusuario'])."'>Editar</a>
+                    <a href='editaruso.php?idusuario=" . htmlspecialchars($row['idusuario']) . "'>Editar</a>
                 </td>
                   </tr>";
             }
@@ -108,5 +110,6 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
     <footer>
         <p>&copy; 2026 Pousada Parnoica. Todos os direitos reservados.</p>
     </footer>
-    </body>
+</body>
+
 </html>

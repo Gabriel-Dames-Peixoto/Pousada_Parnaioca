@@ -10,6 +10,7 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
 
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,25 +21,26 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
 
 <body>
 
-<header>
-    <nav>
-        <ul>
-            <?php 
-                include_once 'menu.php'; 
-            ?>
-        </ul>
-    </nav>
-</header>
+    <header>
+        <nav>
+            <ul>
+                <?php
+                include_once 'menu.php';
+                ?>
+            </ul>
+        </nav>
+    </header>
 
     <main>
         <h1>Finalizar Reservas</h1>
-            <form method="POST" action="FiReserva.php">
-                <label for="id_reserva">ID da Reserva:</label>
-                <input type="number" id="id_reserva" name="id_reserva" required>
-                <button type="submit">Finalizar Reserva</button>
-            </form>
+        <form method="POST" action="FiReserva.php">
+            <label for="id_reserva">ID da Reserva:</label>
+            <input type="number" id="id_reserva" name="id_reserva" required>
+            <button type="submit">Finalizar Reserva</button>
+        </form>
     </main>
 </body>
+
 </html>
 <?php
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -66,6 +68,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo "<p style='color:red;'>Erro ao finalizar a reserva. Tente novamente.</p>";
     }
 }
-
-
-    

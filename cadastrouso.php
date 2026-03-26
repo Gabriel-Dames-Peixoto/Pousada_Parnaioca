@@ -10,6 +10,7 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
 ?>
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,11 +18,13 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
     <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
     <title>Pousada Parnoica - Cadastro</title>
 </head>
+
 <body>
     <header>
         <nav>
             <ul>
-                <?php // Menu items ?>
+                <?php // Menu items 
+                ?>
             </ul>
         </nav>
     </header>
@@ -30,7 +33,7 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
         <div class="container-login">
             <div class="login-box">
                 <h2>Cadastro de Usuário</h2>
-                
+
                 <?php
                 $mensagens = ['erro' => '', 'sucesso' => ''];
                 foreach ($mensagens as $tipo => $msg) {
@@ -40,13 +43,13 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
                     }
                 }
                 ?>
-                
+
                 <form method="POST" action="gravar.php" class="form-login">
                     <div class="form-group">
                         <label for="usuario">Usuário:</label>
                         <input type="text" id="usuario" name="usuario" required>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="senha">Senha:</label>
                         <input type="password" id="senha" name="senha" required>
@@ -60,7 +63,7 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
                             <option value="adm">Administrador</option>
                         </select>
                     </div>
-                    
+
                     <button type="submit" class="btn-login">Cadastrar</button>
                     <a href="usuarios.php" class="btn-cancel">Cancelar</a>
                 </form>
@@ -68,4 +71,5 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
         </div>
     </main>
 </body>
+
 </html>

@@ -9,6 +9,7 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,12 +17,13 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
     <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
     <title>Pousada Parnaioca</title>
 </head>
+
 <body>
     <header>
         <nav>
             <ul>
                 <?php
-                    include_once 'Menu.php';
+                include_once 'Menu.php';
                 ?>
             </ul>
         </nav>
@@ -30,7 +32,7 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
     <main>
         <h1>Bem-vindo à Pousada Parnaioca!</h1>
         <p>Desfrute de uma estadia confortável e acolhedora em nossa pousada.
-        Oferecemos quartos aconchegantes, atendimento personalizado e uma localização privilegiada.</p>
+            Oferecemos quartos aconchegantes, atendimento personalizado e uma localização privilegiada.</p>
         <img src="imagens\pousadap.png" alt="Imagem da Pousada Parnaioca" style="width:50%; height:auto;">
     </main>
 
@@ -39,4 +41,5 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
     </footer>
 
 </body>
+
 </html>

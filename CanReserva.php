@@ -10,19 +10,21 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
 
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="2.css">
-        <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
-        <title>Pousada Parnoica</title>
-    </head>
-    <body>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="2.css">
+    <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
+    <title>Pousada Parnoica</title>
+</head>
+
+<body>
     <header>
         <nav>
             <ul>
-                <?php 
-                include_once 'Menu.php'; 
+                <?php
+                include_once 'Menu.php';
                 ?>
 
             </ul>
@@ -36,7 +38,8 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
             <button type="submit">Cancelar Reserva</button>
         </form>
     </main>
-    </body>
+</body>
+
 </html>
 <?php
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -57,12 +60,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $update_stmt = $con->prepare("UPDATE reservas SET status = 'cancelada' WHERE id = ?");
     $update_stmt->bind_param("i", $id_reserva);
     if ($update_stmt->execute()) {
-        registrarLog("Reserva $id_reserva foi cancelada por " . $_SESSION['login'], "UPDATE"); 
+        registrarLog("Reserva $id_reserva foi cancelada por " . $_SESSION['login'], "UPDATE");
         echo "<p style='color:green;'>Reserva cancelada com sucesso!</p>";
         header("Refresh: 2; URL=reservas.php");
     } else {
         echo "<p style='color:red;'>Erro ao cancelar a reserva. Tente novamente.</p>";
     }
 }
-
-
