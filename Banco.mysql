@@ -18,7 +18,7 @@ CREATE TABLE quartos (
 );
 
 CREATE TABLE clientes (
-  id int NOT NULL AUTO_INCREMENT,
+  id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
   nome varchar(100) DEFAULT NULL,
   data_nascimento date DEFAULT NULL,
   cpf varchar(14) DEFAULT NULL,
@@ -26,8 +26,7 @@ CREATE TABLE clientes (
   telefone varchar(20) DEFAULT NULL,
   estado varchar(100) DEFAULT NULL,
   cidade varchar(50) DEFAULT NULL,
-  status varchar(255) DEFAULT '1',
-  PRIMARY KEY (id)
+  status varchar(255) DEFAULT '1'  
 );
 
 CREATE TABLE frigobar (
