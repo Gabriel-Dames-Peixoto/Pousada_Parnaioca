@@ -54,16 +54,38 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
 
             $jsonReservas = htmlspecialchars(json_encode($reservas), ENT_QUOTES, 'UTF-8');
 
+            // 🔥 BUSCAR ID DA RESERVA ATIVA
+            $stmt_id = $con->prepare("
+            SELECT id FROM reservas 
+            WHERE quarto_id = ? AND status = 'ativa' 
+            LIMIT 1
+            ");
+            $stmt_id->bind_param("i", $row['id']);
+            $stmt_id->execute();
+            $res_id = $stmt_id->get_result()->fetch_assoc();
+
             echo "<div class='quarto-box'>";
             echo "<h2 onclick='toggleCalendario(" . $row['id'] . ")'>🏨 " . $row['quarto'] . "</h2>";
 
             echo "<div id='calendario-" . $row['id'] . "' class='container-calendario'>";
             echo "<div class='calendario' data-id='" . $row['id'] . "' data-reservas='" . $jsonReservas . "'></div>";
-            echo "<br><a href='Requarto.php?id=" . $row['id'] . "'>Reservar</a>" . " | "
-                . "<a href='CanReserva.php?id=" . $row['id'] . "'>Cancelar</a>" . " | "
-                . "<a href='FiReserva.php?id=" . $row['id'] . "'>Finalizar reserva</a>";
-            echo "</div>";
 
+            echo "<br>";
+
+            // 🔹 BOTÕES
+            echo "<a href='Requarto.php?id=" . $row['id'] . "'>Reservar</a> | ";
+            if ($res_id) {
+                echo "<a href='CanReserva.php?id=" . $res_id['id'] . "'>Cancelar</a> | ";
+            };
+
+            // 🔥 FINALIZAR SÓ SE EXISTIR RESERVA ATIVA
+            if ($res_id) {
+                echo "<a href='FiReserva.php?id=" . $res_id['id'] . "'>Finalizar reserva</a>";
+            } else {
+                echo "<span style='color:gray;'>Sem reserva ativa</span>";
+            }
+
+            echo "</div>";
             echo "</div>";
         }
         ?>
@@ -71,7 +93,6 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
     </main>
 
     <script>
-        // 🔥 ABRIR/FECHAR
         function toggleCalendario(id) {
             const el = document.getElementById("calendario-" + id);
 
@@ -83,7 +104,7 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
             }
         }
 
-        // 🔥 CALENDÁRIO
+
         function gerarCalendario(container) {
 
             const calendarioDiv = container.querySelector(".calendario");
