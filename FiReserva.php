@@ -7,7 +7,7 @@ if (!isset($_SESSION['login']) || $_SESSION['perfil'] !== 'adm') {
     exit();
 }
 
-// 🔥 BUSCAR RESERVAS ATIVAS
+
 $reservas = $con->query("
     SELECT r.id, c.nome, q.quarto
     FROM reservas r
@@ -121,12 +121,10 @@ $reservas = $con->query("
                     document.getElementById("total").innerText = total.toFixed(2);
                 }
 
-                // 🔥 Atualiza automaticamente
                 document.querySelectorAll(".item").forEach(input => {
                     input.addEventListener("input", calcularTotal);
                 });
 
-                // inicial
                 calcularTotal();
             </script>
 
