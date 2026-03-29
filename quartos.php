@@ -10,100 +10,139 @@ if (!isset($_SESSION['login'])) {
 
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
     <link rel="stylesheet" href="1.css">
-    <link rel="shortcut icon" href="./imagens/ipousada.png">
     <title>Pousada Parnoica</title>
 </head>
 
 <body>
 
-<header>
-    <nav>
-        <ul>
-            <?php include_once 'Menu.php'; ?>
-        </ul>
-    </nav>
-</header>
+    <header>
+        <nav>
+            <ul>
+                <?php include_once 'Menu.php'; ?>
+            </ul>
+        </nav>
+    </header>
 
-<main>
-    <h1>Quartos disponíveis</h1>
+    <main>
+        <h1>Quartos disponíveis</h1>
 
-    <?php if (isset($_SESSION['perfil']) && $_SESSION['perfil'] === 'adm'): ?>
-        <a href="gravarquartos.php">
-            <button type="button">Cadastrar novo quarto</button>
-        </a>
+        <?php if (isset($_SESSION['perfil']) && $_SESSION['perfil'] === 'adm'): ?>
+            <a href="gravarquartos.php"><button>Cadastrar novo quarto</button></a>
+            <a href="reservas.php"><button>Gerenciar reservas</button></a>
+        <?php endif; ?>
 
-        <a href="reservas.php">
-            <button type="button">Gerenciar reservas</button>
-        </a>
-    <?php endif; ?>
+        <br><br>
 
-    <br><br>
+        <?php
+        $sql = "SELECT * FROM quartos ORDER BY id ASC";
+        $result = mysqli_query($con, $sql);
 
-    <?php
-    $sql = "SELECT * FROM quartos ORDER BY id ASC";
-    $result = mysqli_query($con, $sql);
+        if ($result && mysqli_num_rows($result) > 0) {
 
-    if (mysqli_num_rows($result) > 0) {
+            while ($row = mysqli_fetch_assoc($result)) {
 
-        while ($row = mysqli_fetch_assoc($result)) {
+                echo "<div class='quarto'>";
 
-            echo "<div class='quarto'>";
+                // 🔥 Buscar reserva ATUAL (se estiver ocupado hoje)
+                $stmt_atual = $con->prepare("
+            SELECT data_checkout 
+            FROM reservas
+            WHERE quarto_id = ?
+            AND status = 'ativa'
+            AND CURDATE() BETWEEN data_checkin AND data_checkout
+            LIMIT 1
+        ");
+                $stmt_atual->bind_param("i", $row["id"]);
+                $stmt_atual->execute();
+                $res_atual = $stmt_atual->get_result();
 
-            $stmt_status = $con->prepare("
-                SELECT COUNT(*) as total 
-                FROM reservas
-                WHERE quarto_id = ?
-                AND status = 'ativa'
-                AND CURDATE() BETWEEN data_checkin AND data_checkout
-            ");
+                // 🔥 Buscar próxima reserva futura
+                $stmt_futuro = $con->prepare("
+            SELECT data_checkin 
+            FROM reservas
+            WHERE quarto_id = ?
+            AND status = 'ativa'
+            AND data_checkin > CURDATE()
+            ORDER BY data_checkin ASC
+            LIMIT 1
+        ");
+                $stmt_futuro->bind_param("i", $row["id"]);
+                $stmt_futuro->execute();
+                $res_futuro = $stmt_futuro->get_result();
 
-            $stmt_status->bind_param("i", $row["id"]);
-            $stmt_status->execute();
-            $result_status = $stmt_status->get_result()->fetch_assoc();
+                $ocupado = $res_atual->num_rows > 0;
 
-            $ocupado = $result_status['total'] > 0;
+                if ($row['status'] == 0) {
 
-            
-            $statusTexto = $ocupado 
-                ? "<span style='color:red;'>🔴 Reservado</span>" 
-                : "<span style='color:green;'>🟢 Disponível</span>";
+                    $statusTexto = "<span style='color:gray;'>⚫ Indisponível (bloqueado)</span>";
+                    $ocupado = true;
+                } else {
 
-            echo "<h2>" . htmlspecialchars($row["quarto"]) . " - " . $statusTexto . "</h2>";
+                    if ($res_atual->num_rows > 0) {
 
-            echo "Preço base (5 noites): R$ " . number_format($row["preco"], 2, ',', '.') . "<br>";
-            echo "(Valor varia conforme quantidade de dias)<br><br>";
+                        $dados = $res_atual->fetch_assoc();
+                        $dataSaida = date("d/m/Y", strtotime($dados['data_checkout']));
 
-            echo "<a href='informacoes_quarto.php?id=" . $row["id"] . "'>Informações adicionais</a><br>";
+                        $statusTexto = "<span style='color:red;'>🔴 Ocupado até $dataSaida</span>";
+                        $ocupado = true;
+                    } else {
 
-            if (!$ocupado) {
-                echo "<a href='Requarto.php?id=" . $row["id"] . "'>Reservar</a><br>";
-            } else {
-                echo "<span style='color:gray;'>Indisponível no momento</span><br>";
+                        if ($res_futuro->num_rows > 0) {
+
+                            $dadosFuturo = $res_futuro->fetch_assoc();
+                            $dataEntrada = date("d/m/Y", strtotime($dadosFuturo['data_checkin']));
+
+                            $statusTexto = "<span style='color:orange;'>🟡 Disponível hoje (reservado a partir de $dataEntrada)</span>";
+                        } else {
+
+                            $statusTexto = "<span style='color:green;'>🟢 Livre</span>";
+                        }
+
+                        $ocupado = false;
+                    }
+                }
+
+                echo "<h2>" . htmlspecialchars($row["quarto"]) . " - $statusTexto</h2>";
+
+                echo "Preço base (5 noites): R$ " . number_format($row["preco"], 2, ',', '.') . "<br>";
+                echo "<small>(Valor varia conforme quantidade de dias)</small><br><br>";
+
+                echo "<a href='informacoes_quarto.php?id=" . $row["id"] . "'>Informações adicionais</a><br>";
+
+                if (!$ocupado) {
+                    echo "<a href='Requarto.php?id=" . $row["id"] . "'>Reservar</a><br>";
+                } else {
+                    echo "<span style='color:gray;'>Indisponível no momento</span><br>";
+                }
+
+                if (isset($_SESSION['perfil']) && $_SESSION['perfil'] === 'adm') {
+                    echo "<a href='edquarto.php?id=" . $row["id"] . "'>Editar</a>";
+                }
+
+                echo "</div><hr>";
+
+                $stmt_atual->close();
+                $stmt_futuro->close();
             }
-
-            if (isset($_SESSION['perfil']) && $_SESSION['perfil'] === 'adm') {
-                echo "<a href='edquarto.php?id=" . $row["id"] . "'>Editar</a>";
-            }
-
-            echo "</div><hr>";
+        } else {
+            echo "<p>Nenhum quarto disponível.</p>";
         }
 
-    } else {
-        echo "<p>Nenhum quarto disponível.</p>";
-    }
+        mysqli_close($con);
+        ?>
 
-    mysqli_close($con);
-    ?>
+    </main>
 
-</main>
-
-<footer>
-    <p>&copy; 2026 Pousada Parnoica. Todos os direitos reservados.</p>
-</footer>
+    <footer>
+        <p>&copy; 2026 Pousada Parnaioca</p>
+    </footer>
 
 </body>
+
 </html>

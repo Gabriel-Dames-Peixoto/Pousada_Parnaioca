@@ -1,0 +1,78 @@
+Sistema de Pousada: Projeto para avaliação de competências de estagiários.
+ 
+Esse projeto tem como objetivo avaliar suas competências e habilidades técnicas, como raciocínio, lógica de programação, regras de negócio e modelagens e consultas em banco de dados relacionais utilizando SQL.
+
+Prazo de 45 dias, data de entrega (30/04/2026).
+
+Solicitação:
+
+Tenho uma pousada chamada Pousada Parnaioca com 3000m² localizada em Abraão
+capital da Ilha Grande - Angra dos Reis. (Parnaioca é uma praia da Ilha Grande.)
+Ela conta com 3 suítes e 10 apartamentos, e elas possuem valores diferentes.
+- Suíte Lopes Mendes✅
+- Suíte Parnaioca✅
+- Suíte Lagoa Azul✅
+Necessito de um sistema que possa suprir minha necessidade e permita que eu
+atenda aos clientes da melhor forma possível.
+
+
+Cenário:
+Caro Programador segue abaixo todas as informações do meu empreendimento.
+Após a apresentação dos quartos o cliente escolhe a acomodação desejada e meus
+funcionários o levam ate ele.
+
+Sistema:
+Após feito o login o funcionário poderá fazer:✅
+- Cadastro do cliente (nome, data de nascimento, CPF, email, telefone, Estado, Cidade)✅
+- Cadastrar tipo de acomodação✅
+- Cadastrar acomodações e valores (nome, numero, valor, capacidade máxima)✅
+- Realizar cadastro de frigobar por acomodações ✅
+- Cadastrar itens para o frigobar (Nome e valor)✅
+- Realizar cadastro de vaga no estacionamento por acomodações ✅
+- Realizar o check-in e check-out ✅
+
+
+Observações:
+- O sistema pode ser acessado simultaneamente.✅
+- O sistema não deve se preocupar com o layout (ao menos que vc tenha conhecimentos em web designer)✅
+- Caso o cliente já tenha frequentado a pousada, não pode permitir outro cadastro✅
+- O sistema não pode permitir dois clientes no mesmo ambiente simultaneamente✅
+
+- Ao realizar o check-out inputar o valor de consumo de cada item do frigobar‼️
+
+- O sistema terá a possibilidade de inativar ou ativar clientes e acomodações✅
+- Somente o administrador pode inativar clientes, acomodações e itens do frigobar✅
+- Os formulários devem validar os campos antes dos cadastros.✅
+- Log de alterações✅
+
+
+Relatórios:‼️
+O sistema deve conter os seguintes relatórios
+ 
+- Clientes por range de datas
+- Clientes ativos e inativos
+- Relatórios financeiros
+
+Desafio:‼️
+Construção de dashboard com os seguintes dados
+ 
+- Item com maior saída e quarto com maior rentabilidade
+- Sistema devera mostrar quem esta hospedado atualmente(Quarto/pessoa/data inicial e data final)
+
+
+Tecnologias e observações:
+ 
+- Deve ser criado o modelo lógico do banco de dados, utilizando o brModelo ou outro programa de sua preferência.
+- Deve ser utilizado o fluxo de versionamento no github.
+ 
+Front-end:
+- HTML
+- CSS
+- JavaScript
+- Bootstrap ou tailwind
+
+Back-end:
+- PHP
+
+Banco de dados:
+- Mysql

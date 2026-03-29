@@ -1,4 +1,9 @@
 <?php
+session_start();
+if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['login'] === 'adm') {
+    header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
+    exit();
+}
 // Recebe os dados do formulário
 $login = $_POST["usuario"];
 $senha = md5($_POST["senha"]);
@@ -13,9 +18,10 @@ $stmt = mysqli_prepare($con, $sql);
 
 if ($stmt) {
     mysqli_stmt_bind_param($stmt, "sssi", $login, $senha, $perfil, $status);
-    
+
     if (mysqli_stmt_execute($stmt)) {
         // Redireciona com mensagem de sucesso
+        registrarLog("Usuario $login foi cadastrado por " . $_SESSION['login'], "INSERT");
         header("Location: usuarios.php?sucesso=" . urlencode("Cadastro realizado com sucesso!"));
         exit();
     } else {
@@ -27,4 +33,3 @@ if ($stmt) {
 }
 
 mysqli_close($con);
-?>

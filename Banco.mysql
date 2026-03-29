@@ -3,6 +3,7 @@ create table usuarios(
     login varchar(100) unique,
     senha varchar(32),
     perfil enum('adm','user')
+    status varchar(255) DEFAULT 1,
 );
 
 CREATE TABLE quartos (
@@ -17,7 +18,7 @@ CREATE TABLE quartos (
 );
 
 CREATE TABLE clientes (
-  id int NOT NULL AUTO_INCREMENT,
+  id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
   nome varchar(100) DEFAULT NULL,
   data_nascimento date DEFAULT NULL,
   cpf varchar(14) DEFAULT NULL,
@@ -25,8 +26,7 @@ CREATE TABLE clientes (
   telefone varchar(20) DEFAULT NULL,
   estado varchar(100) DEFAULT NULL,
   cidade varchar(50) DEFAULT NULL,
-  status varchar(255) DEFAULT '1',
-  PRIMARY KEY (id)
+  status varchar(255) DEFAULT '1'  
 );
 
 CREATE TABLE frigobar (
@@ -47,14 +47,31 @@ CREATE TABLE reservas (
     quarto_id INT,
     cliente_id INT,
     data_reserva DATETIME DEFAULT CURRENT_TIMESTAMP,
-
+    valor_total decimal(10,2) default NULL,
+    data_checkin date default null,
+    data_checkout date default null,
+    status enum('ativa','cancelada','finalizada') DEFAULT 'ativa',
+    KEY quarto_id (quarto_id),
+    KEY cliente_id (cliente_id),
+    
+    CONSTRAINT `reservas_ibfk_1`,
+    CONSTRAINT `reservas_ibfk_2`, 
     FOREIGN KEY (quarto_id) REFERENCES quartos(id),
     FOREIGN KEY (cliente_id) REFERENCES clientes(id)
 );
 
+<<<<<<< HEAD
 ALTER TABLE reservas 
 ADD COLUMN hora_checkin TIME,
 ADD COLUMN hora_checkout TIME,
 ADD COLUMN data_finalizacao DATETIME,
 ADD COLUMN data_cancelamento DATETIME,
 ADD COLUMN motivo_cancelamento TEXT;
+=======
+CREATE TABLE logs_sistema (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    data_hora DATETIME DEFAULT CURRENT_TIMESTAMP,
+    acao varchar(20);
+    mensagem TEXT NOT NULL
+);
+>>>>>>> 5dc1ef35964e29e7e4c1168bd60c9529d6671faf

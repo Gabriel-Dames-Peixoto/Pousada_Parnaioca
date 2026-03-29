@@ -32,7 +32,16 @@ if (isset($_POST['reservar'])) {
     $checkin = $_POST['checkin'];
     $hora_checkin = $_POST['hora_checkin'];
     $checkout = $_POST['checkout'];
+<<<<<<< HEAD
     $hora_checkout = $_POST['hora_checkout'];
+=======
+    $stmt_nome = $con->prepare("SELECT nome FROM clientes WHERE id = ?");
+    $stmt_nome->bind_param("i", $cliente_id);
+    $stmt_nome->execute();
+    $res_nome = $stmt_nome->get_result()->fetch_assoc();
+    $nome_cliente_log = $res_nome['nome'] ?? "ID $cliente_id"; // Fallback caso não encontre
+    $stmt_nome->close();
+>>>>>>> 5dc1ef35964e29e7e4c1168bd60c9529d6671faf
 
     if (!$cliente_id || !$checkin || !$checkout || !$hora_checkin || !$hora_checkout) {
         die("Dados inválidos.");
@@ -91,6 +100,7 @@ if (isset($_POST['reservar'])) {
         (quarto_id, cliente_id, valor_total, data_checkin, hora_checkin, data_checkout, hora_checkout, status) 
         VALUES (?, ?, ?, ?, ?, ?, ?, 'ativa')
     ");
+<<<<<<< HEAD
 
     $stmt->bind_param(
         "iidssss",
@@ -103,7 +113,15 @@ if (isset($_POST['reservar'])) {
         $hora_checkout
     );
 
+=======
+    $dataInicio = $data1->format('d/m/Y');
+    $dataFim = $data2->format('d/m/Y');
+    $nomeQuarto = $dados_quarto['quarto'];
+    $stmt->bind_param("iidss", $quarto_id, $cliente_id, $valorFinal, $checkin, $checkout);
+>>>>>>> 5dc1ef35964e29e7e4c1168bd60c9529d6671faf
     $stmt->execute();
+    registrarLog("A reserva do quarto $nomeQuarto foi realizada para o cliente $nome_cliente_log no período de 
+    $dataInicio à $dataFim pelo usuário " . $_SESSION['login'], "INSERT");
 
     header("Location: reservas.php?sucesso=1");
     exit();
@@ -123,13 +141,20 @@ if (isset($_POST['reservar'])) {
 
     <header>
         <nav>
+<<<<<<< HEAD
             <ul><?php include_once 'menu.php'; ?></ul>
+=======
+            <ul>
+                <?php include_once 'menu.php'; ?>
+            </ul>
+>>>>>>> 5dc1ef35964e29e7e4c1168bd60c9529d6671faf
         </nav>
     </header>
 
     <main>
         <h1>Reservar quarto <?= htmlspecialchars($dados_quarto['quarto']) ?></h1>
 
+<<<<<<< HEAD
         <form method="POST">
             <input type="hidden" name="quarto_id" value="<?= $id_quarto ?>">
 
@@ -160,6 +185,131 @@ if (isset($_POST['reservar'])) {
             <button type="submit" name="reservar">Reservar</button>
         </form>
     </main>
+=======
+        <p>
+            <strong>Preço base (5 noites):</strong>
+            R$ <?= number_format($dados_quarto['preco'], 2, ',', '.') ?>
+        </p>
+
+        <hr>
+
+        <!-- BUSCA -->
+        <form method="GET">
+            <input type="hidden" name="id" value="<?= $id_quarto ?>">
+            <input type="text" name="busca_cliente" placeholder="Buscar cliente" value="<?= htmlspecialchars($busca) ?>">
+            <button type="submit">Buscar</button>
+        </form>
+
+        <br>
+
+        <!-- RESERVA -->
+        <form method="POST">
+
+            <input type="hidden" name="quarto_id" value="<?= $id_quarto ?>">
+
+            <label>Cliente:</label><br>
+            <select name="cliente_id" required>
+                <?php
+                $sql_clientes = "SELECT * FROM clientes WHERE nome LIKE ? OR cpf LIKE ?";
+                $stmt_c = $con->prepare($sql_clientes);
+
+                $term = "%$busca%";
+                $stmt_c->bind_param("ss", $term, $term);
+                $stmt_c->execute();
+                $res_c = $stmt_c->get_result();
+
+                while ($cliente = $res_c->fetch_assoc()) {
+                    echo "<option value='{$cliente['id']}'>
+                        {$cliente['nome']} - {$cliente['cpf']}
+                      </option>";
+                }
+                ?>
+            </select>
+
+            <br><br>
+
+            <label>Quantidade de pessoas:</label>
+            <input type="number" name="quantidade_pessoas" min="1" max="<?= $dados_quarto['capacidade'] ?>" required>
+
+            <br><br>
+
+            <label>Check-in:</label><br>
+            <input type="date" name="checkin" required>
+
+            <br><br>
+
+            <label>Check-out:</label><br>
+            <input type="date" name="checkout" required>
+
+            <br><br>
+
+            <label>Valor calculado:</label><br>
+            <input type="text" id="valor_final" readonly>
+
+            <br><br>
+
+            <button type="submit" name="reservar">Reservar</button>
+
+        </form>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+
+            const precoBase = <?= $dados_quarto['preco'] ?>;
+
+            const formatarMoeda = (valor) => {
+                return new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                }).format(valor);
+            };
+
+            const checkin = document.querySelector('input[name="checkin"]');
+            const checkout = document.querySelector('input[name="checkout"]');
+            const campoValor = document.getElementById('valor_final');
+
+            function calcularValor() {
+
+                if (!checkin.value || !checkout.value) {
+                    campoValor.value = "";
+                    return;
+                }
+
+                let data1 = new Date(checkin.value);
+                let data2 = new Date(checkout.value);
+                let hoje = new Date();
+                hoje.setHours(0, 0, 0, 0);
+
+                let dias = (data2 - data1) / (1000 * 60 * 60 * 24);
+
+                if (dias <= 0) {
+                    campoValor.value = "Datas inválidas";
+                    return;
+                }
+
+                if (data1 < hoje) {
+                    campoValor.value = "Data inválida (passado)";
+                    return;
+                }
+
+                let valor = precoBase;
+
+                if (dias < 5) {
+                    valor *= (1 - (5 - dias) * 0.10);
+                } else if (dias > 5) {
+                    valor *= (1 + (dias - 5) * 0.10);
+                }
+
+                campoValor.value = formatarMoeda(valor);
+            }
+
+            checkin.addEventListener("change", calcularValor);
+            checkout.addEventListener("change", calcularValor);
+
+        });
+    </script>
+>>>>>>> 5dc1ef35964e29e7e4c1168bd60c9529d6671faf
 
 </body>
 

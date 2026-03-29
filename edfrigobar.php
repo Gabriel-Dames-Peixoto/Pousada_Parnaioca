@@ -1,6 +1,7 @@
 <?php
 session_start();
 include_once './conexao.php';
+include_once './Alteracao.php';
 
 if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil'] !== 'adm') {
     header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
@@ -8,7 +9,7 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
 }
 
 // 1. CAPTURA O ID DO ITEM QUE VEM DA URL (vindo do informações_quarto.php)
-$item_id = $_GET['id'] ?? null; 
+$item_id = $_GET['id'] ?? null;
 $dados_item = null;
 
 if ($item_id) {
@@ -17,7 +18,7 @@ if ($item_id) {
     $stmt_load->bind_param("i", $item_id);
     $stmt_load->execute();
     $result = $stmt_load->get_result();
-    
+
     if ($result->num_rows > 0) {
         $dados_item = $result->fetch_assoc();
     } else {
@@ -36,17 +37,23 @@ $quarto_data = $resQuarto->fetch_assoc();
 
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <title>Pousada Parnoica - Editar Item</title>
     <link rel="stylesheet" href="1.css">
 </head>
+
 <body>
-    <header><nav><ul><?php include_once 'Menu.php'; ?></ul></nav></header>
+    <header>
+        <nav>
+            <ul><?php include_once 'Menu.php'; ?></ul>
+        </nav>
+    </header>
 
     <main>
         <h1>Editar Item do Frigobar</h1>
-        
+
         <form action="" method="post">
             <input type="hidden" name="item_id" value="<?php echo $item_id; ?>">
             <input type="hidden" name="quarto_id" value="<?php echo $quarto_id; ?>">
@@ -78,7 +85,7 @@ $quarto_data = $resQuarto->fetch_assoc();
             $id_edit = $_POST['item_id'];
             $nome = trim($_POST['nome']);
             $quantidade = intval($_POST['quantidade']);
-            
+
             // Trata o valor (converte virgula em ponto)
             $valor_bruto = str_replace(',', '.', trim($_POST['valor']));
             $valor_final = floatval($valor_bruto);
@@ -90,6 +97,7 @@ $quarto_data = $resQuarto->fetch_assoc();
                 $stmt->bind_param("sidii", $nome, $quantidade, $valor_final, $_POST['status'], $id_edit);
 
                 if ($stmt->execute()) {
+                    registrarLog("O item $nome do frigobar do quarto $resquarto alterado por " . $_SESSION['login'], "UPDATE");
                     echo "<p style='color: green;'>Item atualizado com sucesso!</p>";
                     // Redireciona de volta após 2 segundos
                     echo "<script>setTimeout(function(){ window.location.href='informacoes_quarto.php?id=$quarto_id'; }, 2000);</script>";
@@ -102,4 +110,5 @@ $quarto_data = $resQuarto->fetch_assoc();
         ?>
     </main>
 </body>
+
 </html>

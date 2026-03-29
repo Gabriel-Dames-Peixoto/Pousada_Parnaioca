@@ -9,6 +9,7 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
 ?>
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,6 +17,7 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
     <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
     <title>Pousada Parnoica</title>
 </head>
+
 <body>
     <header>
         <nav>
@@ -46,8 +48,9 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
                 $sql = "UPDATE clientes SET nome = ?, email = ?, telefone = ?, estado = ?, cidade = ?, status = ? WHERE id = ?";
                 $stmt = $con->prepare($sql);
                 $stmt->bind_param("ssssssi", $nome, $email, $telefone, $estado, $cidade, $status, $id);
-                
+
                 if ($stmt->execute()) {
+                    registrarLog("Dados do cliente $nome foram atualizados por " . $_SESSION['login'], "UPDATE");
                     echo "<p class='sucesso'>Cadastro atualizado com sucesso! Redirecionando...</p>";
                     header("refresh:3;url=clientes.php");
                 } else {
@@ -85,13 +88,14 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
                 </div>
                 <div>
                     <label for="data_nascimento">Data de Nascimento:</label>
-                    <input type="date" id="data_nascimento" name="data_nascimento" 
-                           value="<?= htmlspecialchars($cliente['data_nascimento'] ?? '') ?>" required>
+                    <input type="date" id="data_nascimento" name="data_nascimento"
+                        value="<?= htmlspecialchars($cliente['data_nascimento'] ?? '') ?>" required>
                 </div>
                 <div>
                     <p><label for="cpf">CPF:</label>
-                    <input type="text" id="cpf" name="cpf" value="<?= htmlspecialchars($cliente['cpf'] ?? '') ?>" readonly><br>
-                    <small>(CPF não pode ser alterado)</small></p>
+                        <input type="text" id="cpf" name="cpf" value="<?= htmlspecialchars($cliente['cpf'] ?? '') ?>" readonly><br>
+                        <small>(CPF não pode ser alterado)</small>
+                    </p>
                 </div>
                 <div>
                     <label for="email">E-mail:</label>
@@ -116,11 +120,12 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
                         <option value="0" <?= (isset($cliente['status']) && $cliente['status'] == 0) ? 'selected' : '' ?>>Inativo</option>
                     </select>
                 </div>
-                
+
                 <button type="submit">Atualizar</button>
             </form>
         </section>
     </main>
     <?php $con->close(); ?>
 </body>
+
 </html>
