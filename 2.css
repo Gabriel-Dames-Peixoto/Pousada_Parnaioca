@@ -188,3 +188,10 @@ main {
 .dia-livre:hover {
     background-color: #45a049;
 }
+
+.dia small {
+    display: block;
+    font-size: 10px;
+    margin-top: 3px;
+}
+

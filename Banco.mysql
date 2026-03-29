@@ -51,3 +51,10 @@ CREATE TABLE reservas (
     FOREIGN KEY (quarto_id) REFERENCES quartos(id),
     FOREIGN KEY (cliente_id) REFERENCES clientes(id)
 );
+
+ALTER TABLE reservas 
+ADD COLUMN hora_checkin TIME,
+ADD COLUMN hora_checkout TIME,
+ADD COLUMN data_finalizacao DATETIME,
+ADD COLUMN data_cancelamento DATETIME,
+ADD COLUMN motivo_cancelamento TEXT;
