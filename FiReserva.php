@@ -90,9 +90,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $update->bind_param("di", $total_consumo, $id);
         $update->execute();
 
+        $valor_final = $res['valor_total'] + $total_consumo;
         $mensagem = "<p class='sucesso'>
-            Reserva finalizada! Consumo: R$ " . number_format($total_consumo, 2, ',', '.') . "
+            Reserva finalizada! Consumo: R$ " . number_format($total_consumo, 2, ',', '.') . " | Total Final: R$ " . number_format($valor_final, 2, ',', '.') . "
         </p>";
+        header("Refresh: 3; URL=reservas.php"); 
     }
 }
 ?>
