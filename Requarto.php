@@ -60,10 +60,11 @@ if (isset($_POST['reservar'])) {
     // ✅ Validação correta de datas
     $inicio_dt = new DateTime($inicio);
     $fim_dt = new DateTime($fim);
-    $agora = new DateTime();
+    $hoje = new DateTime();
+    $hoje->setTime(0, 0, 0);
 
-    if ($inicio_dt < $agora) {
-        die("❌ Não é permitido reservar datas/horários passados.");
+    if ($inicio_dt < $hoje) {
+        die("❌ Não é permitido reservar datas passadas.");
     }
 
     if ($inicio_dt >= $fim_dt) {
@@ -148,45 +149,45 @@ if (isset($_POST['reservar'])) {
 
 <body>
 
-<header>
-    <nav>
-        <ul><?php include_once 'menu.php'; ?></ul>
-    </nav>
-</header>
+    <header>
+        <nav>
+            <ul><?php include_once 'menu.php'; ?></ul>
+        </nav>
+    </header>
 
-<main>
-    <h1>Reservar quarto <?= htmlspecialchars($dados_quarto['quarto']) ?></h1>
+    <main>
+        <h1>Reservar quarto <?= htmlspecialchars($dados_quarto['quarto']) ?></h1>
 
-    <form method="POST">
-        <input type="hidden" name="quarto_id" value="<?= $id_quarto ?>">
+        <form method="POST">
+            <input type="hidden" name="quarto_id" value="<?= $id_quarto ?>">
 
-        <label>Cliente:</label><br>
-        <select name="cliente_id" required>
-            <?php
-            $res = mysqli_query($con, "SELECT * FROM clientes");
-            while ($c = mysqli_fetch_assoc($res)) {
-                echo "<option value='{$c['id']}'>" . htmlspecialchars($c['nome']) . "</option>";
-            }
-            ?>
-        </select>
+            <label>Cliente:</label><br>
+            <select name="cliente_id" required>
+                <?php
+                $res = mysqli_query($con, "SELECT * FROM clientes");
+                while ($c = mysqli_fetch_assoc($res)) {
+                    echo "<option value='{$c['id']}'>" . htmlspecialchars($c['nome']) . "</option>";
+                }
+                ?>
+            </select>
 
-        <br><br>
+            <br><br>
 
-        <label>Check-in:</label><br>
-        <input type="date" name="checkin" required>
-        <input type="time" name="hora_checkin" required>
+            <label>Check-in:</label><br>
+            <input type="date" name="checkin" required>
+            <input type="time" name="hora_checkin" required>
 
-        <br><br>
+            <br><br>
 
-        <label>Check-out:</label><br>
-        <input type="date" name="checkout" required>
-        <input type="time" name="hora_checkout" required>
+            <label>Check-out:</label><br>
+            <input type="date" name="checkout" required>
+            <input type="time" name="hora_checkout" required>
 
-        <br><br>
+            <br><br>
 
-        <button type="submit" name="reservar">Reservar</button>
-    </form>
-</main>
+            <button type="submit" name="reservar">Reservar</button>
+        </form>
+    </main>
 
 </body>
 
