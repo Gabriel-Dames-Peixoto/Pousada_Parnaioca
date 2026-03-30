@@ -6,6 +6,7 @@ create table usuarios(
     senha varchar(32),
     perfil enum('adm','user')
     status varchar(255) DEFAULT 1,
+    UNIQUE KEY login (login)
 );
 
 CREATE TABLE quartos (
@@ -48,18 +49,21 @@ CREATE TABLE reservas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     quarto_id INT,
     cliente_id INT,
+    usuario_id int DEFAULT NULL,
     data_reserva DATETIME DEFAULT CURRENT_TIMESTAMP,
     valor_total decimal(10,2) default NULL,
     data_checkin date default null,
-    data_checkout date default null,
+    hora_checkin time DEFAULT NULL,
+    data_checkout date DEFAULT NULL,
+    hora_checkout time DEFAULT NULL,
     status enum('ativa','cancelada','finalizada') DEFAULT 'ativa',
+    data_finalizacao datetime DEFAULT NULL,
+    data_cancelamento datetime DEFAULT NULL,
+    motivo_cancelamento text,
     KEY quarto_id (quarto_id),
     KEY cliente_id (cliente_id),
-    
-    CONSTRAINT `reservas_ibfk_1`,
-    CONSTRAINT `reservas_ibfk_2`, 
-    FOREIGN KEY (quarto_id) REFERENCES quartos(id),
-    FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+    KEY quarto_id (quarto_id),
+    KEY cliente_id (cliente_id)
 );
 
 CREATE TABLE logs_sistema (
