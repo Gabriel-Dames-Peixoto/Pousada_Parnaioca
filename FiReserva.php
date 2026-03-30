@@ -104,6 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="UTF-8">
 <link rel="stylesheet" href="2.css">
+<link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
 <title>Finalizar Reserva</title>
 </head>
 
