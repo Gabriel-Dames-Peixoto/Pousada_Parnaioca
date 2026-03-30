@@ -49,17 +49,25 @@ while ($row = mysqli_fetch_assoc($result)) {
     }
 
     $jsonReservas = htmlspecialchars(json_encode($reservas), ENT_QUOTES, 'UTF-8');
-
+    
     echo "<div class='quarto-box'>";
-    echo "<h2 onclick='toggleCalendario(".$row['id'].")'>🏨 ".$row['quarto']."</h2>";
+    
+    $estilo = ($row['status'] == 0) ? "style='color: #999;'" : "";
+    $mensagem = ($row['status'] == 0) ? " - Indisponível" : "";
+    
+    $onclick = ($row['status'] == 1) ? "onclick='toggleCalendario(".$row['id'].")'" : "";
+    
+    echo "<h2 $onclick $estilo>🏨 ".$row['quarto'].$mensagem."</h2>";
 
-    echo "<div id='calendario-".$row['id']."' class='container-calendario'>";
-    echo "<div class='calendario' data-id='".$row['id']."' data-reservas='".$jsonReservas."'></div>";
-    echo "<br>
-          <a href='Requarto.php?id=".$row['id']."'>Reservar</a> | 
-          <a href='CanReserva.php'>Cancelar</a> | 
-          <a href='FiReserva.php'>Finalizar reserva</a>";
-    echo "</div>";
+    if ($row['status'] == 1) {
+        echo "<div id='calendario-".$row['id']."' class='container-calendario'>";
+        echo "<div class='calendario' data-id='".$row['id']."' data-reservas='".$jsonReservas."'></div>";
+        echo "<br>
+              <a href='Requarto.php?id=".$row['id']."'>Reservar</a> | 
+              <a href='CanReserva.php'>Cancelar</a> | 
+              <a href='FiReserva.php'>Finalizar reserva</a>";
+        echo "</div>";
+    }
 
     echo "</div>";
 }
