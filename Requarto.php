@@ -2,12 +2,15 @@
 session_start();
 include_once './conexao.php';
 
-if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
+// ✅ Validação de acesso corrigida
+if (!isset($_SESSION['login']) || $_SESSION['status'] != 1) {
     header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
     exit();
 }
 
-$id_quarto = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+// ✅ Pega ID com segurança
+$id_quarto = $_GET['id'] ?? null;
+$id_quarto = filter_var($id_quarto, FILTER_VALIDATE_INT);
 
 if (!$id_quarto) {
     die("Nenhum quarto selecionado.");
@@ -15,6 +18,10 @@ if (!$id_quarto) {
 
 // Buscar dados do quarto
 $stmt_q = $con->prepare("SELECT quarto, preco, descricao, capacidade FROM quartos WHERE id = ?");
+if (!$stmt_q) {
+    die("Erro na consulta: " . $con->error);
+}
+
 $stmt_q->bind_param("i", $id_quarto);
 $stmt_q->execute();
 $dados_quarto = $stmt_q->get_result()->fetch_assoc();
@@ -27,14 +34,21 @@ if (!$dados_quarto) {
 // PROCESSAMENTO
 if (isset($_POST['reservar'])) {
 
-    $quarto_id = $_POST['quarto_id'];
-    $cliente_id = $_POST['cliente_id'];
-    $checkin = $_POST['checkin'];
-    $hora_checkin = $_POST['hora_checkin'];
-    $checkout = $_POST['checkout'];
-    $hora_checkout = $_POST['hora_checkout'];
-    $usuario_id = $_SESSION['id'];
+    $quarto_id = $id_quarto;
 
+    // ✅ Segurança nos inputs
+    $cliente_id = filter_input(INPUT_POST, 'cliente_id', FILTER_VALIDATE_INT);
+    $checkin = $_POST['checkin'] ?? null;
+    $hora_checkin = $_POST['hora_checkin'] ?? null;
+    $checkout = $_POST['checkout'] ?? null;
+    $hora_checkout = $_POST['hora_checkout'] ?? null;
+
+    $usuario_id = $_SESSION['id'] ?? null;
+
+    if (!$usuario_id) {
+        header("Location: index.php?erro=Sessão inválida. Faça login novamente.");
+        exit();
+    }
 
     if (!$cliente_id || !$checkin || !$checkout || !$hora_checkin || !$hora_checkout) {
         die("Dados inválidos.");
@@ -43,19 +57,22 @@ if (isset($_POST['reservar'])) {
     $inicio = $checkin . ' ' . $hora_checkin;
     $fim = $checkout . ' ' . $hora_checkout;
 
-    $hoje = date('Y-m-d H:i:s');
+    // ✅ Validação correta de datas
+    $inicio_dt = new DateTime($inicio);
+    $fim_dt = new DateTime($fim);
+    $agora = new DateTime();
 
-    if ($inicio < $hoje) {
-        die("❌ Não é permitido reservar datas passadas.");
+    if ($inicio_dt < $agora) {
+        die("❌ Não é permitido reservar datas/horários passados.");
     }
 
-    if ($inicio >= $fim) {
+    if ($inicio_dt >= $fim_dt) {
         die("Check-out deve ser após o check-in.");
     }
 
-    // VERIFICAR CONFLITO
+    // ✅ Verificar conflito (mantido funcional)
     $stmt_check = $con->prepare("
-        SELECT * FROM reservas 
+        SELECT id FROM reservas 
         WHERE quarto_id = ? 
         AND status = 'ativa'
         AND (
@@ -65,6 +82,10 @@ if (isset($_POST['reservar'])) {
         )
     ");
 
+    if (!$stmt_check) {
+        die("Erro na verificação: " . $con->error);
+    }
+
     $stmt_check->bind_param("iss", $quarto_id, $fim, $inicio);
     $stmt_check->execute();
     $reserva_existente = $stmt_check->get_result();
@@ -73,10 +94,8 @@ if (isset($_POST['reservar'])) {
         die("❌ Este quarto já está reservado nesse período.");
     }
 
-    // CALCULAR DIAS
-    $data1 = new DateTime($inicio);
-    $data2 = new DateTime($fim);
-    $dias = $data1->diff($data2)->days;
+    // ✅ Calcular dias
+    $dias = $inicio_dt->diff($fim_dt)->days;
 
     $precoBase = $dados_quarto['preco'];
     $valorFinal = $precoBase;
@@ -87,12 +106,16 @@ if (isset($_POST['reservar'])) {
         $valorFinal *= (1 + ($dias - 5) * 0.10);
     }
 
-    // INSERIR
+    // ✅ Inserir reserva
     $stmt = $con->prepare("
-    INSERT INTO reservas 
-    (quarto_id, cliente_id, usuario_id, valor_total, data_checkin, hora_checkin, data_checkout, hora_checkout, status) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'ativa')
-");
+        INSERT INTO reservas 
+        (quarto_id, cliente_id, usuario_id, valor_total, data_checkin, hora_checkin, data_checkout, hora_checkout, status) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'ativa')
+    ");
+
+    if (!$stmt) {
+        die("Erro ao inserir: " . $con->error);
+    }
 
     $stmt->bind_param(
         "iiidssss",
@@ -105,7 +128,6 @@ if (isset($_POST['reservar'])) {
         $checkout,
         $hora_checkout
     );
-
 
     $stmt->execute();
 
@@ -126,45 +148,45 @@ if (isset($_POST['reservar'])) {
 
 <body>
 
-    <header>
-        <nav>
-            <ul><?php include_once 'menu.php'; ?></ul>
-        </nav>
-    </header>
+<header>
+    <nav>
+        <ul><?php include_once 'menu.php'; ?></ul>
+    </nav>
+</header>
 
-    <main>
-        <h1>Reservar quarto <?= htmlspecialchars($dados_quarto['quarto']) ?></h1>
+<main>
+    <h1>Reservar quarto <?= htmlspecialchars($dados_quarto['quarto']) ?></h1>
 
-        <form method="POST">
-            <input type="hidden" name="quarto_id" value="<?= $id_quarto ?>">
+    <form method="POST">
+        <input type="hidden" name="quarto_id" value="<?= $id_quarto ?>">
 
-            <label>Cliente:</label><br>
-            <select name="cliente_id" required>
-                <?php
-                $res = mysqli_query($con, "SELECT * FROM clientes");
-                while ($c = mysqli_fetch_assoc($res)) {
-                    echo "<option value='{$c['id']}'>{$c['nome']}</option>";
-                }
-                ?>
-            </select>
+        <label>Cliente:</label><br>
+        <select name="cliente_id" required>
+            <?php
+            $res = mysqli_query($con, "SELECT * FROM clientes");
+            while ($c = mysqli_fetch_assoc($res)) {
+                echo "<option value='{$c['id']}'>" . htmlspecialchars($c['nome']) . "</option>";
+            }
+            ?>
+        </select>
 
-            <br><br>
+        <br><br>
 
-            <label>Check-in:</label><br>
-            <input type="date" name="checkin" required>
-            <input type="time" name="hora_checkin" required>
+        <label>Check-in:</label><br>
+        <input type="date" name="checkin" required>
+        <input type="time" name="hora_checkin" required>
 
-            <br><br>
+        <br><br>
 
-            <label>Check-out:</label><br>
-            <input type="date" name="checkout" required>
-            <input type="time" name="hora_checkout" required>
+        <label>Check-out:</label><br>
+        <input type="date" name="checkout" required>
+        <input type="time" name="hora_checkout" required>
 
-            <br><br>
+        <br><br>
 
-            <button type="submit" name="reservar">Reservar</button>
-        </form>
-    </main>
+        <button type="submit" name="reservar">Reservar</button>
+    </form>
+</main>
 
 </body>
 

@@ -1,6 +1,7 @@
 <?php
 session_start();
 include_once './conexao.php';
+
 if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil'] !== 'adm') {
     header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
     exit();
@@ -26,16 +27,20 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
             </ul>
         </nav>
     </header>
-    <main>
 
+    <main>
         <h1>Usuários</h1>
+
         <form method="GET" action="usuarios.php">
             <select name="status" onchange="this.form.submit()">
                 <option value="">Todos</option>
                 <option value="1" <?php if (isset($_GET['status']) && $_GET['status'] === '1') echo 'selected'; ?>>Ativos</option>
                 <option value="0" <?php if (isset($_GET['status']) && $_GET['status'] === '0') echo 'selected'; ?>>Inativos</option>
             </select>
-            <input type="text" name="search" placeholder="Pesquisar usuário" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+
+            <input type="text" name="search" placeholder="Pesquisar usuário"
+                value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+
             <button type="submit">Pesquisar</button>
             <button type="button" onclick="window.location.href='cadastrouso.php'">Novo Usuário</button>
         </form>
@@ -43,22 +48,25 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
         <div class="table-container">
 
             <?php
-            $search = isset($_GET['search']) ? $_GET['search'] : '';
+            $search = $_GET['search'] ?? '';
 
-            $sql = "SELECT idusuario, login, perfil, status FROM usuarios WHERE 1=1";
+            $sql = "SELECT id, login, perfil, status FROM usuarios WHERE 1=1";
 
             $params = [];
             $types = "";
 
-            $status = isset($_GET['status']) ? $_GET['status'] : '';
+            $status = $_GET['status'] ?? '';
+
+            // Filtro por status
             if ($status !== '') {
                 $sql .= " AND status = ?";
                 $params[] = $status;
                 $types .= "i";
             }
 
+            // Filtro por pesquisa
             if ($search !== '') {
-                $sql .= " AND (login LIKE ? OR perfil LIKE ? or status LIKE ?)";
+                $sql .= " AND (login LIKE ? OR perfil LIKE ? OR CAST(status AS CHAR) LIKE ?)";
                 $term = "%$search%";
                 $params[] = $term;
                 $params[] = $term;
@@ -66,9 +74,15 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
                 $types .= "sss";
             }
 
+            // Ordenação
             $sql .= " ORDER BY login ASC";
 
             $stmt = $con->prepare($sql);
+
+            // DEBUG (ajuda muito)
+            if (!$stmt) {
+                die("Erro no prepare: " . $con->error);
+            }
 
             if ($types !== "") {
                 $stmt->bind_param($types, ...$params);
@@ -95,15 +109,16 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
                     $textoStatus = $ativo ? "🟢 Ativo" : "🔴 Inativo";
 
                     echo "<tr class='$classe'>
-                <td>" . htmlspecialchars($row['idusuario']) . "</td>
-                <td>" . htmlspecialchars($row['login']) . "</td>
-                <td>" . htmlspecialchars($row['perfil']) . "</td>
-                <td>" . $textoStatus . "</td>
-                <td>
-                    <a href='editaruso.php?idusuario=" . htmlspecialchars($row['idusuario']) . "'>Editar</a>
-                </td>
-                  </tr>";
+                        <td>" . htmlspecialchars($row['id']) . "</td>
+                        <td>" . htmlspecialchars($row['login']) . "</td>
+                        <td>" . htmlspecialchars($row['perfil']) . "</td>
+                        <td>" . $textoStatus . "</td>
+                        <td>
+                            <a href='editaruso.php?idusuario=" . htmlspecialchars($row['id']) . "'>Editar</a>
+                        </td>
+                    </tr>";
                 }
+
                 echo "</table>";
             } else {
                 echo "<p>Nenhum usuário encontrado.</p>";
@@ -112,8 +127,10 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
             $stmt->close();
             $con->close();
             ?>
+
         </div>
     </main>
+
     <footer>
         <p>&copy; 2026 Pousada Parnaioca. Todos os direitos reservados.</p>
     </footer>

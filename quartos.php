@@ -49,29 +49,29 @@ if (!isset($_SESSION['login'])) {
 
                 echo "<div class='quarto'>";
 
-                // 🔥 Buscar reserva ATUAL (se estiver ocupado hoje)
+                // Buscar reserva ATUAL incluindo horas
                 $stmt_atual = $con->prepare("
-            SELECT data_checkout 
-            FROM reservas
-            WHERE quarto_id = ?
-            AND status = 'ativa'
-            AND CURDATE() BETWEEN data_checkin AND data_checkout
-            LIMIT 1
-        ");
+                    SELECT data_checkout, hora_checkout
+                    FROM reservas
+                    WHERE quarto_id = ?
+                    AND status = 'ativa'
+                    AND CURDATE() BETWEEN data_checkin AND data_checkout
+                    LIMIT 1
+                ");
                 $stmt_atual->bind_param("i", $row["id"]);
                 $stmt_atual->execute();
                 $res_atual = $stmt_atual->get_result();
 
-                // 🔥 Buscar próxima reserva futura
+                // Buscar próxima reserva futura incluindo horas
                 $stmt_futuro = $con->prepare("
-            SELECT data_checkin 
-            FROM reservas
-            WHERE quarto_id = ?
-            AND status = 'ativa'
-            AND data_checkin > CURDATE()
-            ORDER BY data_checkin ASC
-            LIMIT 1
-        ");
+                    SELECT data_checkin, hora_checkin
+                    FROM reservas
+                    WHERE quarto_id = ?
+                    AND status = 'ativa'
+                    AND data_checkin > CURDATE()
+                    ORDER BY data_checkin ASC
+                    LIMIT 1
+                ");
                 $stmt_futuro->bind_param("i", $row["id"]);
                 $stmt_futuro->execute();
                 $res_futuro = $stmt_futuro->get_result();
@@ -82,23 +82,27 @@ if (!isset($_SESSION['login'])) {
 
                     $statusTexto = "<span style='color:gray;'>⚫ Indisponível (bloqueado)</span>";
                     $ocupado = true;
+
                 } else {
 
                     if ($res_atual->num_rows > 0) {
 
                         $dados = $res_atual->fetch_assoc();
-                        $dataSaida = date("d/m/Y", strtotime($dados['data_checkout']));
+                        $dataSaida  = date("d/m/Y", strtotime($dados['data_checkout']));
+                        $horaSaida  = substr($dados['hora_checkout'], 0, 5); // HH:MM
 
-                        $statusTexto = "<span style='color:red;'>🔴 Ocupado até $dataSaida</span>";
+                        $statusTexto = "<span style='color:red;'>🔴 Ocupado até $dataSaida às $horaSaida</span>";
                         $ocupado = true;
+
                     } else {
 
                         if ($res_futuro->num_rows > 0) {
 
-                            $dadosFuturo = $res_futuro->fetch_assoc();
-                            $dataEntrada = date("d/m/Y", strtotime($dadosFuturo['data_checkin']));
+                            $dadosFuturo  = $res_futuro->fetch_assoc();
+                            $dataEntrada  = date("d/m/Y", strtotime($dadosFuturo['data_checkin']));
+                            $horaEntrada  = substr($dadosFuturo['hora_checkin'], 0, 5); // HH:MM
 
-                            $statusTexto = "<span style='color:orange;'>🟡 Disponível hoje (reservado a partir de $dataEntrada)</span>";
+                            $statusTexto = "<span style='color:orange;'>🟡 Disponível hoje (reservado a partir de $dataEntrada às $horaEntrada)</span>";
                         } else {
 
                             $statusTexto = "<span style='color:green;'>🟢 Livre</span>";

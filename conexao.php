@@ -12,3 +12,4 @@ function registrarLog($mensagem, $acao)
     $sql = "INSERT INTO logs_sistema (mensagem, acao) VALUES ('$msg', '$tipo')";
     mysqli_query($con, $sql);
 }
+
