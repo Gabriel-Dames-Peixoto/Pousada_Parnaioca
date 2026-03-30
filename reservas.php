@@ -20,7 +20,9 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
 <body>
 
 <header>
-    <nav><ul><?php include_once 'menu.php'; ?></ul></nav>
+    <nav>
+        <ul><?php include_once 'menu.php'; ?></ul>
+    </nav>
 </header>
 
 <main>
@@ -53,7 +55,8 @@ while ($row = mysqli_fetch_assoc($result)) {
 
     echo "<div id='calendario-".$row['id']."' class='container-calendario'>";
     echo "<div class='calendario' data-id='".$row['id']."' data-reservas='".$jsonReservas."'></div>";
-    echo "<br><a href='Requarto.php?id=".$row['id']."'>Reservar</a> | 
+    echo "<br>
+          <a href='Requarto.php?id=".$row['id']."'>Reservar</a> | 
           <a href='CanReserva.php'>Cancelar</a> | 
           <a href='FiReserva.php'>Finalizar reserva</a>";
     echo "</div>";
@@ -66,8 +69,10 @@ while ($row = mysqli_fetch_assoc($result)) {
 
 <script>
 
+// ABRIR / FECHAR
 function toggleCalendario(id) {
     const el = document.getElementById("calendario-" + id);
+
     el.style.display = (el.style.display === "block") ? "none" : "block";
 
     if (!el.dataset.loaded) {
@@ -76,6 +81,7 @@ function toggleCalendario(id) {
     }
 }
 
+// GERAR CALENDÁRIO
 function gerarCalendario(container) {
 
     const calendarioDiv = container.querySelector(".calendario");
@@ -95,6 +101,7 @@ function gerarCalendario(container) {
 
         calendarioDiv.innerHTML = "";
 
+        // HEADER
         const header = document.createElement("div");
         header.classList.add("cal-header");
 
@@ -106,8 +113,10 @@ function gerarCalendario(container) {
 
         const titulo = document.createElement("span");
 
-        const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho",
-                       "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+        const meses = [
+            "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+            "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"
+        ];
 
         titulo.innerText = `${meses[mes]} ${ano}`;
 
@@ -126,6 +135,7 @@ function gerarCalendario(container) {
         header.append(btnPrev, titulo, btnNext);
         calendarioDiv.appendChild(header);
 
+        // DIAS SEMANA
         ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].forEach(d => {
             let el = document.createElement("div");
             el.classList.add("dia-semana");
@@ -143,36 +153,32 @@ function gerarCalendario(container) {
         for (let dia = 1; dia <= totalDias; dia++) {
 
             let dataAtual = new Date(ano, mes, dia);
+            dataAtual.setHours(0,0,0,0);
+
             let ocupado = false;
             let info = "";
 
             reservas.forEach(r => {
 
-                let inicio = new Date(r.data_checkin + "T" + r.hora_checkin);
-                let fim = new Date(r.data_checkout + "T" + r.hora_checkout);
+                let inicio = new Date(r.data_checkin + "T00:00:00");
+                let fim = new Date(r.data_checkout + "T00:00:00");
 
-                let inicioDia = new Date(r.data_checkin);
-                let fimDia = new Date(r.data_checkout);
+                inicio.setHours(0,0,0,0);
+                fim.setHours(0,0,0,0);
 
-                let diaAtualMeio = new Date(dataAtual);
-                diaAtualMeio.setHours(12,0,0,0);
+                if (dataAtual >= inicio && dataAtual <= fim) {
 
-                // 🔴 DIA DE CHECK-IN
-                if (dataAtual.toDateString() === inicioDia.toDateString()) {
                     ocupado = true;
-                    info = `<br><small>Entrada: ${r.hora_checkin}</small>`;
-                }
 
-                // 🔴 DIA DE CHECK-OUT
-                else if (dataAtual.toDateString() === fimDia.toDateString()) {
-                    ocupado = true;
-                    info = `<br><small>Saída: ${r.hora_checkout}</small>`;
-                }
-
-                // 🔴 ENTRE OS DIAS
-                else if (diaAtualMeio > inicio && diaAtualMeio < fim) {
-                    ocupado = true;
-                    info = `<br><small>Ocupado</small>`;
+                    if (dataAtual.getTime() === inicio.getTime()) {
+                        info = `<small>Início: ${r.hora_checkin}</small>`;
+                    }
+                    else if (dataAtual.getTime() === fim.getTime()) {
+                        info = `<small>Até: ${r.hora_checkout}</small>`;
+                    }
+                    else {
+                        info = `<small>Ocupado</small>`;
+                    }
                 }
 
             });
@@ -184,11 +190,11 @@ function gerarCalendario(container) {
 
             if (dataAtual < hoje) {
                 el.classList.add("dia-passado");
-
-            } else if (ocupado) {
+            }
+            else if (ocupado) {
                 el.classList.add("dia-ocupado");
-
-            } else {
+            }
+            else {
                 el.classList.add("dia-livre");
 
                 el.onclick = () => {
