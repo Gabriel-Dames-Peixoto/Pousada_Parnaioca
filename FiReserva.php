@@ -28,7 +28,6 @@ $stmt = $con->prepare($sql);
 $stmt->execute();
 $reservas = $stmt->get_result();
 
-
 // 🔥 FINALIZAR
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
@@ -47,41 +46,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
 
         // 🔥 INSERIR CONSUMO (se houver)
-        if (!empty($_POST['frigobar_id'])) {
+        $total_consumo = 0;
+
+        if (!empty($_POST['frigobar_id']) && is_array($_POST['frigobar_id'])) {
             foreach ($_POST['frigobar_id'] as $index => $item_id) {
 
-                $qtd = $_POST['quantidade'][$index];
+                $qtd = $_POST['quantidade'][$index] ?? 0;
 
                 if ($qtd > 0) {
 
-                    // buscar valor do item
-                    $busca = $con->prepare("SELECT valor FROM frigobar WHERE id = ?");
+                    // buscar valor e quantidade disponível do item
+                    $busca = $con->prepare("SELECT valor, quantidade FROM frigobar WHERE id = ?");
                     $busca->bind_param("i", $item_id);
                     $busca->execute();
-                    $valor = $busca->get_result()->fetch_assoc()['valor'];
+                    $item = $busca->get_result()->fetch_assoc();
 
-                    $total = $valor * $qtd;
+                    if ($item && $qtd <= $item['quantidade']) {
+                        $valor = $item['valor'];
+                        $subtotal = $valor * $qtd;
+                        $total_consumo += $subtotal;
 
-                    $insert = $con->prepare("
-                        INSERT INTO consumo_frigobar (reserva_id, frigobar_id, quantidade, valor_total)
-                        VALUES (?, ?, ?, ?)
-                    ");
+                        $insert = $con->prepare("
+                            INSERT INTO consumo_frigobar (reserva_id, frigobar_id, quantidade, valor_total)
+                            VALUES (?, ?, ?, ?)
+                        ");
 
-                    $insert->bind_param("iiid", $id, $item_id, $qtd, $total);
-                    $insert->execute();
+                        $insert->bind_param("iiid", $id, $item_id, $qtd, $subtotal);
+                        $insert->execute();
+                    }
                 }
             }
         }
-
-        // 🍺 SOMAR FRIGOBAR
-        $consumo = $con->prepare("
-            SELECT SUM(valor_total) as total 
-            FROM consumo_frigobar 
-            WHERE reserva_id = ?
-        ");
-        $consumo->bind_param("i", $id);
-        $consumo->execute();
-        $total_consumo = $consumo->get_result()->fetch_assoc()['total'] ?? 0;
 
         // 🔥 FINALIZAR
         $update = $con->prepare("
@@ -135,7 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php } ?>
 </select>
 
-<br>
+<br><br>
 
 <div id="frigobar-container"></div>
 
@@ -148,19 +143,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <script>
 
-// 🔥 AO TROCAR RESERVA
 document.getElementById('reservaSelect').addEventListener('change', function() {
-
     let quartoId = this.options[this.selectedIndex].dataset.quarto;
 
-    if (!quartoId) return;
+    if (!quartoId) {
+        document.getElementById('frigobar-container').innerHTML = '';
+        return;
+    }
 
     fetch('buscar_frigobar.php?quarto_id=' + quartoId)
     .then(res => res.text())
     .then(html => {
         document.getElementById('frigobar-container').innerHTML = html;
-    });
-
+    })
+    .catch(err => console.error('Erro ao buscar frigobar:', err));
 });
 
 </script>
