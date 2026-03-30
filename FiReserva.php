@@ -7,173 +7,162 @@ if (!isset($_SESSION['login']) || $_SESSION['perfil'] !== 'adm') {
     exit();
 }
 
+$filtro_nome = $_GET['nome'] ?? '';
+$filtro_usuario = $_GET['usuario'] ?? '';
+$mensagem = "";
 
-$reservas = $con->query("
-    SELECT r.id, c.nome, q.quarto
-    FROM reservas r
-    JOIN clientes c ON c.id = r.cliente_id
-    JOIN quartos q ON q.id = r.quarto_id
-    WHERE r.status = 'ativa'
-");
+// 🔍 CONSULTA CORRIGIDA (LEFT JOIN + COALESCE)
+$sql = "
+SELECT 
+    r.id, 
+    c.nome AS cliente, 
+    COALESCE(u.login, 'Sem usuário') AS usuario, 
+    r.status
+FROM reservas r
+JOIN clientes c ON r.cliente_id = c.id
+LEFT JOIN usuarios u ON r.usuario_id = u.id
+WHERE r.status = 'ativa'
+";
+
+$params = [];
+$types = "";
+
+// 🔍 FILTRO CLIENTE
+if (!empty($filtro_nome)) {
+    $sql .= " AND c.nome LIKE ?";
+    $params[] = "%$filtro_nome%";
+    $types .= "s";
+}
+
+// 🔍 FILTRO USUÁRIO
+if (!empty($filtro_usuario)) {
+    $sql .= " AND u.login LIKE ?";
+    $params[] = "%$filtro_usuario%";
+    $types .= "s";
+}
+
+$stmt = $con->prepare($sql);
+
+if (!$stmt) {
+    die("Erro SQL: " . $con->error);
+}
+
+if (!empty($params)) {
+    $stmt->bind_param($types, ...$params);
+}
+
+$stmt->execute();
+$reservas = $stmt->get_result();
+
+// 🔥 FINALIZAR RESERVA
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $id = $_POST['id_reserva'];
+
+    // 🔎 Verificar reserva
+    $check = $con->prepare("SELECT status, valor_total FROM reservas WHERE id = ?");
+    $check->bind_param("i", $id);
+    $check->execute();
+    $res = $check->get_result()->fetch_assoc();
+
+    if (!$res) {
+        $mensagem = "<p class='erro'>Reserva não encontrada.</p>";
+    } elseif ($res['status'] !== 'ativa') {
+        $mensagem = "<p class='erro'>Só é possível finalizar reservas ativas.</p>";
+    } else {
+
+        // 🍺 SOMAR FRIGOBAR
+        $consumo = $con->prepare("
+            SELECT SUM(valor_total) as total 
+            FROM consumo_frigobar 
+            WHERE reserva_id = ?
+        ");
+
+        $consumo->bind_param("i", $id);
+        $consumo->execute();
+        $total_consumo = $consumo->get_result()->fetch_assoc()['total'] ?? 0;
+
+        // 🔥 ATUALIZAR RESERVA
+        $update = $con->prepare("
+            UPDATE reservas 
+            SET 
+                status = 'finalizada',
+                data_finalizacao = NOW(),
+                valor_total = valor_total + ?
+            WHERE id = ?
+        ");
+
+        $update->bind_param("di", $total_consumo, $id);
+        $update->execute();
+
+        $mensagem = "<p class='sucesso'>Reserva finalizada com sucesso! (Frigobar: R$ " 
+            . number_format($total_consumo, 2, ',', '.') . ")</p>";
+    }
+}
 ?>
 
 <!DOCTYPE html>
-<html>
-
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="2.css">
+    <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
     <title>Finalizar Reserva</title>
 </head>
 
 <body>
-    <main>
 
-        <h1>Selecionar Reserva</h1>
+<header>
+    <nav>
+        <ul>
+            <?php include_once 'menu.php'; ?>
+        </ul>
+    </nav>
+</header>
 
-        <form method="GET">
-            <label>Reserva:</label>
+<main>
+    <h1>Finalizar Reserva</h1>
 
-            <select name="id" required onchange="this.form.submit()">
-                <option value="">Selecione...</option>
+    <?= $mensagem ?>
 
-                <?php while ($r = $reservas->fetch_assoc()): ?>
-                    <option value="<?= $r['id'] ?>">
-                        ID <?= $r['id'] ?> - <?= $r['nome'] ?> (<?= $r['quarto'] ?>)
-                    </option>
-                <?php endwhile; ?>
-            </select>
-        </form>
+    <!-- 🔍 FILTROS -->
+    <form method="GET">
+        <label>Nome do cliente:</label>
+        <input type="text" name="nome" value="<?= htmlspecialchars($filtro_nome) ?>">
 
-        <hr>
-        <?php
-        $id_reserva = $_GET['id'] ?? null;
+        <label>Usuário:</label>
+        <input type="text" name="usuario" value="<?= htmlspecialchars($filtro_usuario) ?>">
 
-        if ($id_reserva):
+        <button type="submit">Filtrar</button>
+    </form>
 
-            $stmt = $con->prepare("
-    SELECT r.*, c.nome, q.quarto, q.id as quarto_id
-    FROM reservas r
-    JOIN clientes c ON c.id = r.cliente_id
-    JOIN quartos q ON q.id = r.quarto_id
-    WHERE r.id = ?
-");
-            $stmt->bind_param("i", $id_reserva);
-            $stmt->execute();
-            $reserva = $stmt->get_result()->fetch_assoc();
+    <br>
 
-            $stmt_frigobar = $con->prepare("
-    SELECT * FROM frigobar WHERE quarto_id = ? AND status = '1'
-");
-            $stmt_frigobar->bind_param("i", $reserva['quarto_id']);
-            $stmt_frigobar->execute();
-            $itens = $stmt_frigobar->get_result();
-        ?>
+    <!-- 📋 LISTA DE RESERVAS -->
+    <form method="POST">
+        <label>Selecione a reserva:</label>
 
-            <h2>Cliente: <?= $reserva['nome'] ?></h2>
-            <p>Quarto: <?= $reserva['quarto'] ?></p>
+        <select name="id_reserva" required>
+            <option value="">-- Selecione --</option>
 
-            <p><strong>Valor base:</strong>
-                R$ <span id="valorBase"><?= number_format($reserva['valor_total'], 2, '.', '') ?></span>
-            </p>
+            <?php while ($r = $reservas->fetch_assoc()) { ?>
+                <option value="<?= $r['id'] ?>">
+                    #<?= $r['id'] ?> - <?= $r['cliente'] ?> 
+                    (<?= $r['usuario'] ?>) - <?= $r['status'] ?>
+                </option>
+            <?php } ?>
+        </select>
 
-            <form method="POST">
+        <br><br>
 
-                <input type="hidden" name="id_reserva" value="<?= $id_reserva ?>">
+        <button type="submit">Finalizar Reserva</button>
+    </form>
 
-                <h3>Frigobar</h3>
+</main>
 
-                <?php while ($item = $itens->fetch_assoc()): ?>
-                    <div>
-                        <?= $item['nome'] ?> (R$ <?= $item['valor'] ?>)
+<footer>
+    <p>&copy; 2026 Pousada Parnaioca</p>
+</footer>
 
-                        <input type="number"
-                            class="item"
-                            data-preco="<?= $item['valor'] ?>"
-                            name="item[<?= $item['id'] ?>]"
-                            value="0"
-                            min="0">
-                    </div>
-                <?php endwhile; ?>
-
-                <br>
-
-                <h2>Total: R$ <span id="total">0.00</span></h2>
-
-                <button type="submit">Finalizar</button>
-
-            </form>
-
-            <script>
-                function calcularTotal() {
-
-                    let base = parseFloat(document.getElementById("valorBase").innerText);
-                    let total = base;
-
-                    document.querySelectorAll(".item").forEach(input => {
-
-                        let preco = parseFloat(input.dataset.preco);
-                        let qtd = parseInt(input.value) || 0;
-
-                        total += preco * qtd;
-                    });
-
-                    document.getElementById("total").innerText = total.toFixed(2);
-                }
-
-                document.querySelectorAll(".item").forEach(input => {
-                    input.addEventListener("input", calcularTotal);
-                });
-
-                calcularTotal();
-            </script>
-
-        <?php
-            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
-                $id_reserva = $_POST['id_reserva'];
-
-                $stmt = $con->prepare("SELECT valor_total FROM reservas WHERE id=?");
-                $stmt->bind_param("i", $id_reserva);
-                $stmt->execute();
-                $reserva = $stmt->get_result()->fetch_assoc();
-
-                $valor_final = $reserva['valor_total'];
-
-                foreach ($_POST['item'] as $id_item => $qtd) {
-
-                    if ($qtd > 0) {
-
-                        $stmt_item = $con->prepare("SELECT valor FROM frigobar WHERE id=?");
-                        $stmt_item->bind_param("i", $id_item);
-                        $stmt_item->execute();
-                        $item = $stmt_item->get_result()->fetch_assoc();
-
-                        $subtotal = $item['valor'] * $qtd;
-                        $valor_final += $subtotal;
-
-                        $stmt_insert = $con->prepare("
-                INSERT INTO consumo_frigobar 
-                (reserva_id, frigobar_id, quantidade, valor_total)
-                VALUES (?, ?, ?, ?)
-            ");
-                        $stmt_insert->bind_param("iiid", $id_reserva, $id_item, $qtd, $subtotal);
-                        $stmt_insert->execute();
-                    }
-                }
-
-                $stmt_up = $con->prepare("
-        UPDATE reservas 
-        SET valor_total=?, status='finalizada'
-        WHERE id=?
-    ");
-                $stmt_up->bind_param("di", $valor_final, $id_reserva);
-                $stmt_up->execute();
-
-                echo "<script>
-        alert('Finalizado! Total: R$ " . number_format($valor_final, 2, ',', '.') . "');
-        window.location='reservas.php';
-    </script>";
-            }
-        endif;
-        ?>
+</body>
+</html>

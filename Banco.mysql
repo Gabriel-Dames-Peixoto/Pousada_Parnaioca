@@ -1,3 +1,5 @@
+create database parnoicagabriel;
+
 create table usuarios(
     id int primary key auto_increment,
     login varchar(100) unique,
@@ -65,4 +67,15 @@ CREATE TABLE logs_sistema (
     data_hora DATETIME DEFAULT CURRENT_TIMESTAMP,
     acao varchar(20);
     mensagem TEXT NOT NULL
+);
+
+CREATE TABLE consumo_frigobar (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    reserva_id INT NOT NULL,
+    frigobar_id INT NOT NULL,
+    quantidade INT NOT NULL,
+    valor_total DECIMAL(10,2),
+
+    FOREIGN KEY (reserva_id) REFERENCES reservas(id),
+    FOREIGN KEY (frigobar_id) REFERENCES frigobar(id)
 );

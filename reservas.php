@@ -10,10 +10,8 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
 
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="2.css">
     <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
     <title>Reservas</title>
@@ -21,243 +19,196 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil
 
 <body>
 
-    <header>
-        <nav>
-            <ul>
-                <?php include_once 'menu.php'; ?>
-            </ul>
-        </nav>
-    </header>
+<header>
+    <nav><ul><?php include_once 'menu.php'; ?></ul></nav>
+</header>
 
-    <main>
-        <h1>Reservas</h1>
+<main>
+<h1>Reservas</h1>
 
-        <?php
-        $sql = "SELECT * FROM quartos ORDER BY id ASC";
-        $result = mysqli_query($con, $sql);
+<?php
+$sql = "SELECT * FROM quartos ORDER BY id ASC";
+$result = mysqli_query($con, $sql);
 
-        while ($row = mysqli_fetch_assoc($result)) {
+while ($row = mysqli_fetch_assoc($result)) {
 
-            $statusQuarto = $row['status'];
+    $stmt_res = $con->prepare("
+        SELECT data_checkin, hora_checkin, data_checkout, hora_checkout
+        FROM reservas 
+        WHERE quarto_id = ? AND status = 'ativa'
+    ");
+    $stmt_res->bind_param("i", $row['id']);
+    $stmt_res->execute();
+    $res = $stmt_res->get_result();
 
-            // 🔥 Buscar reservas para calendário
-            $stmt_res = $con->prepare("
-            SELECT data_checkin, data_checkout 
-            FROM reservas 
-            WHERE quarto_id = ? AND status = 'ativa'
-        ");
-            $stmt_res->bind_param("i", $row['id']);
-            $stmt_res->execute();
-            $res = $stmt_res->get_result();
+    $reservas = [];
+    while ($r = $res->fetch_assoc()) {
+        $reservas[] = $r;
+    }
 
-            $reservas = [];
-            while ($r = $res->fetch_assoc()) {
-                $reservas[] = $r;
-            }
+    $jsonReservas = htmlspecialchars(json_encode($reservas), ENT_QUOTES, 'UTF-8');
 
-            $jsonReservas = htmlspecialchars(json_encode($reservas), ENT_QUOTES, 'UTF-8');
+    echo "<div class='quarto-box'>";
+    echo "<h2 onclick='toggleCalendario(".$row['id'].")'>🏨 ".$row['quarto']."</h2>";
 
-            // 🔥 Buscar TODAS reservas ativas com cliente
-            $stmt_reservas = $con->prepare("
-            SELECT r.id, c.nome, r.data_checkin, r.data_checkout
-            FROM reservas r
-            JOIN clientes c ON c.id = r.cliente_id
-            WHERE r.quarto_id = ? AND r.status = 'ativa'
-            ORDER BY r.data_checkin ASC
-        ");
-            $stmt_reservas->bind_param("i", $row['id']);
-            $stmt_reservas->execute();
-            $reservas_ativas = $stmt_reservas->get_result();
+    echo "<div id='calendario-".$row['id']."' class='container-calendario'>";
+    echo "<div class='calendario' data-id='".$row['id']."' data-reservas='".$jsonReservas."'></div>";
+    echo "<br><a href='Requarto.php?id=".$row['id']."'>Reservar</a> | 
+          <a href='CanReserva.php'>Cancelar</a> | 
+          <a href='FiReserva.php'>Finalizar reserva</a>";
+    echo "</div>";
 
-            echo "<div class='quarto-box'>";
+    echo "</div>";
+}
+?>
 
-            // 🔥 STATUS VISUAL DO QUARTO
-            if ($statusQuarto == 0) {
-                echo "<h2>🏨 " . $row['quarto'] . " - <span style='color:gray;'>⚫ Indisponível (bloqueado)</span></h2>";
-            } else {
-                echo "<h2 onclick='toggleCalendario(" . $row['id'] . ")'>🏨 " . $row['quarto'] . "</h2>";
-            }
+</main>
 
-            // 🔥 CALENDÁRIO
-            echo "<div id='calendario-" . $row['id'] . "' class='container-calendario'>";
-            echo "<div class='calendario' data-id='" . $row['id'] . "' data-reservas='" . $jsonReservas . "'></div>";
+<script>
 
-            echo "<br>";
+function toggleCalendario(id) {
+    const el = document.getElementById("calendario-" + id);
+    el.style.display = (el.style.display === "block") ? "none" : "block";
 
-            // 🔥 AÇÕES
-            if ($statusQuarto == 0) {
+    if (!el.dataset.loaded) {
+        gerarCalendario(el);
+        el.dataset.loaded = true;
+    }
+}
 
-                echo "<span style='color:gray;'>Quarto indisponível</span>";
-            } else {
+function gerarCalendario(container) {
 
-                echo "<a href='Requarto.php?id=" . $row['id'] . "'>Reservar</a><br><br>";
+    const calendarioDiv = container.querySelector(".calendario");
+    calendarioDiv.innerHTML = "";
 
-                if ($reservas_ativas->num_rows > 0) {
+    const reservas = JSON.parse(calendarioDiv.dataset.reservas);
 
-                    echo "<strong>Reservas ativas:</strong><br>";
+    let hoje = new Date();
+    hoje.setHours(0,0,0,0);
 
-                    while ($r = $reservas_ativas->fetch_assoc()) {
+    let ano = hoje.getFullYear();
+    let mes = hoje.getMonth();
 
-                        $checkin = date("d/m/Y", strtotime($r['data_checkin']));
-                        $checkout = date("d/m/Y", strtotime($r['data_checkout']));
-                        $hoje = date('Y-m-d');
+    renderizarCalendario(ano, mes);
 
-                        $ativoHoje = ($r['data_checkin'] <= $hoje && $r['data_checkout'] >= $hoje);
+    function renderizarCalendario(ano, mes) {
 
-                        echo "<div style='margin-bottom:10px;'>";
+        calendarioDiv.innerHTML = "";
 
-                        echo "🏷️ ID {$r['id']} - {$r['nome']}<br>";
-                        echo "📅 $checkin até $checkout<br>";
+        const header = document.createElement("div");
+        header.classList.add("cal-header");
 
-                        if ($ativoHoje) {
-                            echo "<span style='color:red;'>🔥 Hospedado agora</span><br>";
-                        }
+        const btnPrev = document.createElement("button");
+        btnPrev.innerText = "◀";
 
-                        echo "<a href='CanReserva.php?id={$r['id']}'>Cancelar</a> | ";
-                        echo "<a href='FiReserva.php?id={$r['id']}'>Finalizar</a>";
+        const btnNext = document.createElement("button");
+        btnNext.innerText = "▶";
 
-                        echo "</div>";
-                    }
-                } else {
-                    echo "<span style='color:gray;'>Sem reservas ativas</span>";
-                }
-            }
+        const titulo = document.createElement("span");
 
-            echo "</div>"; // calendario
-            echo "</div>"; // quarto-box
-        }
+        const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+                       "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
-        mysqli_close($con);
-        ?>
+        titulo.innerText = `${meses[mes]} ${ano}`;
 
-    </main>
-
-    <script>
-        function toggleCalendario(id) {
-            const el = document.getElementById("calendario-" + id);
-
-            el.style.display = (el.style.display === "block") ? "none" : "block";
-
-            if (!el.dataset.loaded) {
-                gerarCalendario(el);
-                el.dataset.loaded = true;
-            }
-        }
-
-        function gerarCalendario(container) {
-
-            const calendarioDiv = container.querySelector(".calendario");
-            calendarioDiv.innerHTML = "";
-
-            const reservas = JSON.parse(calendarioDiv.dataset.reservas);
-
-            let hoje = new Date();
-            hoje.setHours(0, 0, 0, 0);
-
-            let ano = hoje.getFullYear();
-            let mes = hoje.getMonth();
-
+        btnPrev.onclick = () => {
+            mes--;
+            if (mes < 0) { mes = 11; ano--; }
             renderizarCalendario(ano, mes);
+        };
 
-            function renderizarCalendario(ano, mes) {
+        btnNext.onclick = () => {
+            mes++;
+            if (mes > 11) { mes = 0; ano++; }
+            renderizarCalendario(ano, mes);
+        };
 
-                calendarioDiv.innerHTML = "";
+        header.append(btnPrev, titulo, btnNext);
+        calendarioDiv.appendChild(header);
 
-                const header = document.createElement("div");
-                header.classList.add("cal-header");
+        ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].forEach(d => {
+            let el = document.createElement("div");
+            el.classList.add("dia-semana");
+            el.innerText = d;
+            calendarioDiv.appendChild(el);
+        });
 
-                const btnPrev = document.createElement("button");
-                btnPrev.innerText = "◀";
+        let primeiroDia = new Date(ano, mes, 1).getDay();
+        let totalDias = new Date(ano, mes + 1, 0).getDate();
 
-                const btnNext = document.createElement("button");
-                btnNext.innerText = "▶";
-
-                const titulo = document.createElement("span");
-
-                const meses = [
-                    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-                    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-                ];
-
-                titulo.innerText = `${meses[mes]} ${ano}`;
-
-                btnPrev.onclick = () => {
-                    mes--;
-                    if (mes < 0) {
-                        mes = 11;
-                        ano--;
-                    }
-                    renderizarCalendario(ano, mes);
-                };
-
-                btnNext.onclick = () => {
-                    mes++;
-                    if (mes > 11) {
-                        mes = 0;
-                        ano++;
-                    }
-                    renderizarCalendario(ano, mes);
-                };
-
-                header.append(btnPrev, titulo, btnNext);
-                calendarioDiv.appendChild(header);
-
-                ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].forEach(d => {
-                    let el = document.createElement("div");
-                    el.classList.add("dia-semana");
-                    el.innerText = d;
-                    calendarioDiv.appendChild(el);
-                });
-
-                let primeiroDia = new Date(ano, mes, 1).getDay();
-                let totalDias = new Date(ano, mes + 1, 0).getDate();
-
-                for (let i = 0; i < primeiroDia; i++) {
-                    calendarioDiv.appendChild(document.createElement("div"));
-                }
-
-                for (let dia = 1; dia <= totalDias; dia++) {
-
-                    let dataAtual = new Date(ano, mes, dia);
-                    let ocupado = false;
-
-                    reservas.forEach(r => {
-                        let inicio = new Date(r.data_checkin);
-                        let fim = new Date(r.data_checkout);
-
-                        if (dataAtual >= inicio && dataAtual <= fim) {
-                            ocupado = true;
-                        }
-                    });
-
-                    let el = document.createElement("div");
-                    el.classList.add("dia");
-                    el.innerText = dia;
-
-                    if (dataAtual < hoje) {
-                        el.classList.add("dia-passado");
-                    } else if (ocupado) {
-                        el.classList.add("dia-ocupado");
-                    } else {
-                        el.classList.add("dia-livre");
-
-                        el.onclick = () => {
-                            let data = `${ano}-${String(mes+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
-                            let quarto = calendarioDiv.dataset.id;
-                            window.location.href = `Requarto.php?id=${quarto}&data=${data}`;
-                        };
-                    }
-
-                    calendarioDiv.appendChild(el);
-                }
-            }
+        for (let i = 0; i < primeiroDia; i++) {
+            calendarioDiv.appendChild(document.createElement("div"));
         }
-    </script>
 
-    <footer>
-        <p>&copy; 2026 Pousada Parnaioca. Todos os direitos reservados.</p>
-    </footer>
+        for (let dia = 1; dia <= totalDias; dia++) {
+
+            let dataAtual = new Date(ano, mes, dia);
+            let ocupado = false;
+            let info = "";
+
+            reservas.forEach(r => {
+
+                let inicio = new Date(r.data_checkin + "T" + r.hora_checkin);
+                let fim = new Date(r.data_checkout + "T" + r.hora_checkout);
+
+                let inicioDia = new Date(r.data_checkin);
+                let fimDia = new Date(r.data_checkout);
+
+                let diaAtualMeio = new Date(dataAtual);
+                diaAtualMeio.setHours(12,0,0,0);
+
+                // 🔴 DIA DE CHECK-IN
+                if (dataAtual.toDateString() === inicioDia.toDateString()) {
+                    ocupado = true;
+                    info = `<br><small>Entrada: ${r.hora_checkin}</small>`;
+                }
+
+                // 🔴 DIA DE CHECK-OUT
+                else if (dataAtual.toDateString() === fimDia.toDateString()) {
+                    ocupado = true;
+                    info = `<br><small>Saída: ${r.hora_checkout}</small>`;
+                }
+
+                // 🔴 ENTRE OS DIAS
+                else if (diaAtualMeio > inicio && diaAtualMeio < fim) {
+                    ocupado = true;
+                    info = `<br><small>Ocupado</small>`;
+                }
+
+            });
+
+            let el = document.createElement("div");
+            el.classList.add("dia");
+
+            let texto = `<strong>${dia}</strong>`;
+
+            if (dataAtual < hoje) {
+                el.classList.add("dia-passado");
+
+            } else if (ocupado) {
+                el.classList.add("dia-ocupado");
+
+            } else {
+                el.classList.add("dia-livre");
+
+                el.onclick = () => {
+                    let data = `${ano}-${String(mes+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+                    let quarto = calendarioDiv.dataset.id;
+                    window.location.href = `Requarto.php?id=${quarto}&data=${data}`;
+                };
+            }
+
+            el.innerHTML = texto + info;
+            calendarioDiv.appendChild(el);
+        }
+    }
+}
+
+</script>
+
+<footer>
+    <p>&copy; 2026 Pousada Parnaioca. Todos os direitos reservados.</p>
+</footer>
 
 </body>
-
 </html>

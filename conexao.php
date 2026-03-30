@@ -1,5 +1,5 @@
 <?php
-$con = mysqli_connect("localhost", "root", "", "parnoicagabriel")
+$con = mysqli_connect("localhost", "root", "", "parnaiocagabriel")
     or die("Erro ao conectar com o banco de dados: " . mysqli_connect_error());
 
 function registrarLog($mensagem, $acao)
