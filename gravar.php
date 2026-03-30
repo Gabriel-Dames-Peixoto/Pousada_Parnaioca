@@ -1,6 +1,6 @@
 <?php
 session_start();
-if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['login'] === 'adm') {
+if (!isset($_SESSION['login']) || $_SESSION['status'] !== 1 || $_SESSION['perfil'] !== 'adm') {
     header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
     exit();
 }
