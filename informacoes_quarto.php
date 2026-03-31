@@ -2,7 +2,6 @@
 session_start();
 require_once './conexao.php';
 
-
 if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
     header("Location: index.php?erro=" . urlencode("Acesso negado."));
     exit();
@@ -16,6 +15,7 @@ if (!$id_quarto) {
     die("Nenhum quarto selecionado.");
 }
 
+
 $stmt_q = $con->prepare("SELECT quarto, preco, descricao, capacidade, vagas_estacionamento FROM quartos WHERE id = ?");
 $stmt_q->bind_param("i", $id_quarto);
 $stmt_q->execute();
@@ -25,58 +25,51 @@ $stmt_q->close();
 if (!$dados_quarto) {
     die("Quarto não encontrado.");
 }
-// 2.1 BUSCAR RESERVA ATIVA PARA ESTE QUARTO (Para exibir as datas na tela)
+
+
+$stmt_frig = $con->prepare("SELECT status_frigobar FROM frigobar WHERE quarto_id = ? LIMIT 1");
+$stmt_frig->bind_param("i", $id_quarto);
+$stmt_frig->execute();
+$dados_frig = $stmt_frig->get_result()->fetch_assoc();
+$stmt_frig->close();
+
+$status_frigobar = $dados_frig['status_frigobar'] ?? 1;
+
+
+if (isset($_POST['toggle_frigobar']) && $_SESSION['perfil'] === 'adm') {
+
+    $novo_status = ($status_frigobar == 1) ? 0 : 1;
+
+    $stmt_update = $con->prepare("UPDATE frigobar SET status_frigobar = ? WHERE quarto_id = ?");
+    $stmt_update->bind_param("ii", $novo_status, $id_quarto);
+    $stmt_update->execute();
+    $stmt_update->close();
+
+
+    header("Location: informacoes_quarto.php?id=" . $id_quarto);
+    exit();
+}
+
+
 $stmt_res = $con->prepare("SELECT data_checkin, data_checkout FROM reservas WHERE quarto_id = ? AND status = 'ativa' LIMIT 1");
 $stmt_res->bind_param("i", $id_quarto);
 $stmt_res->execute();
 $dados_reserva = $stmt_res->get_result()->fetch_assoc();
 $stmt_res->close();
-
-if (isset($_POST['reservar'])) {
-    $quarto_id = $_POST['quarto_id'];
-    $cliente_id = $_POST['cliente_id'];
-    $checkin = $_POST['checkin'];
-    $checkout = $_POST['checkout'];
-
-    if (!$cliente_id || !$checkin || !$checkout) {
-        die("Dados inválidos.");
-    }
-
-    $stmt_check = $con->prepare("
-        SELECT * FROM reservas 
-        WHERE quarto_id = ? 
-        AND status = 'ativa'
-        AND (
-            data_checkin <= ? AND data_checkout >= ?
-        )
-    ");
-
-    $stmt_check->bind_param("iss", $quarto_id, $checkout, $checkin);
-    $stmt_check->execute();
-    $reserva_existente = $stmt_check->get_result();
-
-    if ($reserva_existente->num_rows > 0) {
-        die("❌ Este quarto já está reservado nesse período.");
-    }
-
-    $data1 = new DateTime($checkin);
-    $data2 = new DateTime($checkout);
-    $dias = $data1->diff($data2)->days;
-}
-
 ?>
+
 <!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="1.css">
+    <title>Pousada Parnaioca - Detalhes</title>
+    <link rel="stylesheet" href="2.css">
     <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
-    <title>Pousada Parnoica - Detalhes</title>
 </head>
 
 <body>
+
     <header>
         <nav>
             <ul>
@@ -86,114 +79,155 @@ if (isset($_POST['reservar'])) {
     </header>
 
     <main>
+
+
         <section class="quarto-info">
             <h1>Quarto: <?= htmlspecialchars($dados_quarto['quarto']) ?></h1>
-            <p><strong>Preço a partir de 5 noites:</strong> R$ <?= number_format($dados_quarto['preco'], 2, ',', '.') ?>
-                <br><small>(Preço pode variar dependendo da quantidade de dias e da temporada)</small>
+
+            <p><strong>Preço:</strong> R$ <?= number_format($dados_quarto['preco'], 2, ',', '.') ?></p>
+
+            <p><strong>Descrição:</strong><br>
+                <?= nl2br(htmlspecialchars($dados_quarto['descricao'])) ?>
             </p>
 
-            <p><strong>Descrição:</strong> <?= nl2br(htmlspecialchars($dados_quarto['descricao'])) ?></p>
-            <p><strong>Capacidade:</strong> <?= htmlspecialchars($dados_quarto['capacidade']) ?> pessoas</p>
-            <p><strong>Vagas de Estacionamento:</strong> <?= htmlspecialchars($dados_quarto['vagas_estacionamento']) ?></p>
+            <p><strong>Capacidade:</strong> <?= $dados_quarto['capacidade'] ?> pessoas</p>
+            <p><strong>Vagas:</strong> <?= $dados_quarto['vagas_estacionamento'] ?></p>
 
             <?php if ($dados_reserva): ?>
-                <p style="background-color: #fff3cd; padding: 10px; border-left: 5px solid #ffc107;">
-                    <strong>📅 Status:</strong> Reservado de
-
-                    <?= date('d/m/Y', strtotime($dados_reserva['data_checkin'])) ?> até
-                    <?= date('d/m/Y', strtotime($dados_reserva['data_checkout'])) ?>,
-
-                    <br><small>(Este quarto não estará disponível para novas reservas nesse período)</small>
+                <p style="background:#fff3cd;padding:10px;">
+                    <strong>Reservado:</strong>
+                    <?= date('d/m/Y', strtotime($dados_reserva['data_checkin'])) ?>
+                    até
+                    <?= date('d/m/Y', strtotime($dados_reserva['data_checkout'])) ?>
                 </p>
             <?php else: ?>
-                <p style="color: green; font-weight: bold;">✅ Disponível para reserva.</p>
+                <p style="color:green;">✅ Disponível</p>
             <?php endif; ?>
         </section>
+
         <hr>
 
-        <section class="frigobar-section">
-            <h3>Itens do Frigobar</h3>
+        <!-- ==========================
+     FILTRO (GET)
+========================== -->
+        <section>
 
-            <form method="GET" action="" class="filter-form">
+            <form method="GET">
                 <input type="hidden" name="id" value="<?= $id_quarto ?>">
 
                 <?php if ($_SESSION['perfil'] === 'adm'): ?>
                     <select name="item_status" onchange="this.form.submit()">
-                        <option value="" <?= $status_filter === '' ? 'selected' : '' ?>>Todos os Status</option>
+                        <option value="">Todos</option>
                         <option value="1" <?= $status_filter === '1' ? 'selected' : '' ?>>Ativos</option>
                         <option value="0" <?= $status_filter === '0' ? 'selected' : '' ?>>Inativos</option>
                     </select>
                 <?php endif; ?>
+
                 <input type="text" name="busca_item" placeholder="Buscar item..."
                     value="<?= htmlspecialchars($_GET['busca_item'] ?? '') ?>">
+
                 <button type="submit">🔍</button>
+
                 <?php if ($_SESSION['perfil'] === 'adm'): ?>
-                    <button type="button" onclick="window.location.href='cFrigobar.php?id=<?= $id_quarto ?>'">Cadastrar Item</button>
+                    <button type="button"
+                        onclick="location.href='cFrigobar.php?id=<?= $id_quarto ?>'">
+                        Cadastrar Item
+                    </button>
                 <?php endif; ?>
             </form>
 
-            <?php
-            $sql_f = "SELECT id, nome, quantidade, valor, status FROM frigobar WHERE quarto_id = ? AND nome LIKE ?";
-            if ($status_filter !== '') {
-                $sql_f .= " AND status = ?";
-            }
+            <?php if ($_SESSION['perfil'] === 'adm'): ?>
+                <form method="POST" style="margin-top:10px;">
+                    <button type="submit" name="toggle_frigobar">
+                        <?= $status_frigobar == 1 ? 'Inativar Frigobar' : 'Ativar Frigobar' ?>
+                    </button>
+                </form>
+            <?php endif; ?>
 
-            $stmt_f = $con->prepare($sql_f);
-            if ($status_filter !== '') {
-                $stmt_f->bind_param("isi", $id_quarto, $busca, $status_filter);
-            } else {
-                $stmt_f->bind_param("is", $id_quarto, $busca);
-            }
-            $stmt_f->execute();
-            $result = $stmt_f->get_result();
+        </section>
 
-            if ($result->num_rows > 0): ?>
-                <table border="1" cellpadding="5" style="width:100%; border-collapse: collapse; margin-top: 10px;">
-                    <thead>
+        <section style="margin-top:20px;">
+
+            <h3>Itens do Frigobar</h3>
+
+            <?php if ($status_frigobar == 0): ?>
+                <p style="color:red;">⚠️ Frigobar indisponível</p>
+            <?php else: ?>
+
+                <?php
+                $sql = "SELECT id, nome, quantidade, valor, status 
+        FROM frigobar 
+        WHERE quarto_id = ? AND nome LIKE ?";
+
+                if ($status_filter !== '') {
+                    $sql .= " AND status = ?";
+                }
+
+                $stmt = $con->prepare($sql);
+
+                if ($status_filter !== '') {
+                    $stmt->bind_param("isi", $id_quarto, $busca, $status_filter);
+                } else {
+                    $stmt->bind_param("is", $id_quarto, $busca);
+                }
+
+                $stmt->execute();
+                $result = $stmt->get_result();
+                ?>
+
+                <?php if ($result->num_rows > 0): ?>
+                    <table border="1" cellpadding="5" width="100%">
                         <tr>
                             <th>Item</th>
                             <th>Valor</th>
                             <th>Qtd</th>
+
                             <?php if ($_SESSION['perfil'] === 'adm'): ?>
                                 <th>Status</th>
                                 <th>Ações</th>
                             <?php endif; ?>
                         </tr>
-                    </thead>
-                    <tbody>
-                        <?php while ($row = $result->fetch_assoc()):
-                            $corStatus = ($row['status'] == 1) ? "green" : "#ff3d3d";
-                            $textoStatus = ($row['status'] == 1) ? "Ativo" : "Inativo";
-                        ?>
+
+                        <?php while ($row = $result->fetch_assoc()): ?>
                             <tr>
                                 <td><?= htmlspecialchars($row['nome']) ?></td>
                                 <td>R$ <?= number_format($row['valor'], 2, ',', '.') ?></td>
-                                <td><?= htmlspecialchars($row['quantidade']) ?></td>
+                                <td><?= $row['quantidade'] ?></td>
+
                                 <?php if ($_SESSION['perfil'] === 'adm'): ?>
-                                    <td style="color: <?= $corStatus ?>; font-weight: bold;"><?= $textoStatus ?></td>
+                                    <td style="color:<?= $row['status'] ? 'green' : 'red' ?>">
+                                        <?= $row['status'] ? 'Ativo' : 'Inativo' ?>
+                                    </td>
                                     <td>
                                         <a href="edFrigobar.php?id=<?= $row['id'] ?>">Editar</a>
                                     </td>
                                 <?php endif; ?>
                             </tr>
                         <?php endwhile; ?>
-                    </tbody>
-                </table>
-            <?php else: ?>
-                <p>Nenhum item encontrado no frigobar.</p>
-            <?php endif;
-            $stmt_f->close(); ?>
+                    </table>
+
+                <?php else: ?>
+                    <p>Nenhum item encontrado.</p>
+                <?php endif; ?>
+
+                <?php $stmt->close(); ?>
+
+            <?php endif; ?>
+
         </section>
 
-        <div class="actions-footer" style="margin-top: 20px;">
-            <input type="button" value="Voltar para Quartos" onclick="window.location.href='quartos.php'">
-            <input type="button" value="Reservar" onclick="window.location.href='Requarto.php?id=<?= $id_quarto ?>'">
-
+        <!-- ==========================
+     AÇÕES
+========================== -->
+        <div style="margin-top:20px;">
+            <button onclick="location.href='quartos.php'">Voltar</button>
+            <button onclick="location.href='Requarto.php?id=<?= $id_quarto ?>'">Reservar</button>
         </div>
+
     </main>
 
     <footer>
-        <p>&copy; 2026 Pousada Parnaioca. Todos os direitos reservados.</p>
+        <p>&copy; 2026 Pousada Parnaioca</p>
     </footer>
 
 </body>
