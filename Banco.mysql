@@ -14,7 +14,7 @@ CREATE TABLE quartos (
     quarto VARCHAR(50) NOT NULL,
     tipo VARCHAR(50),
     preco DECIMAL(10, 2),
-    descricao TEXT
+    descricao TEXT,
     capacidade INT,
     vagas_estacionamento INT,
     status enum('1', '0') NOT NULL DEFAULT '1'
@@ -35,6 +35,7 @@ CREATE TABLE clientes (
 CREATE TABLE frigobar (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
+    quantidade INT NOT NULL DEFAULT 1,
     valor DECIMAL(10,2) NOT NULL,
     quarto_id INT NOT NULL,
     status ENUM('1', '0') NOT NULL DEFAULT '1',
@@ -69,7 +70,7 @@ CREATE TABLE reservas (
 CREATE TABLE logs_sistema (
     id INT AUTO_INCREMENT PRIMARY KEY,
     data_hora DATETIME DEFAULT CURRENT_TIMESTAMP,
-    acao varchar(20);
+    acao varchar(20),
     mensagem TEXT NOT NULL
 );
 
