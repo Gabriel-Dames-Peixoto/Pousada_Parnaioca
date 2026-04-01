@@ -30,12 +30,20 @@ if ($row = mysqli_fetch_assoc($result)) {
 
             session_regenerate_id(true);
 
-            // 🔥 ESSENCIAL (isso resolve tudo)
             $_SESSION['id'] = $row['id'];
             $_SESSION['login'] = $row['login'];
             $_SESSION['perfil'] = $row['perfil'];
             $_SESSION['status'] = $row['status'];
             $_SESSION['tempo'] = time();
+            $usuario = $_SESSION['login'];
+            $dataHora = date("d-m-Y H:i:s");
+
+
+            $arquivolog = fopen("Login.log", "a");
+
+            fwrite($arquivolog, "$dataHora - login realizado: $usuario" . PHP_EOL);
+
+            fclose($arquivolog);
 
             header("Location: inicio.php");
             exit();
