@@ -8,7 +8,7 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] != 1 || $_SESSION['perfil'
     exit();
 }
 
-// ── 1. Quem está hospedado AGORA ────────────────────────────
+
 $stmt = $con->prepare("
     SELECT
         r.id,
@@ -31,7 +31,7 @@ $stmt->execute();
 $hospedados = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-// ── 2. Item do frigobar com maior saída (todos os tempos) ───
+
 $stmt = $con->prepare("
     SELECT
         f.nome,
@@ -47,7 +47,7 @@ $stmt->execute();
 $top_itens = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-// ── 3. Quarto com maior rentabilidade (todos os tempos) ─────
+
 $stmt = $con->prepare("
     SELECT
         q.quarto,
@@ -65,7 +65,7 @@ $stmt->execute();
 $top_quartos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-// ── 4. Resumo rápido ────────────────────────────────────────
+
 $stmt = $con->prepare("
     SELECT
         (SELECT COUNT(*) FROM clientes WHERE status = 1)           AS clientes_ativos,
@@ -90,7 +90,6 @@ $stmt->close();
     <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
     <title>Dashboard — Pousada Parnaioca</title>
     <style>
-        /* ── Resumo rápido ── */
         .dash-cards {
             display: flex;
             gap: 15px;
@@ -271,7 +270,7 @@ $stmt->close();
             Atualizado em <?= date('d/m/Y H:i:s'); ?>
         </p>
 
-        <!-- Cards de resumo -->
+
         <div class="dash-cards">
             <div class="dash-card dc-hospedados">
                 <span class="numero"><?= count($hospedados) ?></span>
@@ -291,7 +290,7 @@ $stmt->close();
             </div>
         </div>
 
-        <!-- Hospedados agora (full width) -->
+        
         <div class="dash-section dash-full">
             <h2>🛏️ Quem está hospedado agora</h2>
             <?php if (!empty($hospedados)): ?>
@@ -318,10 +317,9 @@ $stmt->close();
             <?php endif; ?>
         </div>
 
-        <!-- Grid: Top itens + Top quartos -->
+        
         <div class="dash-grid">
 
-            <!-- Item com maior saída -->
             <div class="dash-section">
                 <h2>🍺 Itens com maior saída</h2>
                 <?php if (!empty($top_itens)):
@@ -344,7 +342,6 @@ $stmt->close();
                 <?php endif; ?>
             </div>
 
-            <!-- Quarto com maior rentabilidade -->
             <div class="dash-section">
                 <h2>🏆 Quartos mais rentáveis</h2>
                 <?php if (!empty($top_quartos)):
@@ -369,7 +366,6 @@ $stmt->close();
 
         </div>
 
-        <!-- Links rápidos para relatórios -->
         <div class="dash-section">
             <h2>🔗 Relatórios</h2>
             <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center; padding-top:8px;">
