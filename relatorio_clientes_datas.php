@@ -48,13 +48,14 @@ if ($data_inicio && $data_fim) {
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="2.css">
     <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
     <title>Relatório — Clientes por Período</title>
-    <!-- <style>
+    <style>
         .relatorio-header {
             display: flex;
             justify-content: space-between;
@@ -63,6 +64,7 @@ if ($data_inicio && $data_fim) {
             flex-wrap: wrap;
             gap: 10px;
         }
+
         .badge-total {
             background: #2c3e50;
             color: white;
@@ -71,6 +73,7 @@ if ($data_inicio && $data_fim) {
             font-size: 0.9rem;
             font-weight: bold;
         }
+
         .filter-card {
             background: #f8f9fa;
             border: 1px solid #dee2e6;
@@ -78,6 +81,7 @@ if ($data_inicio && $data_fim) {
             padding: 20px;
             margin-bottom: 25px;
         }
+
         .filter-card form {
             display: flex;
             gap: 15px;
@@ -87,32 +91,46 @@ if ($data_inicio && $data_fim) {
             max-width: 100%;
             text-align: left;
         }
+
         .filter-card .form-group {
             display: flex;
             flex-direction: column;
             gap: 5px;
         }
+
         .filter-card label {
             font-weight: bold;
             font-size: 0.85rem;
             color: #555;
         }
+
         .filter-card input[type="date"] {
             width: auto;
             padding: 8px 12px;
             margin: 0;
         }
+
         .filter-card button {
             width: auto;
             padding: 8px 20px;
         }
-        .status-ativo   { color: #27ae60; font-weight: bold; }
-        .status-inativo { color: #e74c3c; font-weight: bold; }
+
+        .status-ativo {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .status-inativo {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
         .empty-state {
             padding: 40px;
             color: #999;
             font-size: 1.1rem;
         }
+
         .btn-imprimir {
             background: #27ae60;
             color: white;
@@ -123,16 +141,32 @@ if ($data_inicio && $data_fim) {
             font-weight: bold;
             font-size: 0.9rem;
         }
-        .btn-imprimir:hover { background: #219a52; }
-        @media print {
-            header, .filter-card, .btn-imprimir, footer { display: none; }
-            main { box-shadow: none; }
+
+        .btn-imprimir:hover {
+            background: #219a52;
         }
-    </style> -->
+
+        @media print {
+
+            header,
+            .filter-card,
+            .btn-imprimir,
+            footer {
+                display: none;
+            }
+
+            main {
+                box-shadow: none;
+            }
+        }
+    </style>
 </head>
+
 <body>
     <header>
-        <nav><ul><?php include_once 'Menu.php'; ?></ul></nav>
+        <nav>
+            <ul><?php include_once 'Menu.php'; ?></ul>
+        </nav>
     </header>
 
     <main>
@@ -215,4 +249,5 @@ if ($data_inicio && $data_fim) {
         <p>&copy; 2026 Pousada Parnaioca. Todos os direitos reservados.</p>
     </footer>
 </body>
+
 </html>
