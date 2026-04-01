@@ -4,7 +4,7 @@ create table usuarios(
     id int primary key auto_increment,
     login varchar(100) unique,
     senha varchar(32),
-    perfil enum('adm','user')
+    perfil enum('adm','user'),
     status varchar(255) DEFAULT 1,
     UNIQUE KEY login (login)
 );

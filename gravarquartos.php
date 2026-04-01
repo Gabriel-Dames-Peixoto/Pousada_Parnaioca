@@ -2,7 +2,7 @@
 session_start();
 include_once './conexao.php';
 
-if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil'] !== 'adm') {
+if (!isset($_SESSION['login']) || $_SESSION['status'] != 1 || $_SESSION['perfil'] != 'adm') {
     // Se não houver login na sessão, manda de volta para o index
     header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
     exit();
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($stmt = $con->prepare($sql)) {
             // 3. Tipos: s (string) para quarto, s (tipo), d (double) para preco, s (descricao)
             // Ordem deve seguir o SQL: quarto, tipo, preco, descricao
-            $stmt->bind_param("ssdsss", $quarto, $tipo, $preco, $descricao, $capacidade, $vagas_estacionamento);
+            $stmt->bind_param("ssdsii", $quarto, $tipo, $preco, $descricao, $capacidade, $vagas_estacionamento);
 
             if ($stmt->execute()) {
                 registrarLog("O quarto $quarto foi cadastrado por " . $_SESSION['login'], "INSERT");

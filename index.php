@@ -56,7 +56,7 @@
     </main>
 
     <footer>
-        <p>&copy; current_yaer 2026 Pousada Parnaioca. Todos os direitos reservados.</p>
+        <p>&copy; 2026 Pousada Parnaioca. Todos os direitos reservados.</p>
     </footer>
 
 </body>
