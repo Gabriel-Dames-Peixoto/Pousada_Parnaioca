@@ -46,18 +46,18 @@ Observações:
 - Log de alterações✅
 
 
-Relatórios:‼️
+Relatórios:‼
 O sistema deve conter os seguintes relatórios
  
-- Clientes por range de datas
-- Clientes ativos e inativos
-- Relatórios financeiros
+- Clientes por range de datas ✅
+- Clientes ativos e inativos ✅
+- Relatórios financeiros ✅
 
-Desafio:‼️
+Desafio:
 Construção de dashboard com os seguintes dados
  
-- Item com maior saída e quarto com maior rentabilidade
-- Sistema devera mostrar quem esta hospedado atualmente(Quarto/pessoa/data inicial e data final)
+- Item com maior saída e quarto com maior rentabilidade✅
+- Sistema devera mostrar quem esta hospedado atualmente(Quarto/pessoa/data inicial e data final)✅
 
 
 Tecnologias e observações:
