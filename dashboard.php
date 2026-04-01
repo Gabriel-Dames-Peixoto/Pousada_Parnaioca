@@ -2,6 +2,7 @@
 session_start();
 include_once './conexao.php';
 
+
 if (!isset($_SESSION['login']) || $_SESSION['status'] != 1 || $_SESSION['perfil'] != 'adm') {
     header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
     exit();
@@ -267,7 +268,7 @@ $stmt->close();
     <main>
         <h1>📊 Dashboard</h1>
         <p style="color:#777; margin-bottom:25px;">
-            Atualizado em <?= date('d/m/Y H:i') ?>
+            Atualizado em <?= date('d/m/Y H:i:s'); ?>
         </p>
 
         <!-- Cards de resumo -->

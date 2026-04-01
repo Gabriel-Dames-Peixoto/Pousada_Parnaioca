@@ -13,3 +13,4 @@ function registrarLog($mensagem, $acao)
     mysqli_query($con, $sql);
 }
 
+date_default_timezone_set('America/Sao_Paulo');
