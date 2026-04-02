@@ -3,7 +3,7 @@ session_start();
 include_once './conexao.php';
 
 // 🔒 Proteção de acesso
-if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil'] !== 'adm') {
+if (!isset($_SESSION['login']) || $_SESSION['status'] != 1 || $_SESSION['perfil'] != 'adm') {
     header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
     exit();
 }
@@ -138,7 +138,7 @@ $search = $_GET['search'] ?? '';
             
         </div>
         <br><button type="button" onclick="window.location.href='relatorio_clientes_datas.php'">Clientes por data
-            <button type "button" onclick="window.location.href='relatorio_clientes_status.php'">Clientes por status
+            <button type= "button" onclick="window.location.href='relatorio_clientes_status.php'">Clientes por status
 
     </main>
 

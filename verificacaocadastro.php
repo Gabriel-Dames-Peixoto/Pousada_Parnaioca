@@ -3,12 +3,13 @@
 
 session_start();
 include_once './conexao.php';
+include_once './validar.php';
 
 // Função para verificar cadastro
 function verificarCadastro($login, $con)
 {
     try {
-        $stmt = $con->prepare("SELECT idusuario, login, senha, perfil FROM usuarios WHERE login = ?");
+        $stmt = $con->prepare("SELECT id, login, senha, perfil FROM usuarios WHERE login = ?");
 
 
         if ($stmt) {
@@ -38,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($usuario && md5($senha) === $usuario['senha']) {
             $sucesso = "Login bem-sucedido! Bem-vindo, " . htmlspecialchars($usuario['login']);
-            $_SESSION['idusuario'] = $usuario['idusuario'];
+            $_SESSION['id'] = $usuario['id'];
             $_SESSION['login'] = $usuario['login'];
             $_SESSION['senha'] = $usuario['senha'];
             $_SESSION['perfil'] = $usuario['perfil'];

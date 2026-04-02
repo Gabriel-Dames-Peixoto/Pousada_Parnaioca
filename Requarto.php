@@ -131,7 +131,10 @@ if (isset($_POST['reservar'])) {
         $hora_checkout
     );
 
-    $stmt->execute();  
+    $stmt->execute();
+    
+    registrarLog("A reserva do quarto {$dados_quarto['quarto']} foi realizada com sucesso no período de $checkin até $chekout pelo usuário " 
+    . $_SESSION['login'], "INSERT");
 
     header("Location: reservas.php?sucesso=1");
     exit();
@@ -165,7 +168,7 @@ if (isset($_POST['reservar'])) {
             <label>Cliente:</label><br>
             <select name="cliente_id" required>
                 <?php
-                $res = mysqli_query($con, "SELECT * FROM clientes");
+                $res = mysqli_query($con, "SELECT * FROM clientes where status = 1");
                 while ($c = mysqli_fetch_assoc($res)) {
                     echo "<option value='{$c['id']}'>" . htmlspecialchars($c['nome']) . "</option>";
                 }

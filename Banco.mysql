@@ -1,4 +1,4 @@
-create database parnoicagabriel;
+create database parnaiocagabriel;
 
 create table usuarios(
     id int primary key auto_increment,
