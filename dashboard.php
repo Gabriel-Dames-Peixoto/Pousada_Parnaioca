@@ -1,6 +1,7 @@
 <?php
 session_start();
 include_once './conexao.php';
+include_once './validar.php';
 
 
 if (!isset($_SESSION['login']) || $_SESSION['status'] != 1 || $_SESSION['perfil'] != 'adm') {

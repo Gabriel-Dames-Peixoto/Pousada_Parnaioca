@@ -1,6 +1,7 @@
 <?php
 session_start();
 include_once './conexao.php';
+include_once './validar.php';
 if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
     // Se não houver login na sessão, manda de volta para o index
     header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
@@ -31,8 +32,6 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
             <h1>Editar Cadastro</h1>
 
             <?php
-            include_once './conexao.php';
-
             // --- BLOCO 1: PROCESSA A ATUALIZAÇÃO (POST) ---
             if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $id = $_POST['id'];

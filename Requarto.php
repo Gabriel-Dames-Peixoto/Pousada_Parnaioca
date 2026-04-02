@@ -1,6 +1,7 @@
 <?php
 session_start();
 include_once './conexao.php';
+include_once './validar.php';
 
 
 // ✅ Validação de acesso corrigida
