@@ -1,63 +1,31 @@
 <?php
 session_start();
 include_once './conexao.php';
+include_once './validar.php';
 
-if (!isset($_SESSION['login']) || $_SESSION['perfil'] !== 'adm') {
+if (!isset($_SESSION['login']) || $_SESSION['perfil'] != 'adm') {
     header("Location: index.php");
     exit();
 }
 
-$filtro_nome = $_GET['nome'] ?? '';
-$filtro_usuario = $_GET['usuario'] ?? '';
 $mensagem = "";
 
-// 🔍 CONSULTA CORRIGIDA
-$sql = "
-SELECT 
-    r.id, 
-    c.nome AS cliente, 
-    COALESCE(u.login, 'Sem usuário') AS usuario, 
-    r.status
-FROM reservas r
-JOIN clientes c ON r.cliente_id = c.id
-LEFT JOIN usuarios u ON r.usuario_id = u.id
-WHERE r.status = 'ativa'
-";
-
-$params = [];
-$types = "";
-
-// FILTRO CLIENTE
-if (!empty($filtro_nome)) {
-    $sql .= " AND c.nome LIKE ?";
-    $params[] = "%$filtro_nome%";
-    $types .= "s";
-}
-
-// FILTRO USUÁRIO
-if (!empty($filtro_usuario)) {
-    $sql .= " AND u.login LIKE ?";
-    $params[] = "%$filtro_usuario%";
-    $types .= "s";
-}
-
-$stmt = $con->prepare($sql);
-
-if (!$stmt) {
-    die("Erro SQL: " . $con->error);
-}
-
-if (!empty($params)) {
-    $stmt->bind_param($types, ...$params);
-}
-
-$stmt->execute();
-$reservas = $stmt->get_result();
+// Buscar QUARTOS que têm reservas ativas
+$stmt_quartos = $con->prepare("
+    SELECT DISTINCT q.id, q.quarto
+    FROM quartos q
+    INNER JOIN reservas r ON r.quarto_id = q.id
+    WHERE r.status = 'ativa'
+    ORDER BY q.quarto ASC
+");
+$stmt_quartos->execute();
+$quartos_com_reserva = $stmt_quartos->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt_quartos->close();
 
 // 🔥 CANCELAR RESERVA
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $id = $_POST['id_reserva'];
+    $id     = $_POST['id_reserva'];
     $motivo = trim($_POST['motivo']);
 
     if (empty($motivo)) {
@@ -85,7 +53,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     motivo_cancelamento = ?
                 WHERE id = ?
             ");
-
             $stmt->bind_param("si", $motivo, $id);
             $stmt->execute();
 
@@ -97,69 +64,142 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="2.css">
     <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
     <title>Cancelar Reserva</title>
+    <style>
+        .step-label {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 6px;
+            display: block;
+            font-size: 0.95rem;
+        }
+
+        .step-block {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 18px 20px;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            color: #3498db;
+            font-size: 0.9rem;
+            margin-top: 8px;
+        }
+
+        textarea {
+            min-height: 80px;
+        }
+
+        #cancelar-container {
+            display: none;
+        }
+    </style>
 </head>
 
 <body>
 
-<header>
-    <nav>
-        <ul><?php include_once 'menu.php'; ?></ul>
-    </nav>
-</header>
+    <header>
+        <nav>
+            <ul><?php include_once 'menu.php'; ?></ul>
+        </nav>
+    </header>
 
-<main>
-    <h1>Cancelar Reserva</h1>
+    <main>
+        <h1>Cancelar Reserva</h1>
 
-    <?= $mensagem ?>
+        <?= $mensagem ?>
 
-    <!-- 🔍 FILTROS -->
-    <form method="GET">
-        <label>Nome do cliente:</label>
-        <input type="text" name="nome" value="<?= htmlspecialchars($filtro_nome) ?>">
+        <form method="POST" id="formCancelar">
 
-        <label>Usuário:</label>
-        <input type="text" name="usuario" value="<?= htmlspecialchars($filtro_usuario) ?>">
+            <!-- PASSO 1: Selecionar quarto -->
+            <div class="step-block">
+                <span class="step-label">1. Selecione o quarto:</span>
+                <select id="quartoSelect" onchange="carregarReservas()">
+                    <option value="">-- Selecione um quarto --</option>
+                    <?php foreach ($quartos_com_reserva as $q): ?>
+                        <option value="<?= $q['id'] ?>"><?= htmlspecialchars($q['quarto']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
 
-        <button type="submit">Filtrar</button>
-    </form>
+            <!-- PASSO 2: Reservas do quarto -->
+            <div class="step-block" id="reservas-container" style="display:none;">
+                <span class="step-label">2. Selecione a reserva:</span>
+                <select name="id_reserva" id="reservaSelect" required onchange="mostrarMotivo()">
+                    <option value="">-- Selecione --</option>
+                </select>
+            </div>
 
-    <br>
+            <!-- PASSO 3: Motivo + botão -->
+            <div class="step-block" id="cancelar-container">
+                <span class="step-label">3. Motivo do cancelamento:</span>
+                <textarea name="motivo" required placeholder="Descreva o motivo do cancelamento..."></textarea>
+                <br><br>
+                <button type="submit" style="background:#e74c3c;">Cancelar Reserva</button>
+            </div>
 
-    <!-- 📋 LISTA -->
-    <form method="POST">
-        <label>Selecione a reserva:</label>
+        </form>
 
-        <select name="id_reserva" required>
-            <option value="">-- Selecione --</option>
+    </main>
 
-            <?php while ($r = $reservas->fetch_assoc()) { ?>
-                <option value="<?= $r['id'] ?>">
-                    #<?= $r['id'] ?> - <?= $r['cliente'] ?> 
-                    (<?= $r['usuario'] ?>) - <?= $r['status'] ?>
-                </option>
-            <?php } ?>
-        </select>
+    <script>
+        function carregarReservas() {
+            const quartoId = document.getElementById('quartoSelect').value;
+            const container = document.getElementById('reservas-container');
+            const select = document.getElementById('reservaSelect');
+            const cancelDiv = document.getElementById('cancelar-container');
 
-        <br><br>
+            select.innerHTML = '<option value="">-- Selecione --</option>';
+            cancelDiv.style.display = 'none';
 
-        <label>Motivo do cancelamento:</label>
-        <textarea name="motivo" required></textarea>
+            if (!quartoId) {
+                container.style.display = 'none';
+                return;
+            }
 
-        <br><br>
+            container.style.display = 'block';
+            select.innerHTML = '<option value="">⏳ Carregando...</option>';
 
-        <button type="submit">Cancelar Reserva</button>
-    </form>
+            fetch('buscar_reservas.php?quarto_id=' + quartoId + '&status=ativa')
+                .then(r => r.json())
+                .then(data => {
+                    select.innerHTML = '<option value="">-- Selecione a reserva --</option>';
 
-</main>
+                    if (data.length === 0) {
+                        select.innerHTML = '<option value="" disabled>Nenhuma reserva ativa para este quarto</option>';
+                        return;
+                    }
 
-<footer>
-    <p>&copy; 2026 Pousada Parnaioca</p>
-</footer>
+                    data.forEach(r => {
+                        const opt = document.createElement('option');
+                        opt.value = r.id;
+                        opt.textContent = `#${r.id} — ${r.cliente} — ${r.quarto} — ${r.periodo} — ${r.usuario}`;
+                        select.appendChild(opt);
+                    });
+                })
+                .catch(err => {
+                    select.innerHTML = '<option value="">Erro ao carregar reservas</option>';
+                    console.error(err);
+                });
+        }
+
+        function mostrarMotivo() {
+            const val = document.getElementById('reservaSelect').value;
+            document.getElementById('cancelar-container').style.display = val ? 'block' : 'none';
+        }
+    </script>
+
+    <footer>
+        <p>&copy; 2026 Pousada Parnaioca</p>
+    </footer>
 
 </body>
+
 </html>

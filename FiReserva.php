@@ -1,39 +1,32 @@
 <?php
 session_start();
 include_once './conexao.php';
+include_once './validar.php';
 
 if (!isset($_SESSION['login']) || $_SESSION['perfil'] !== 'adm') {
     header("Location: index.php");
     exit();
 }
 
-$filtro_nome = $_GET['nome'] ?? '';
-$filtro_usuario = $_GET['usuario'] ?? '';
 $mensagem = "";
 
-// 🔍 LISTAR RESERVAS ATIVAS
-$sql = "
-SELECT 
-    r.id, 
-    r.quarto_id,
-    c.nome AS cliente, 
-    COALESCE(u.login, 'Sem usuário') AS usuario
-FROM reservas r
-JOIN clientes c ON r.cliente_id = c.id
-LEFT JOIN usuarios u ON r.usuario_id = u.id
-WHERE r.status = 'ativa'
-";
-
-$stmt = $con->prepare($sql);
-$stmt->execute();
-$reservas = $stmt->get_result();
+// Buscar QUARTOS que têm reservas ativas (para o select de quartos)
+$stmt_quartos = $con->prepare("
+    SELECT DISTINCT q.id, q.quarto
+    FROM quartos q
+    INNER JOIN reservas r ON r.quarto_id = q.id
+    WHERE r.status = 'ativa'
+    ORDER BY q.quarto ASC
+");
+$stmt_quartos->execute();
+$quartos_com_reserva = $stmt_quartos->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt_quartos->close();
 
 // 🔥 FINALIZAR
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $id = $_POST['id_reserva'];
 
-    // 🔎 Verifica reserva
     $check = $con->prepare("SELECT status, valor_total FROM reservas WHERE id = ?");
     $check->bind_param("i", $id);
     $check->execute();
@@ -45,7 +38,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mensagem = "<p class='erro'>Só pode finalizar reservas ativas.</p>";
     } else {
 
-        // 🔥 INSERIR CONSUMO (se houver)
         $total_consumo = 0;
 
         if (!empty($_POST['frigobar_id']) && is_array($_POST['frigobar_id'])) {
@@ -54,15 +46,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $qtd = $_POST['quantidade'][$index] ?? 0;
 
                 if ($qtd > 0) {
-
-                    // buscar valor e quantidade disponível do item
                     $busca = $con->prepare("SELECT valor, quantidade FROM frigobar WHERE id = ?");
                     $busca->bind_param("i", $item_id);
                     $busca->execute();
                     $item = $busca->get_result()->fetch_assoc();
 
                     if ($item && $qtd <= $item['quantidade']) {
-                        $valor = $item['valor'];
+                        $valor    = $item['valor'];
                         $subtotal = $valor * $qtd;
                         $total_consumo += $subtotal;
 
@@ -70,7 +60,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             INSERT INTO consumo_frigobar (reserva_id, frigobar_id, quantidade, valor_total)
                             VALUES (?, ?, ?, ?)
                         ");
-
                         $insert->bind_param("iiid", $id, $item_id, $qtd, $subtotal);
                         $insert->execute();
                     }
@@ -78,7 +67,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // 🔥 FINALIZAR
         $update = $con->prepare("
             UPDATE reservas 
             SET status = 'finalizada',
@@ -86,7 +74,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 valor_total = valor_total + ?
             WHERE id = ?
         ");
-
         $update->bind_param("di", $total_consumo, $id);
         $update->execute();
 
@@ -94,75 +81,179 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mensagem = "<p class='sucesso'>
             Reserva finalizada! Consumo: R$ " . number_format($total_consumo, 2, ',', '.') . " | Total Final: R$ " . number_format($valor_final, 2, ',', '.') . "
         </p>";
-        header("Refresh: 3; URL=reservas.php"); 
+        header("Refresh: 3; URL=reservas.php");
     }
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
-<meta charset="UTF-8">
-<link rel="stylesheet" href="2.css">
-<link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
-<title>Finalizar Reserva</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="2.css">
+    <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
+    <title>Finalizar Reserva</title>
+    <style>
+        .step-label {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 6px;
+            display: block;
+            font-size: 0.95rem;
+        }
+
+        .step-block {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 18px 20px;
+            margin-bottom: 20px;
+        }
+
+        #reservas-container {
+            margin-top: 5px;
+        }
+
+        #reservas-container select {
+            margin-top: 8px;
+        }
+
+        #reservas-container .aviso {
+            color: #888;
+            font-style: italic;
+            font-size: 0.9rem;
+            margin-top: 8px;
+        }
+
+        .loading {
+            color: #3498db;
+            font-size: 0.9rem;
+            margin-top: 8px;
+        }
+    </style>
 </head>
 
 <body>
 
-<header>
-<nav><ul><?php include_once 'menu.php'; ?></ul></nav>
-</header>
+    <header>
+        <nav>
+            <ul><?php include_once 'menu.php'; ?></ul>
+        </nav>
+    </header>
 
-<main>
+    <main>
 
-<h1>Finalizar Reserva</h1>
+        <h1>Finalizar Reserva</h1>
 
-<?= $mensagem ?>
+        <?= $mensagem ?>
 
-<form method="POST">
+        <form method="POST" id="formFinalizar">
 
-<label>Reserva:</label>
-<select name="id_reserva" id="reservaSelect" required>
-    <option value="">-- Selecione --</option>
+            <!-- PASSO 1: Selecionar quarto -->
+            <div class="step-block">
+                <span class="step-label">1. Selecione o quarto:</span>
+                <select id="quartoSelect" onchange="carregarReservas()">
+                    <option value="">-- Selecione um quarto --</option>
+                    <?php foreach ($quartos_com_reserva as $q): ?>
+                        <option value="<?= $q['id'] ?>"><?= htmlspecialchars($q['quarto']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
 
-    <?php while ($r = $reservas->fetch_assoc()) { ?>
-        <option value="<?= $r['id'] ?>" data-quarto="<?= $r['quarto_id'] ?>">
-            #<?= $r['id'] ?> - <?= $r['cliente'] ?> (<?= $r['usuario'] ?>)
-        </option>
-    <?php } ?>
-</select>
+            <!-- PASSO 2: Reservas do quarto selecionado -->
+            <div class="step-block" id="reservas-container" style="display:none;">
+                <span class="step-label">2. Selecione a reserva:</span>
+                <select name="id_reserva" id="reservaSelect" required onchange="carregarFrigobar()">
+                    <option value="">-- Selecione --</option>
+                </select>
+            </div>
 
-<br><br>
+            <!-- PASSO 3: Frigobar -->
+            <div id="frigobar-container"></div>
 
-<div id="frigobar-container"></div>
+            <br>
+            <button type="submit" id="btnFinalizar" style="display:none;">Finalizar Reserva</button>
 
-<br>
-<button type="submit">Finalizar</button>
+        </form>
 
-</form>
+    </main>
 
-</main>
+    <script>
+        function carregarReservas() {
+            const quartoId = document.getElementById('quartoSelect').value;
+            const container = document.getElementById('reservas-container');
+            const select = document.getElementById('reservaSelect');
+            const frigobar = document.getElementById('frigobar-container');
+            const btnFin = document.getElementById('btnFinalizar');
 
-<script>
+            // Limpa
+            select.innerHTML = '<option value="">-- Selecione --</option>';
+            frigobar.innerHTML = '';
+            btnFin.style.display = 'none';
 
-document.getElementById('reservaSelect').addEventListener('change', function() {
-    let quartoId = this.options[this.selectedIndex].dataset.quarto;
+            if (!quartoId) {
+                container.style.display = 'none';
+                return;
+            }
 
-    if (!quartoId) {
-        document.getElementById('frigobar-container').innerHTML = '';
-        return;
-    }
+            container.style.display = 'block';
+            select.innerHTML = '<option value="">⏳ Carregando...</option>';
 
-    fetch('buscar_frigobar.php?quarto_id=' + quartoId)
-    .then(res => res.text())
-    .then(html => {
-        document.getElementById('frigobar-container').innerHTML = html;
-    })
-    .catch(err => console.error('Erro ao buscar frigobar:', err));
-});
+            fetch('buscar_reservas.php?quarto_id=' + quartoId + '&status=ativa')
+                .then(r => r.json())
+                .then(data => {
+                    select.innerHTML = '<option value="">-- Selecione a reserva --</option>';
 
-</script>
+                    if (data.length === 0) {
+                        select.innerHTML = '<option value="" disabled>Nenhuma reserva ativa para este quarto</option>';
+                        return;
+                    }
+
+                    data.forEach(r => {
+                        const opt = document.createElement('option');
+                        opt.value = r.id;
+                        opt.dataset.quarto = r.quarto_id;
+                        opt.textContent = `#${r.id} — ${r.cliente} — ${r.quarto} — ${r.periodo} — ${r.usuario}`;
+                        select.appendChild(opt);
+                    });
+                })
+                .catch(err => {
+                    select.innerHTML = '<option value="">Erro ao carregar reservas</option>';
+                    console.error(err);
+                });
+        }
+
+        function carregarFrigobar() {
+            const quartoId = document.getElementById('quartoSelect').value;
+            const reservaId = document.getElementById('reservaSelect').value;
+            const frigobar = document.getElementById('frigobar-container');
+            const btnFin = document.getElementById('btnFinalizar');
+
+            frigobar.innerHTML = '';
+            btnFin.style.display = 'none';
+
+            if (!quartoId || !reservaId) return;
+
+            frigobar.innerHTML = '<p class="loading">⏳ Carregando itens do frigobar...</p>';
+
+            fetch('buscar_frigobar.php?quarto_id=' + quartoId)
+                .then(r => r.text())
+                .then(html => {
+                    frigobar.innerHTML = html;
+                    btnFin.style.display = 'block';
+                })
+                .catch(err => {
+                    frigobar.innerHTML = '<p style="color:red;">Erro ao carregar frigobar.</p>';
+                    console.error(err);
+                });
+        }
+    </script>
+
+    <footer>
+        <p>&copy; 2026 Pousada Parnaioca</p>
+    </footer>
 
 </body>
+
 </html>
