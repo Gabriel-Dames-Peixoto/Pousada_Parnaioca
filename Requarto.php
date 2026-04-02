@@ -2,6 +2,7 @@
 session_start();
 include_once './conexao.php';
 
+
 // ✅ Validação de acesso corrigida
 if (!isset($_SESSION['login']) || $_SESSION['status'] != 1) {
     header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
@@ -21,7 +22,7 @@ $stmt_q = $con->prepare("SELECT quarto, preco, descricao, capacidade FROM quarto
 if (!$stmt_q) {
     die("Erro na consulta: " . $con->error);
 }
-
+$nome_quarto = $_POST['quarto'] ?? null;
 $stmt_q->bind_param("i", $id_quarto);
 $stmt_q->execute();
 $dados_quarto = $stmt_q->get_result()->fetch_assoc();
@@ -130,7 +131,7 @@ if (isset($_POST['reservar'])) {
         $hora_checkout
     );
 
-    $stmt->execute();
+    $stmt->execute();  
 
     header("Location: reservas.php?sucesso=1");
     exit();

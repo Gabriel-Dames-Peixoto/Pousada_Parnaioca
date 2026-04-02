@@ -3,14 +3,14 @@ session_start();
 include_once './conexao.php';
 
 
-if (!isset($_SESSION['login']) || $_SESSION['status'] === 1 || $_SESSION['perfil'] !== 'adm') {
+if (!isset($_SESSION['login']) || $_SESSION['status'] != 1 || $_SESSION['perfil'] != 'adm') {
     header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
     exit();
 }
 
 // --- BLOCO 1: PROCESSA A ATUALIZAÇÃO (POST) ---
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $idusuario = $_POST['idusuario'];
+    $idusuario = $_POST['id'];
     $login = $_POST['login'];
     $senha = $_POST['senha'];
     $perfil = $_POST['perfil'];
@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     if (!empty($_POST['senha'])) {
         $senha = md5($_POST['senha']);
-        $sql = "UPDATE usuarios SET login = ?, senha = ?, perfil = ?, status = ? WHERE idusuario = ?";
+        $sql = "UPDATE usuarios SET login = ?, senha = ?, perfil = ?, status = ? WHERE id = ?";
         $stmt = $con->prepare($sql);
         $stmt->bind_param("ssssi", $login, $senha, $perfil, $status, $idusuario);
     } else {
