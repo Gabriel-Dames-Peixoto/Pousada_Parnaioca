@@ -1,6 +1,9 @@
 <?php
-session_start();
 include_once './conexao.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 if (!isset($_SESSION["login"])) {
 
@@ -28,5 +31,8 @@ if ($_SESSION["tempo"] + 10 * 60 < time()) {
     header("location:index.php?msg=" . $msg);
 } else {
     $_SESSION["tempo"] = time();
+}
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
