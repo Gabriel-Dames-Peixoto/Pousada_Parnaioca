@@ -16,14 +16,8 @@ $total_registros = 0;
 if ($data_inicio && $data_fim) {
     $stmt = $con->prepare("
         SELECT 
-            c.id,
-            c.nome,
-            c.cpf,
-            c.email,
-            c.telefone,
-            c.cidade,
-            c.estado,
-            c.status,
+            c.id, c.nome, c.cpf, c.email, c.telefone,
+            c.cidade, c.estado, c.status,
             COUNT(r.id)          AS total_reservas,
             MIN(r.data_checkin)  AS primeira_estadia,
             MAX(r.data_checkin)  AS ultima_estadia
@@ -147,11 +141,34 @@ if ($data_inicio && $data_fim) {
             background: #219a52;
         }
 
+        .btn-dashboard {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+
+        .btn-dashboard:hover {
+            background: #1a252f;
+            color: white;
+            text-decoration: none;
+        }
+
         @media print {
 
             header,
             .filter-card,
             .btn-imprimir,
+            .btn-dashboard,
             footer {
                 display: none;
             }
@@ -180,6 +197,9 @@ if ($data_inicio && $data_fim) {
                 </div>
             <?php endif; ?>
         </div>
+
+        <!-- Botão voltar ao dashboard -->
+        <a href="dashboard.php" class="btn-dashboard">← Voltar ao Dashboard</a>
 
         <div class="filter-card">
             <form method="GET" action="">

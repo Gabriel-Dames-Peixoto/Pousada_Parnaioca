@@ -9,12 +9,16 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] != 1 || $_SESSION['perfil'
     exit();
 }
 
+// 🔍 Filtro de busca para hospedados
+$busca_hospedado = trim($_GET['busca_hospedado'] ?? '');
 
-$stmt = $con->prepare("
+// Monta a query com filtro opcional
+$sql_hospedados = "
     SELECT
         r.id,
         q.quarto,
         c.nome       AS cliente,
+        c.cpf,
         c.telefone,
         r.data_checkin,
         r.hora_checkin,
@@ -26,8 +30,25 @@ $stmt = $con->prepare("
     JOIN clientes c ON c.id = r.cliente_id
     WHERE r.status = 'ativa'
       AND CURDATE() BETWEEN r.data_checkin AND r.data_checkout
-    ORDER BY r.data_checkout ASC
-");
+";
+
+$params_h = [];
+$types_h  = '';
+
+if (!empty($busca_hospedado)) {
+    $sql_hospedados .= " AND (c.nome LIKE ? OR c.cpf LIKE ?)";
+    $term = "%{$busca_hospedado}%";
+    $params_h[] = $term;
+    $params_h[] = $term;
+    $types_h   .= 'ss';
+}
+
+$sql_hospedados .= " ORDER BY r.data_checkout ASC";
+
+$stmt = $con->prepare($sql_hospedados);
+if (!empty($params_h)) {
+    $stmt->bind_param($types_h, ...$params_h);
+}
 $stmt->execute();
 $hospedados = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
@@ -139,7 +160,6 @@ $stmt->close();
             background: linear-gradient(135deg, #8e44ad, #6c3483);
         }
 
-        /* ── Grid de seções ── */
         .dash-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -170,7 +190,6 @@ $stmt->close();
             text-align: left;
         }
 
-        /* ── Hospedados ── */
         .hospedado-card {
             background: #f0f9f4;
             border-left: 4px solid #27ae60;
@@ -201,7 +220,6 @@ $stmt->close();
             font-weight: bold;
         }
 
-        /* ── Ranking bars ── */
         .rank-item {
             margin-bottom: 14px;
             text-align: left;
@@ -251,9 +269,64 @@ $stmt->close();
             padding: 10px 0;
         }
 
-        /* ── Seção hospedados (full width) ── */
         .dash-full {
             margin-bottom: 30px;
+        }
+
+        /* 🔍 Search bar dentro do painel hospedados */
+        .search-hospedados {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .search-hospedados input[type="text"] {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .search-hospedados button {
+            width: auto;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+
+        .search-hospedados a.btn-limpar {
+            padding: 7px 12px;
+            background: #e0e0e0;
+            border-radius: 6px;
+            color: #555;
+            font-size: 0.85rem;
+            font-weight: normal;
+            text-decoration: none;
+        }
+
+        .search-hospedados a.btn-limpar:hover {
+            background: #ccc;
+            text-decoration: none;
+        }
+
+        .badge-busca {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+
+        .cpf-tag {
+            display: inline-block;
+            background: #e8f4fd;
+            color: #2980b9;
+            font-size: 0.75rem;
+            padding: 2px 7px;
+            border-radius: 10px;
+            margin-left: 6px;
+            font-weight: normal;
         }
     </style>
 </head>
@@ -271,7 +344,7 @@ $stmt->close();
             Atualizado em <?= date('d/m/Y H:i:s'); ?>
         </p>
 
-
+        <!-- Cards resumo -->
         <div class="dash-cards">
             <div class="dash-card dc-hospedados">
                 <span class="numero"><?= count($hospedados) ?></span>
@@ -291,15 +364,40 @@ $stmt->close();
             </div>
         </div>
 
-        
+        <!-- Hospedados agora + pesquisa -->
         <div class="dash-section dash-full">
             <h2>🛏️ Quem está hospedado agora</h2>
+
+            <!-- 🔍 Pesquisa por nome ou CPF -->
+            <form method="GET" action="dashboard.php">
+                <div class="search-hospedados">
+                    <input type="text"
+                        name="busca_hospedado"
+                        placeholder="Pesquisar por nome ou CPF..."
+                        value="<?= htmlspecialchars($busca_hospedado) ?>">
+                    <button type="submit">🔍 Buscar</button>
+                    <?php if (!empty($busca_hospedado)): ?>
+                        <a href="dashboard.php" class="btn-limpar">✕ Limpar</a>
+                    <?php endif; ?>
+                </div>
+            </form>
+
+            <?php if (!empty($busca_hospedado)): ?>
+                <p class="badge-busca">
+                    <?= count($hospedados) ?> resultado(s) para
+                    <strong>"<?= htmlspecialchars($busca_hospedado) ?>"</strong>
+                </p>
+            <?php endif; ?>
+
             <?php if (!empty($hospedados)): ?>
                 <?php foreach ($hospedados as $h): ?>
                     <div class="hospedado-card">
-                        <span class="dias"><?= $h['dias_restantes'] > 0 ? $h['dias_restantes'] . ' dia(s)' : 'Sai hoje' ?></span>
+                        <span class="dias">
+                            <?= $h['dias_restantes'] > 0 ? $h['dias_restantes'] . ' dia(s)' : 'Sai hoje' ?>
+                        </span>
                         <div class="nome">
                             <?= htmlspecialchars($h['cliente']) ?>
+                            <span class="cpf-tag"><?= htmlspecialchars($h['cpf']) ?></span>
                             — <em><?= htmlspecialchars($h['quarto']) ?></em>
                         </div>
                         <div class="info">
@@ -314,11 +412,15 @@ $stmt->close();
                     </div>
                 <?php endforeach; ?>
             <?php else: ?>
-                <p class="empty-dash">Nenhum hóspede no momento.</p>
+                <p class="empty-dash">
+                    <?= !empty($busca_hospedado)
+                        ? '😕 Nenhum hóspede encontrado para "' . htmlspecialchars($busca_hospedado) . '".'
+                        : 'Nenhum hóspede no momento.' ?>
+                </p>
             <?php endif; ?>
         </div>
 
-        
+        <!-- Rankings -->
         <div class="dash-grid">
 
             <div class="dash-section">
@@ -367,6 +469,7 @@ $stmt->close();
 
         </div>
 
+        <!-- Relatórios -->
         <div class="dash-section">
             <h2>🔗 Relatórios</h2>
             <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center; padding-top:8px;">

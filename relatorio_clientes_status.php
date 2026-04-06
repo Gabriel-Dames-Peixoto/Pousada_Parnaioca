@@ -3,17 +3,14 @@ session_start();
 include_once './conexao.php';
 include_once './validar.php';
 
-// 🔐 Validação de acesso
 if (!isset($_SESSION['login']) || $_SESSION['status'] != 1 || $_SESSION['perfil'] != 'adm') {
     header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
     exit();
 }
 
-// 📥 Filtros
 $filtro_status = $_GET['status'] ?? 'todos';
 $busca         = trim($_GET['busca'] ?? '');
 
-// 🧠 Query principal
 $sql = "
     SELECT 
         c.id, c.nome, c.cpf, c.email, c.telefone,
@@ -27,14 +24,12 @@ $sql = "
 $params = [];
 $types  = '';
 
-// 🎯 Filtro de status
 if ($filtro_status === 'ativos') {
     $sql .= " AND c.status = 1";
 } elseif ($filtro_status === 'inativos') {
     $sql .= " AND c.status = 0";
 }
 
-// 🔍 Filtro de busca
 if (!empty($busca)) {
     $sql .= " AND (c.nome LIKE ? OR c.cpf LIKE ? OR c.email LIKE ?)";
     $term = "%{$busca}%";
@@ -46,39 +41,19 @@ if (!empty($busca)) {
 
 $sql .= " GROUP BY c.id ORDER BY c.status DESC, c.nome ASC";
 
-// 🔒 Prepare
 $stmt = $con->prepare($sql);
-
-if (!$stmt) {
-    die("Erro na query: " . $con->error);
-}
-
-if (!empty($params)) {
-    $stmt->bind_param($types, ...$params);
-}
-
+if (!$stmt) die("Erro na query: " . $con->error);
+if (!empty($params)) $stmt->bind_param($types, ...$params);
 $stmt->execute();
 $res = $stmt->get_result();
 $clientes = $res->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-
-// 📊 Totais GERAIS (sem filtro)
-$sql_totais = "
-    SELECT 
-        COUNT(*) as total,
-        SUM(status = 1) as ativos,
-        SUM(status = 0) as inativos
-    FROM clientes
-";
-
-$res_totais = $con->query($sql_totais);
+$res_totais = $con->query("SELECT COUNT(*) as total, SUM(status = 1) as ativos, SUM(status = 0) as inativos FROM clientes");
 $totais = $res_totais->fetch_assoc();
-
-$total_geral    = $totais['total'] ?? 0;
-$total_ativos   = $totais['ativos'] ?? 0;
+$total_geral    = $totais['total']   ?? 0;
+$total_ativos   = $totais['ativos']  ?? 0;
 $total_inativos = $totais['inativos'] ?? 0;
-
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -168,11 +143,38 @@ $total_inativos = $totais['inativos'] ?? 0;
             float: right;
         }
 
+        .btn-imprimir:hover {
+            background: #219a52;
+        }
+
+        .btn-dashboard {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+
+        .btn-dashboard:hover {
+            background: #1a252f;
+            color: white;
+            text-decoration: none;
+        }
+
         @media print {
 
             header,
             .filter-card,
             .btn-imprimir,
+            .btn-dashboard,
             footer {
                 display: none;
             }
@@ -191,7 +193,9 @@ $total_inativos = $totais['inativos'] ?? 0;
     <main>
         <h1>👥 Clientes Ativos e Inativos</h1>
 
-        <!-- 📊 Cards -->
+        <!-- Botão voltar ao dashboard -->
+        <a href="dashboard.php" class="btn-dashboard">← Voltar ao Dashboard</a>
+
         <div class="cards-resumo">
             <div class="card-stat card-total">
                 <span class="numero"><?= $total_geral ?></span>
@@ -207,26 +211,22 @@ $total_inativos = $totais['inativos'] ?? 0;
             </div>
         </div>
 
-        <!-- 🔍 Filtro -->
         <div class="filter-card">
             <form method="GET">
                 <select name="status">
-                    <option value="todos" <?= $filtro_status === 'todos' ? 'selected' : '' ?>>Todos</option>
-                    <option value="ativos" <?= $filtro_status === 'ativos' ? 'selected' : '' ?>>Ativos</option>
+                    <option value="todos" <?= $filtro_status === 'todos'    ? 'selected' : '' ?>>Todos</option>
+                    <option value="ativos" <?= $filtro_status === 'ativos'   ? 'selected' : '' ?>>Ativos</option>
                     <option value="inativos" <?= $filtro_status === 'inativos' ? 'selected' : '' ?>>Inativos</option>
                 </select>
-
                 <input type="text" name="busca"
                     placeholder="Nome, CPF ou e-mail"
                     value="<?= htmlspecialchars($busca) ?>">
-
                 <button type="submit">Filtrar</button>
             </form>
         </div>
 
         <button class="btn-imprimir" onclick="window.print()">🖨️ Imprimir</button>
 
-        <!-- 📋 Tabela -->
         <?php if (!empty($clientes)): ?>
             <table>
                 <thead>

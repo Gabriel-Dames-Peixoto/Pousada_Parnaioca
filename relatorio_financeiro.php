@@ -3,7 +3,6 @@ session_start();
 include_once './conexao.php';
 include_once './validar.php';
 
-// 🔒 Validação de acesso
 if (
     !isset($_SESSION['login']) ||
     $_SESSION['status'] != 1 ||
@@ -13,16 +12,12 @@ if (
     exit();
 }
 
-// 📅 Filtros de data (com validação)
 $data_inicio = $_GET['data_inicio'] ?? date('Y-m-01');
 $data_fim    = $_GET['data_fim']    ?? date('Y-m-d');
 
-// Garante formato válido
 $data_inicio = date('Y-m-d', strtotime($data_inicio));
 $data_fim    = date('Y-m-d', strtotime($data_fim));
 
-
-// ── 1. Totais gerais no período ──────────────────────────────
 $stmt = $con->prepare("
     SELECT
         COUNT(*) AS total_reservas,
@@ -34,14 +29,11 @@ $stmt = $con->prepare("
     FROM reservas
     WHERE DATE(data_checkin) BETWEEN ? AND ?
 ");
-
 $stmt->bind_param("ss", $data_inicio, $data_fim);
 $stmt->execute();
 $totais = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
-
-// ── 2. Receita por quarto ────────────────────────────────────
 $stmt = $con->prepare("
     SELECT
         q.quarto,
@@ -56,14 +48,11 @@ $stmt = $con->prepare("
     GROUP BY q.id, q.quarto
     ORDER BY receita DESC
 ");
-
 $stmt->bind_param("ss", $data_inicio, $data_fim);
 $stmt->execute();
 $por_quarto = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-
-// ── 3. Receita por mês (últimos 6 meses) ────────────────────
 $stmt = $con->prepare("
     SELECT
         DATE_FORMAT(data_checkin, '%Y-%m') AS mes,
@@ -76,13 +65,10 @@ $stmt = $con->prepare("
     GROUP BY mes, mes_label
     ORDER BY mes ASC
 ");
-
 $stmt->execute();
 $por_mes = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-
-// ── 4. Top 5 consumo de frigobar no período ──────────────────
 $stmt = $con->prepare("
     SELECT
         f.nome,
@@ -101,7 +87,6 @@ $stmt->execute();
 $top_frigobar = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-// ── 5. Reservas individuais do período ──────────────────────
 $stmt = $con->prepare("
     SELECT
         r.id,
@@ -272,11 +257,34 @@ $stmt->close();
             background: #219a52;
         }
 
+        .btn-dashboard {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+
+        .btn-dashboard:hover {
+            background: #1a252f;
+            color: white;
+            text-decoration: none;
+        }
+
         @media print {
 
             header,
             .filter-card,
             .btn-imprimir,
+            .btn-dashboard,
             footer {
                 display: none;
             }
@@ -298,12 +306,15 @@ $stmt->close();
     <main>
         <button class="btn-imprimir" onclick="window.print()">🖨️ Imprimir</button>
         <h1>💰 Relatório Financeiro</h1>
+
+        <!-- Botão voltar ao dashboard -->
+        <a href="dashboard.php" class="btn-dashboard">← Voltar ao Dashboard</a>
+
         <p style="color:#777; margin-bottom:20px;">
             Período: <strong><?= date('d/m/Y', strtotime($data_inicio)) ?></strong>
             até <strong><?= date('d/m/Y', strtotime($data_fim)) ?></strong>
         </p>
 
-        <!-- Filtro -->
         <div class="filter-card">
             <form method="GET" action="">
                 <div class="form-group">
@@ -318,7 +329,6 @@ $stmt->close();
             </form>
         </div>
 
-        <!-- Cards de resumo -->
         <div class="cards-financeiros">
             <div class="card-fin cf-receita">
                 <span class="valor">R$ <?= number_format($totais['receita_total'], 2, ',', '.') ?></span>
@@ -346,7 +356,6 @@ $stmt->close();
             </div>
         </div>
 
-        <!-- Receita por quarto -->
         <?php if (!empty($por_quarto)): ?>
             <div class="secao">
                 <h2>🏨 Receita por Quarto</h2>
@@ -377,7 +386,6 @@ $stmt->close();
             </div>
         <?php endif; ?>
 
-        <!-- Receita por mês -->
         <?php if (!empty($por_mes)): ?>
             <div class="secao">
                 <h2>📅 Receita dos Últimos 6 Meses</h2>
@@ -404,7 +412,6 @@ $stmt->close();
             </div>
         <?php endif; ?>
 
-        <!-- Top Frigobar -->
         <?php if (!empty($top_frigobar)): ?>
             <div class="secao">
                 <h2>🍺 Top 5 Itens do Frigobar</h2>
@@ -431,7 +438,6 @@ $stmt->close();
             </div>
         <?php endif; ?>
 
-        <!-- Reservas individuais -->
         <?php if (!empty($reservas_lista)): ?>
             <div class="secao">
                 <h2>📋 Detalhamento de Reservas no Período</h2>
