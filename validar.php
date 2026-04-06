@@ -24,7 +24,7 @@ if ($_SESSION["tempo"] + 10 * 60 < time()) {
     $arquivolog = fopen("Login.log", "a");
 
 
-    fwrite($arquivolog, "$dataHora - sessão expirada: $usuario" . PHP_EOL);
+    fwrite($arquivolog, "$dataHora - Sessão expirada: $usuario" . PHP_EOL);
     fwrite($arquivolog, "----------------------------------------------------" . PHP_EOL);
 
     fclose($arquivolog);

@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mensagem = "<p class='erro'>Só pode finalizar reservas ativas.</p>";
     } else {
 
-        $total_consumo = 0;
+        $total_consumo = 0.00;
 
         if (!empty($_POST['frigobar_id']) && is_array($_POST['frigobar_id'])) {
             foreach ($_POST['frigobar_id'] as $index => $item_id) {
