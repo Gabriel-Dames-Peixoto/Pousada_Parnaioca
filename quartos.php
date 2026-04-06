@@ -16,7 +16,7 @@ if (!isset($_SESSION['login'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
-    <link rel="stylesheet" href="1.css">
+    <link rel="stylesheet" href="2.css">
     <title>Pousada Parnoica</title>
 </head>
 
@@ -116,7 +116,7 @@ if (!isset($_SESSION['login'])) {
                 echo "<h2>" . htmlspecialchars($row["quarto"]) . " - $statusTexto</h2>";
 
                 echo "Preço base (5 noites): R$ " . number_format($row["preco"], 2, ',', '.') . "<br>";
-                echo "<small>(Valor varia conforme quantidade de dias)</small><br><br>";
+                echo "<small>(Valor varia conforme quantidade de dias a mais ou a menos)</small><br><br>";
 
                 echo "<a href='informacoes_quarto.php?id=" . $row["id"] . "'>Informações adicionais</a><br>";
 
