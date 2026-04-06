@@ -134,7 +134,7 @@ if (isset($_POST['reservar'])) {
 
     $stmt->execute();
     
-    registrarLog("A reserva do quarto {$dados_quarto['quarto']} foi realizada com sucesso no período de $checkin até $chekout pelo usuário " 
+    registrarLog("A reserva do quarto {$dados_quarto['quarto']} foi realizada com sucesso no período de $checkin até $checkout pelo usuário " 
     . $_SESSION['login'], "INSERT");
 
     header("Location: reservas.php?sucesso=1");

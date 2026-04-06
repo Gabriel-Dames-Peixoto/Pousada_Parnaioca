@@ -3,7 +3,7 @@ session_start();
 require_once './conexao.php';
 include_once './validar.php';
 
-if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
+if (!isset($_SESSION['login']) || $_SESSION['status'] != 1) {
     header("Location: index.php?erro=" . urlencode("Acesso negado."));
     exit();
 }

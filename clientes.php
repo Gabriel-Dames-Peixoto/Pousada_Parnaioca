@@ -138,8 +138,8 @@ $search = $_GET['search'] ?? '';
             ?>
             
         </div>
-        <br><button type="button" onclick="window.location.href='relatorio_clientes_datas.php'">Clientes por data
-            <button type= "button" onclick="window.location.href='relatorio_clientes_status.php'">Clientes por status
+        <br><button type="button" onclick="window.location.href='relatorio_clientes_datas.php'">Clientes por data</button>
+            <button type= "button" onclick="window.location.href='relatorio_clientes_status.php'">Clientes por status</button>
 
     </main>
 

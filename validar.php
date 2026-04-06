@@ -4,10 +4,6 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 include_once './conexao.php';
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
 if (!isset($_SESSION["login"])) {
 
     session_destroy();
@@ -35,7 +31,5 @@ if ($_SESSION["tempo"] + 10 * 60 < time()) {
 } else {
     $_SESSION["tempo"] = time();
 }
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+
 

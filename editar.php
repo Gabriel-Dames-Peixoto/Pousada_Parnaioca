@@ -2,7 +2,7 @@
 session_start();
 include_once './conexao.php';
 include_once './validar.php';
-if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
+if (!isset($_SESSION['login']) || $_SESSION['status'] != 1) {
     // Se não houver login na sessão, manda de volta para o index
     header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
     exit();
@@ -42,8 +42,7 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] === 1) {
                 $cidade = $_POST['cidade'];
                 $status = $_POST['status'];
 
-                // Corrigido bind_param: você tem 7 variáveis (6 strings e 1 integer no final)
-                // Portanto deve ser "ssssssi"
+                
                 $sql = "UPDATE clientes SET nome = ?, email = ?, telefone = ?, estado = ?, cidade = ?, status = ? WHERE id = ?";
                 $stmt = $con->prepare($sql);
                 $stmt->bind_param("ssssssi", $nome, $email, $telefone, $estado, $cidade, $status, $id);
