@@ -10,7 +10,6 @@ if (!isset($_SESSION['login']) || $_SESSION['perfil'] !== 'adm') {
 
 $mensagem = "";
 
-// Buscar QUARTOS que têm reservas ativas (para o select de quartos)
 $stmt_quartos = $con->prepare("
     SELECT DISTINCT q.id, q.quarto
     FROM quartos q
@@ -22,7 +21,7 @@ $stmt_quartos->execute();
 $quartos_com_reserva = $stmt_quartos->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt_quartos->close();
 
-// 🔥 FINALIZAR
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $id = $_POST['id_reserva'];
@@ -80,8 +79,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $valor_final = $res['valor_total'] + $total_consumo;
         $mensagem = "<p class='sucesso'>
             Reserva finalizada! Consumo: R$ " . number_format($total_consumo, 2, ',', '.') . " | Total Final: R$ " . number_format($valor_final, 2, ',', '.') . "
-        </p>";
-        header("Refresh: 3; URL=reservas.php");
+        </p>" . '<br><a href="reservas.php">Reservas</a>';
+        //header("Refresh: 3; URL=reservas.php");
+        
     }
 }
 ?>

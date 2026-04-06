@@ -115,7 +115,7 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] != 1 || $_SESSION['perfil'
                         <td>" . htmlspecialchars($row['perfil']) . "</td>
                         <td>" . $textoStatus . "</td>
                         <td>
-                            <a href='editaruso.php?idusuario=" . htmlspecialchars($row['id']) . "'>Editar</a>
+                            <a href='editaruso.php?id=" . htmlspecialchars($row['id']) . "'>Editar</a>
                         </td>
                     </tr>";
                 }

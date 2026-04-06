@@ -9,64 +9,90 @@ if (!isset($_SESSION['login']) || $_SESSION['status'] != 1 || $_SESSION['perfil'
     exit();
 }
 
-// --- BLOCO 1: PROCESSA A ATUALIZAÇÃO (POST) ---
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $idusuario = $_POST['id'];
-    $login = $_POST['login'];
-    $senha = $_POST['senha'];
-    $perfil = $_POST['perfil'];
-    $status = $_POST['status'];
 
-    if (!empty($_POST['senha'])) {
-        $senha = md5($_POST['senha']);
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+
+    $idusuario = $_POST['id'] ?? null;
+    $login = $_POST['login'] ?? '';
+    $senha = $_POST['senha'] ?? '';
+    $perfil = $_POST['perfil'] ?? '';
+    $status = $_POST['status'] ?? '';
+
+    if (!$idusuario) {
+        die("ID inválido.");
+    }
+
+    
+    if (!empty($senha)) {
+        $senha = md5($senha);
+
         $sql = "UPDATE usuarios SET login = ?, senha = ?, perfil = ?, status = ? WHERE id = ?";
         $stmt = $con->prepare($sql);
+
+        if (!$stmt) {
+            die("Erro no prepare: " . $con->error);
+        }
+
         $stmt->bind_param("ssssi", $login, $senha, $perfil, $status, $idusuario);
     } else {
-        $sql = "UPDATE usuarios SET login = ?, perfil = ?, status = ? WHERE idusuario = ?";
+        // 🔐 Mantém senha atual
+        $sql = "UPDATE usuarios SET login = ?, perfil = ?, status = ? WHERE id = ?";
         $stmt = $con->prepare($sql);
+
+        if (!$stmt) {
+            die("Erro no prepare: " . $con->error);
+        }
+
         $stmt->bind_param("sssi", $login, $perfil, $status, $idusuario);
     }
 
     if ($stmt->execute()) {
-        // Usamos um echo e um redirecionamento via JS ou Refresh
-        registrarLog("Dados do usuario $login foram atualizados por " . $_SESSION['login'], "UPDATE");
+        registrarLog("Dados do usuário $login foram atualizados por " . $_SESSION['login'], "UPDATE");
         echo "<script>alert('Usuário atualizado com sucesso!'); window.location.href='usuarios.php';</script>";
         exit();
     } else {
         $erro_update = "Erro ao atualizar: " . $stmt->error;
     }
+
     $stmt->close();
 }
 
-// --- BLOCO 2: BUSCA OS DADOS PARA PREENCHER O FORMULÁRIO ---
-// Prioridade para o GET (vinda da lista) e depois POST (se deu erro no envio)
-$id_busca = $_GET['idusuario'] ?? $_POST['idusuario'] ?? null;
+
+$id_busca = $_GET['id'] ?? $_POST['id'] ?? null;
 $usuario = null;
 
 if ($id_busca) {
-    $sql = "SELECT * FROM usuarios WHERE idusuario = ?";
+
+    $sql = "SELECT * FROM usuarios WHERE id = ?";
     $stmt = $con->prepare($sql);
+
+    if (!$stmt) {
+        die("Erro no prepare: " . $con->error);
+    }
+
     $stmt->bind_param("i", $id_busca);
     $stmt->execute();
+
     $result = $stmt->get_result();
     $usuario = $result->fetch_assoc();
+
     $stmt->close();
 }
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pousada Parnaióca</title>
     <link rel="stylesheet" href="2.css">
     <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
-    <title>Pousada Parnoica</title>
 </head>
 
 <body>
+
     <header>
         <nav>
             <ul>
@@ -74,24 +100,32 @@ if ($id_busca) {
             </ul>
         </nav>
     </header>
+
     <main>
         <section class="container">
+
             <h1>Editar Usuário</h1>
 
-            <?php if (isset($erro_update)) echo "<p class='erro'>$erro_update</p>"; ?>
+            <?php if (isset($erro_update)): ?>
+                <p class="erro"><?= $erro_update ?></p>
+            <?php endif; ?>
 
             <?php if ($usuario): ?>
+
                 <form action="editaruso.php" method="POST">
-                    <input type="hidden" name="idusuario" value="<?= $usuario['idusuario'] ?>">
+
+                    <input type="hidden" name="id" value="<?= $usuario['id'] ?>">
 
                     <div>
                         <label>Login:</label>
                         <input type="text" name="login" value="<?= htmlspecialchars($usuario['login']) ?>" required>
                     </div>
+
                     <div>
                         <label>Senha:</label>
                         <input type="password" name="senha" placeholder="Deixe em branco para manter a atual">
                     </div>
+
                     <div>
                         <label>Perfil:</label>
                         <select name="perfil" required>
@@ -99,6 +133,7 @@ if ($id_busca) {
                             <option value="user" <?= $usuario['perfil'] == 'user' ? 'selected' : '' ?>>Usuário</option>
                         </select>
                     </div>
+
                     <div>
                         <label>Status:</label>
                         <select name="status" required>
@@ -106,14 +141,21 @@ if ($id_busca) {
                             <option value="0" <?= $usuario['status'] == 0 ? 'selected' : '' ?>>Inativo</option>
                         </select>
                     </div>
+
                     <button type="submit">Atualizar</button>
+
                 </form>
+
             <?php else: ?>
+
                 <p class="erro">Usuário não encontrado ou ID não informado!</p>
-                <a href="usuarios.php">Voltar para a lista</a>
+                <a href="usuarios.php">Voltar</a>
+
             <?php endif; ?>
+
         </section>
     </main>
+
 </body>
 
 </html>
