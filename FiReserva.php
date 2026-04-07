@@ -120,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 18px 20px;
             margin-bottom: 20px;
         }
-
+        
         #reservas-container {
             margin-top: 5px;
         }
