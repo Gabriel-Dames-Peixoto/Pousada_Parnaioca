@@ -8,8 +8,10 @@ if (!isset($_SESSION['login']) || $_SESSION['perfil'] !== 'adm') {
     exit();
 }
 
+
 $mensagem = "";
 
+// Busca a lista para o formulário (Removido o bind_param que causava erro)
 $stmt_quartos = $con->prepare("
     SELECT DISTINCT q.id, q.quarto
     FROM quartos q
@@ -21,13 +23,17 @@ $stmt_quartos->execute();
 $quartos_com_reserva = $stmt_quartos->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt_quartos->close();
 
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $id_reserva = $_POST['id_reserva']; // ID da reserva vindo do formulário
 
-    $id = $_POST['id_reserva'];
-
-    $check = $con->prepare("SELECT status, valor_total FROM reservas WHERE id = ?");
-    $check->bind_param("i", $id);
+    // Busca os dados da reserva e o NOME DO QUARTO (essencial para o seu log)
+    $check = $con->prepare("
+        SELECT r.status, r.valor_total, q.quarto 
+        FROM reservas r 
+        INNER JOIN quartos q ON r.quarto_id = q.id 
+        WHERE r.id = ?
+    ");
+    $check->bind_param("i", $id_reserva);
     $check->execute();
     $res = $check->get_result()->fetch_assoc();
 
@@ -36,13 +42,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($res['status'] !== 'ativa') {
         $mensagem = "<p class='erro'>Só pode finalizar reservas ativas.</p>";
     } else {
-
         $total_consumo = 0.00;
 
+        // Processamento do Frigobar
         if (!empty($_POST['frigobar_id']) && is_array($_POST['frigobar_id'])) {
             foreach ($_POST['frigobar_id'] as $index => $item_id) {
-
-                $qtd = $_POST['quantidade'][$index] ?? 0;
+                $qtd = (int)($_POST['quantidade'][$index] ?? 0);
 
                 if ($qtd > 0) {
                     $busca = $con->prepare("SELECT valor, quantidade FROM frigobar WHERE id = ?");
@@ -51,21 +56,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $item = $busca->get_result()->fetch_assoc();
 
                     if ($item && $qtd <= $item['quantidade']) {
-                        $valor    = $item['valor'];
-                        $subtotal = $valor * $qtd;
+                        $subtotal = $item['valor'] * $qtd;
                         $total_consumo += $subtotal;
 
-                        $insert = $con->prepare("
-                            INSERT INTO consumo_frigobar (reserva_id, frigobar_id, quantidade, valor_total)
-                            VALUES (?, ?, ?, ?)
-                        ");
-                        $insert->bind_param("iiid", $id, $item_id, $qtd, $subtotal);
+                        // Insere consumo
+                        $insert = $con->prepare("INSERT INTO consumo_frigobar (reserva_id, frigobar_id, quantidade, valor_total) VALUES (?, ?, ?, ?)");
+                        $insert->bind_param("iiid", $id_reserva, $item_id, $qtd, $subtotal);
                         $insert->execute();
+
+                        // ATUALIZAÇÃO IMPORTANTE: Baixa no estoque do frigobar
+                        $baixa = $con->prepare("UPDATE frigobar SET quantidade = quantidade - ? WHERE id = ?");
+                        $baixa->bind_param("ii", $qtd, $item_id);
+                        $baixa->execute();
                     }
                 }
             }
         }
 
+        // Finaliza a reserva
         $update = $con->prepare("
             UPDATE reservas 
             SET status = 'finalizada',
@@ -73,19 +81,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 valor_total = valor_total + ?
             WHERE id = ?
         ");
-        $update->bind_param("di", $total_consumo, $id);
+        $update->bind_param("di", $total_consumo, $id_reserva);
         $update->execute();
 
         $valor_final = $res['valor_total'] + $total_consumo;
-        $mensagem = "<p class='sucesso'>
-            Reserva finalizada! Consumo: R$ " . number_format($total_consumo, 2, ',', '.') . " | Total Final: R$ " . number_format($valor_final, 2, ',', '.') . "
-        </p>" . '<br><a href="reservas.php">Reservas</a>';
-        registrarLog("A reserva do quarto {$dados_quarto['quarto']} foi finalizada com sucesso no período de $checkin até $checkout pelo usuário " 
-        . $_SESSION['login'], "INSERT");
-        //header("Refresh: 3; URL=reservas.php");
-        
+        $mensagem = "<p class='sucesso'>Reserva finalizada! Consumo: R$ " 
+        . number_format($total_consumo, 2, ',', '.') . " | Total Final: R$ " 
+        . number_format($valor_final, 2, ',', '.') . "</p> . <p><a href='reservas.php'>Ir para Reservas</a></p>";
+
+        // Log agora com o nome do quarto correto vindo do JOIN inicial
+        registrarLog("A reserva do quarto {$res['quarto']} foi finalizada pelo usuário " . $_SESSION['login'], "UPDATE");
     }
 }
+
 ?>
 
 <!DOCTYPE html>

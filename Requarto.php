@@ -33,12 +33,11 @@ if (!$dados_quarto) {
     die("Quarto não encontrado.");
 }
 
-// PROCESSAMENTO
+
 if (isset($_POST['reservar'])) {
 
     $quarto_id = $id_quarto;
 
-    // ✅ Segurança nos inputs
     $cliente_id = filter_input(INPUT_POST, 'cliente_id', FILTER_VALIDATE_INT);
     $checkin = $_POST['checkin'] ?? null;
     $hora_checkin = $_POST['hora_checkin'] ?? null;
