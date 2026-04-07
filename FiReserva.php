@@ -80,6 +80,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mensagem = "<p class='sucesso'>
             Reserva finalizada! Consumo: R$ " . number_format($total_consumo, 2, ',', '.') . " | Total Final: R$ " . number_format($valor_final, 2, ',', '.') . "
         </p>" . '<br><a href="reservas.php">Reservas</a>';
+        registrarLog("A reserva do quarto {$dados_quarto['quarto']} foi finalizada com sucesso no período de $checkin até $checkout pelo usuário " 
+        . $_SESSION['login'], "INSERT");
         //header("Refresh: 3; URL=reservas.php");
         
     }

@@ -31,5 +31,3 @@ if ($_SESSION["tempo"] + 10 * 60 < time()) {
 } else {
     $_SESSION["tempo"] = time();
 }
-
-
