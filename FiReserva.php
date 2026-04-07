@@ -89,7 +89,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         . number_format($total_consumo, 2, ',', '.') . " | Total Final: R$ " 
         . number_format($valor_final, 2, ',', '.') . "</p> . <p><a href='reservas.php'>Ir para Reservas</a></p>";
 
-        // Log agora com o nome do quarto correto vindo do JOIN inicial
         registrarLog("A reserva do quarto {$res['quarto']} foi finalizada pelo usuário " . $_SESSION['login'], "UPDATE");
     }
 }
@@ -120,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 18px 20px;
             margin-bottom: 20px;
         }
-        
+
         #reservas-container {
             margin-top: 5px;
         }
