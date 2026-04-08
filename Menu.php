@@ -4,6 +4,7 @@
 <?php if (isset($_SESSION['perfil']) && $_SESSION['perfil'] === 'adm'): ?>
     <li><a href="clientes.php">Clientes</a></li>
     <li><a href="usuarios.php">Usuários</a></li>
+    <li><a href="tipos_acomodacao.php">Tipos</a></li>
     <li><a href="dashboard.php">Dashboard</a></li>
     <li><a href="relatorio_financeiro.php">Financeiro</a></li>
 <?php endif; ?>
