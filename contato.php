@@ -14,7 +14,7 @@
     <?php
     session_start();
     include_once './conexao.php';
-    include_once './validar.php';
+    
 
     $logado = false;
 
@@ -64,7 +64,7 @@
         <h2>Informações de Contato</h2>
 
         <ul>
-            <li><strong>Endereço:</strong> Rua das Flores, 123, Centro, Cidade, Estado</li>
+            <li><strong>Endereço:</strong> Parnaioca, Angra dos Reis - RJ</li>
             <li><strong>Telefone:</strong> (11) 1234-5678</li>
             <li><strong>Email:</strong> contato@pousadaparnoica.com.br</li>
         </ul>

@@ -49,7 +49,7 @@
 
                 <br><br>
                 <p class="link-contato">
-                    Caso o login não esteja funcionando! <a href="contato.php">Entre em cotato</a>
+                    Caso o login não esteja funcionando! <a href="contato.php">Entre em contato</a>
                 </p>
             </div>
         </div>

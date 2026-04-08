@@ -3,11 +3,6 @@ session_start();
 include_once './conexao.php';
 include_once './validar.php';
 
-// 🔒 Proteção de acesso
-if (!isset($_SESSION['login']) || $_SESSION['status'] != 1 || $_SESSION['perfil'] != 'adm') {
-    header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
-    exit();
-}
 
 // 🔎 Filtros
 $status = $_GET['status'] ?? '';
