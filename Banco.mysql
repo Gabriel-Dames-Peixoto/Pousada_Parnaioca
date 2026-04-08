@@ -6,6 +6,7 @@ create table usuarios(
     senha varchar(32),
     perfil enum('adm','user'),
     status varchar(255) DEFAULT 1,
+    nivel tinyint NOT NULL DEFAULT '2' COMMENT '2=administrador, 1=funcionario',
     UNIQUE KEY login (login)
 );
 
@@ -84,4 +85,21 @@ CREATE TABLE consumo_frigobar (
 
     FOREIGN KEY (reserva_id) REFERENCES reservas(id),
     FOREIGN KEY (frigobar_id) REFERENCES frigobar(id)
+);
+
+CREATE TABLE tipos_acomodacao (
+  id int NOT NULL AUTO_INCREMENT,
+  nome varchar(80) NOT NULL,
+  status tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_nome` (`nome`)
+);
+
+CREATE TABLE permissoes (
+  id int NOT NULL AUTO_INCREMENT,
+  perfil enum('adm','user') NOT NULL,
+  pagina varchar(80) NOT NULL,
+  permitido tinyint(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_perfil_pagina` (`perfil`,`pagina`)
 );
