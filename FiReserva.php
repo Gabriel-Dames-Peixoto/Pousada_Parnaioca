@@ -3,13 +3,10 @@ session_start();
 include_once './conexao.php';
 include_once './validar.php';
 
-// validar.php já verifica permissão via BD.
-// A linha abaixo é uma salvaguarda extra caso alguém acesse diretamente.
 exigirAdm();
 
 $mensagem = '';
 
-// Quartos com reservas ativas para popular o select
 $stmt_quartos = $con->prepare('
     SELECT DISTINCT q.id, q.quarto
     FROM quartos q
@@ -21,7 +18,6 @@ $stmt_quartos->execute();
 $quartos_com_reserva = $stmt_quartos->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt_quartos->close();
 
-// ── PROCESSAMENTO DO FORMULÁRIO ───────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $id_reserva = (int)($_POST['id_reserva'] ?? 0);
@@ -30,7 +26,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mensagem = "<p class='erro'>Selecione uma reserva válida.</p>";
     } else {
 
-        // Busca dados da reserva + nome do quarto para o log
         $check = $con->prepare('
             SELECT r.status, r.valor_total, q.quarto
             FROM reservas r
@@ -51,7 +46,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $total_consumo = 0.00;
             $erros_estoque = [];
 
-            // ── Processar consumo do frigobar ─────────────────────────────
             if (!empty($_POST['frigobar_id']) && is_array($_POST['frigobar_id'])) {
 
                 foreach ($_POST['frigobar_id'] as $index => $item_id) {
@@ -60,7 +54,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     if ($qtd <= 0) continue;
 
-                    // Lê estoque atual
                     $busca = $con->prepare('SELECT nome, valor, quantidade FROM frigobar WHERE id = ?');
                     $busca->bind_param('i', $item_id);
                     $busca->execute();
@@ -69,7 +62,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     if (!$item) continue;
 
-                    // Valida estoque disponível
                     if ($qtd > $item['quantidade']) {
                         $erros_estoque[] = "Estoque insuficiente para \"{$item['nome']}\": 
                             solicitado $qtd, disponível {$item['quantidade']}.";
@@ -79,7 +71,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $subtotal       = round($item['valor'] * $qtd, 2);
                     $total_consumo += $subtotal;
 
-                    // Registra consumo
                     $insert = $con->prepare('
                         INSERT INTO consumo_frigobar (reserva_id, frigobar_id, quantidade, valor_total)
                         VALUES (?, ?, ?, ?)
@@ -88,11 +79,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $insert->execute();
                     $insert->close();
 
-                    // ── Baixa no estoque do frigobar ──────────────────────
                     $nova_qtd = $item['quantidade'] - $qtd;
 
                     if ($nova_qtd <= 0) {
-                        // Estoque zerado → inativa o item automaticamente
                         $baixa = $con->prepare('
                             UPDATE frigobar
                             SET quantidade = 0, status = 0
@@ -107,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $baixa->bind_param('ii', $qtd, $item_id);
                         $baixa->execute();
                         $baixa->close();
-                        $baixa = null; // já executou, pula o bloco abaixo
+                        $baixa = null; 
                     }
 
                     if (isset($baixa)) {
@@ -118,7 +107,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
 
-            // ── Finaliza a reserva ────────────────────────────────────────
             $update = $con->prepare('
                 UPDATE reservas
                 SET status           = \'finalizada\',
