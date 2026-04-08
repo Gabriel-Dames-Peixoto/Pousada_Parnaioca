@@ -80,7 +80,6 @@ include_once './validar.php';
 
                     $statusTexto = "<span style='color:gray;'>⚫ Indisponível (bloqueado)</span>";
                     $ocupado = true;
-
                 } else {
 
                     if ($res_atual->num_rows > 0) {
@@ -91,7 +90,6 @@ include_once './validar.php';
 
                         $statusTexto = "<span style='color:red;'>🔴 Ocupado até $dataSaida às $horaSaida</span>";
                         $ocupado = true;
-
                     } else {
 
                         if ($res_futuro->num_rows > 0) {

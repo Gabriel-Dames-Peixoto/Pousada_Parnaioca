@@ -3,9 +3,6 @@ session_start();
 include_once './conexao.php';
 include_once './validar.php';
 
-
-
-
 // ✅ Pega ID com segurança
 $id_quarto = $_GET['id'] ?? null;
 $id_quarto = filter_var($id_quarto, FILTER_VALIDATE_INT);
@@ -128,9 +125,9 @@ if (isset($_POST['reservar'])) {
     );
 
     $stmt->execute();
-    
-    registrarLog("A reserva do quarto {$dados_quarto['quarto']} foi realizada com sucesso no período de $checkin até $checkout pelo usuário " 
-    . $_SESSION['login'], "INSERT");
+
+    registrarLog("A reserva do quarto {$dados_quarto['quarto']} foi realizada com sucesso no período de $checkin até $checkout pelo usuário "
+        . $_SESSION['login'], "INSERT");
 
     header("Location: reservas.php?sucesso=1");
     exit();

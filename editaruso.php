@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         die("ID inválido.");
     }
 
-    
+
     if (!empty($senha)) {
         $senha = md5($senha);
 

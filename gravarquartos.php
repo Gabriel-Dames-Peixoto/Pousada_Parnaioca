@@ -10,11 +10,11 @@ exigirAdm();
 $mensagem = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $quarto               = trim($_POST['Quarto']               ?? '');
-    $tipo                 = trim($_POST['tipo']                 ?? '');
-    $descricao            = trim($_POST['descricao']            ?? '');
-    $preco                = $_POST['preco']                     ?? '';
-    $capacidade           = (int)($_POST['capacidade']          ?? 0);
+    $quarto = trim($_POST['Quarto'] ?? '');
+    $tipo = trim($_POST['tipo'] ?? '');
+    $descricao = trim($_POST['descricao'] ?? '');
+    $preco = $_POST['preco'] ?? '';
+    $capacidade = (int)($_POST['capacidade'] ?? 0);
     $vagas_estacionamento = (int)($_POST['vagas_estacionamento'] ?? 0);
 
     if ($quarto && $tipo && $descricao && $preco) {
