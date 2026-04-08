@@ -3,14 +3,7 @@ session_start();
 include_once './conexao.php';
 include_once './validar.php';
 
-if (
-    !isset($_SESSION['login']) ||
-    $_SESSION['status'] != 1 ||
-    $_SESSION['perfil'] != 'adm'
-) {
-    header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
-    exit();
-}
+
 
 $data_inicio = $_GET['data_inicio'] ?? date('Y-m-01');
 $data_fim    = $_GET['data_fim']    ?? date('Y-m-d');

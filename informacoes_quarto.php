@@ -3,10 +3,7 @@ session_start();
 require_once './conexao.php';
 include_once './validar.php';
 
-if (!isset($_SESSION['login']) || $_SESSION['status'] != 1) {
-    header("Location: index.php?erro=" . urlencode("Acesso negado."));
-    exit();
-}
+
 
 $id_quarto = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 $busca = isset($_GET['busca_item']) ? "%" . $_GET['busca_item'] . "%" : "%";

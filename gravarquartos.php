@@ -1,8 +1,6 @@
 <?php
 
-/**
- * gravarquartos.php — Cadastro de quarto com tipo vindo da tabela tipos_acomodacao
- */
+
 session_start();
 include_once './conexao.php';
 include_once './validar.php';

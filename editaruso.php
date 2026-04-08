@@ -4,12 +4,6 @@ include_once './conexao.php';
 include_once './validar.php';
 
 
-if (!isset($_SESSION['login']) || $_SESSION['status'] != 1 || $_SESSION['perfil'] != 'adm') {
-    header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
-    exit();
-}
-
-
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $idusuario = $_POST['id'] ?? null;

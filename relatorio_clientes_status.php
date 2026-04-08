@@ -3,10 +3,7 @@ session_start();
 include_once './conexao.php';
 include_once './validar.php';
 
-if (!isset($_SESSION['login']) || $_SESSION['status'] != 1 || $_SESSION['perfil'] != 'adm') {
-    header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
-    exit();
-}
+
 
 $filtro_status = $_GET['status'] ?? 'todos';
 $busca         = trim($_GET['busca'] ?? '');

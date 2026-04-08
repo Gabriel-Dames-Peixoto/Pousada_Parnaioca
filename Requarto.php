@@ -4,11 +4,7 @@ include_once './conexao.php';
 include_once './validar.php';
 
 
-// ✅ Validação de acesso corrigida
-if (!isset($_SESSION['login']) || $_SESSION['status'] != 1) {
-    header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
-    exit();
-}
+
 
 // ✅ Pega ID com segurança
 $id_quarto = $_GET['id'] ?? null;
