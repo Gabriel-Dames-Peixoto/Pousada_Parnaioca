@@ -26,8 +26,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mensagem = "<p class='erro'>Selecione uma reserva válida.</p>";
     } else {
 
+        // 🔥 BUSCA DADOS NECESSÁRIOS
         $check = $con->prepare('
-            SELECT r.status, r.valor_total, q.quarto
+            SELECT r.status, r.data_checkin, r.data_checkout, q.quarto, q.preco
             FROM reservas r
             INNER JOIN quartos q ON r.quarto_id = q.id
             WHERE r.id = ?
@@ -43,6 +44,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mensagem = "<p class='erro'>Só é possível finalizar reservas ativas.</p>";
         } else {
 
+            // =========================
+            // 🧠 CALCULAR NOITES DO PACOTE
+            // =========================
+            $data_checkin  = new DateTime($res['data_checkin']);
+            $data_checkout = new DateTime($res['data_checkout']);
+
+            $noites = $data_checkin->diff($data_checkout)->days;
+
+            if ($noites <= 0) {
+                $noites = 1;
+            }
+
+            // 💰 VALOR DA DIÁRIA (PACOTE / NOITES)
+            $valor_diaria = $res['preco'] / $noites;
+
+            // =========================
+            // 📆 DIAS USADOS REAIS
+            // =========================
+            $data_saida = new DateTime();
+
+            $dias_usados = $data_checkin->diff($data_saida)->days;
+
+            if ($dias_usados <= 0) {
+                $dias_usados = 1;
+            }
+
+            $valor_diarias = $dias_usados * $valor_diaria;
+
+            // =========================
+            // 🍫 CONSUMO DO FRIGOBAR
+            // =========================
             $total_consumo = 0.00;
             $erros_estoque = [];
 
@@ -63,8 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (!$item) continue;
 
                     if ($qtd > $item['quantidade']) {
-                        $erros_estoque[] = "Estoque insuficiente para \"{$item['nome']}\": 
-                            solicitado $qtd, disponível {$item['quantidade']}.";
+                        $erros_estoque[] = "Estoque insuficiente para \"{$item['nome']}\": solicitado $qtd, disponível {$item['quantidade']}.";
                         continue;
                     }
 
@@ -79,14 +110,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $insert->execute();
                     $insert->close();
 
-                    $nova_qtd = $item['quantidade'] - $qtd;
-
-                    if ($nova_qtd <= 0) {
+                    // Atualizar estoque
+                    if ($item['quantidade'] - $qtd <= 0) {
                         $baixa = $con->prepare('
                             UPDATE frigobar
                             SET quantidade = 0, status = 0
                             WHERE id = ?
                         ');
+                        $baixa->bind_param('i', $item_id);
                     } else {
                         $baixa = $con->prepare('
                             UPDATE frigobar
@@ -94,31 +125,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             WHERE id = ?
                         ');
                         $baixa->bind_param('ii', $qtd, $item_id);
-                        $baixa->execute();
-                        $baixa->close();
-                        $baixa = null; 
                     }
 
-                    if (isset($baixa)) {
-                        $baixa->bind_param('i', $item_id);
-                        $baixa->execute();
-                        $baixa->close();
-                    }
+                    $baixa->execute();
+                    $baixa->close();
                 }
             }
 
+            // =========================
+            // 💰 TOTAL FINAL
+            // =========================
+            $valor_final = round($valor_diarias + $total_consumo, 2);
+
+            // =========================
+            // 🔁 FINALIZAR RESERVA
+            // =========================
             $update = $con->prepare('
                 UPDATE reservas
-                SET status           = \'finalizada\',
+                SET status = \'finalizada\',
                     data_finalizacao = NOW(),
-                    valor_total      = valor_total + ?
+                    valor_total = ?
                 WHERE id = ?
             ');
-            $update->bind_param('di', $total_consumo, $id_reserva);
+            $update->bind_param('di', $valor_final, $id_reserva);
             $update->execute();
             $update->close();
-
-            $valor_final = round($res['valor_total'] + $total_consumo, 2);
 
             registrarLog(
                 "A reserva do quarto {$res['quarto']} foi finalizada pelo usuário " . $_SESSION['login'],
@@ -136,6 +167,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $aviso_estoque
                 <p class='sucesso'>
                     Reserva finalizada com sucesso!<br>
+                    Pacote: <strong>{$noites} noites</strong><br>
+                    Diária: <strong>R$ " . number_format($valor_diaria, 2, ',', '.') . "</strong><br>
+                    Dias utilizados: <strong>{$dias_usados}</strong><br>
+                    Valor das diárias: <strong>R$ " . number_format($valor_diarias, 2, ',', '.') . "</strong><br>
                     Consumo do frigobar: <strong>R$ " . number_format($total_consumo, 2, ',', '.') . "</strong><br>
                     Total final: <strong>R$ " . number_format($valor_final, 2, ',', '.') . "</strong>
                 </p>
@@ -145,6 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="pt-br">
 
