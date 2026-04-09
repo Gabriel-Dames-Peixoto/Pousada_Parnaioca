@@ -69,6 +69,7 @@
 
     session_start();
     include_once './conexao.php';
+    include_once './validar.php';
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nome = $_POST['nome'] ?? '';
         $data_nascimento = $_POST['data_nascimento'] ?? '';
@@ -82,7 +83,7 @@
             $sql_check = "SELECT cpf, telefone FROM clientes WHERE cpf = ? and telefone = ?";
 
             if ($stmt_check = $con->prepare($sql_check)) {
-                $stmt_check->bind_param("ss", $cpf, $telefone);
+                $stmt_check->bind_param("s", $cpf);
                 $stmt_check->execute();
                 $stmt_check->store_result();
 

@@ -19,8 +19,6 @@ include_once './validar.php';
     <header>
         <nav>
             <ul>
-                <?php // Menu items 
-                ?>
             </ul>
         </nav>
     </header>
