@@ -29,7 +29,7 @@ include_once './validar.php';
     <main>
         <h1>Bem-vindo à Pousada Parnaioca!</h1>
         <p>Desfrute de uma estadia confortável e acolhedora em nossa pousada.
-            Oferecemos quartos aconchegantes, atendimento personalizado e uma localização privilegiada.</p>
+            Oferecemos quartos aconchegantes, atendimento personalizado e uma localização privilegiada.</p><br>
         <img src="imagens\pousadap.png" alt="Imagem da Pousada Parnaioca" style="width:50%; height:auto;">
     </main>
 
