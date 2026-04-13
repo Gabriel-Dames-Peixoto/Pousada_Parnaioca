@@ -8,7 +8,6 @@ function registrarLog($mensagem, $acao)
     $msg = mysqli_real_escape_string($con, $mensagem);
     $tipo = mysqli_real_escape_string($con, $acao);
 
-    // Agora o INSERT inclui a nova coluna 'acao'
     $sql = "INSERT INTO logs_sistema (mensagem, acao) VALUES ('$msg', '$tipo')";
     mysqli_query($con, $sql);
 }
