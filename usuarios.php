@@ -2,8 +2,6 @@
 session_start();
 include_once './conexao.php';
 include_once './validar.php';
-
-
 ?>
 
 <!DOCTYPE html>
@@ -97,6 +95,7 @@ include_once './validar.php';
                     <th>Perfil</th>
                     <th>Status</th>
                     <th>Ações</th>
+                    <th>Permissões</th>
                 </tr>";
 
                 while ($row = $result->fetch_assoc()) {
@@ -113,6 +112,9 @@ include_once './validar.php';
                         <td>" . $textoStatus . "</td>
                         <td>
                             <a href='editaruso.php?id=" . htmlspecialchars($row['id']) . "'>Editar</a>
+                        </td>
+                        <td>
+                            <a href='Permissoes.php?id=" . htmlspecialchars($row['id']) . "'>Permissões</a>
                         </td>
                     </tr>";
                 }
