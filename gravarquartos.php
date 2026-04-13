@@ -52,13 +52,18 @@ $tipos        = $tipos_result ? $tipos_result->fetch_all(MYSQLI_ASSOC) : [];
     <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
     <title>Cadastrar Quarto — Pousada Parnaioca</title>
 </head>
-<header>
-    <nav>
-        <ul><?php include_once 'Menu.php'; ?></ul>
-    </nav>
-</header>
+
 
 <body>
+    <header>
+        <nav>
+            <ul>
+                <?php
+                include_once 'Menu.php';
+                ?>
+            </ul>
+        </nav>
+    </header>
     <main>
         <h1>Cadastro de Quartos</h1>
 

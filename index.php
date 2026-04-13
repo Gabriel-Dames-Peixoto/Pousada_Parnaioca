@@ -9,16 +9,15 @@
     <title>Pousada Parnoica</title>
 </head>
 
-<header>
-    <nav>
-        <ul>
-            <?php
-            ?>
-        </ul>
-    </nav>
-</header>
+
 
 <body>
+    <header>
+        <nav>
+            <ul>
+            </ul>
+        </nav>
+    </header>
     <main>
         <div class="container-login">
             <div class="login-box">
