@@ -1,3 +1,9 @@
+<?php
+session_start();
+include_once './conexao.php';
+include_once './validar.php';
+?>
+
 <!DOCTYPE html>
 <html>
 
@@ -64,10 +70,6 @@
         <input type="submit" value="Cadastrar">
     </form>
     <?php
-
-    session_start();
-    include_once './conexao.php';
-    include_once './validar.php';
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nome = $_POST['nome'] ?? '';
         $data_nascimento = $_POST['data_nascimento'] ?? '';
@@ -81,7 +83,7 @@
             $sql_check = "SELECT cpf, telefone FROM clientes WHERE cpf = ? and telefone = ?";
 
             if ($stmt_check = $con->prepare($sql_check)) {
-                $stmt_check->bind_param("s", $cpf);
+                $stmt_check->bind_param("ss", $cpf, $telefone);
                 $stmt_check->execute();
                 $stmt_check->store_result();
 
@@ -99,7 +101,6 @@
                             registrarLog("O cliente $nome foi cadastrado por " . $_SESSION['login'], "INSERT");
 
                             header("refresh:3;url=clientes.php");
-
                         } else {
                             echo "<div class='erro'><p>Erro ao cadastrar cliente: " . $stmt->error . "</p></div>";
                         }

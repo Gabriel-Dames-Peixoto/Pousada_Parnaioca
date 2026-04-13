@@ -65,7 +65,7 @@ Tecnologias e observações:
 - Deve ser criado o modelo lógico do banco de dados, utilizando o brModelo ou outro programa de sua preferência.
 - Deve ser utilizado o fluxo de versionamento no github.
  
-opções para utilizar no Front-end:
+Opções para utilizar no Front-end:
 - HTML; 
 - CSS;
 - JavaScript; 
