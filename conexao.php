@@ -8,8 +8,9 @@ function registrarLog($mensagem, $acao)
     $msg = mysqli_real_escape_string($con, $mensagem);
     $tipo = mysqli_real_escape_string($con, $acao);
 
-    $sql = "INSERT INTO logs_sistema (mensagem, acao) VALUES ('$msg', '$tipo')";
-    mysqli_query($con, $sql);
+    $sql = "INSERT INTO logs_sistema (mensagem, acao, data_hora) VALUES ('$msg', '$tipo', Now())";
+    
+    Return mysqli_query($con, $sql);
 }
 
 date_default_timezone_set('America/Sao_Paulo');
