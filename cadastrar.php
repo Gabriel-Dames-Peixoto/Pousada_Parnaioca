@@ -63,8 +63,6 @@
         </div>
         <input type="submit" value="Cadastrar">
     </form>
-</MAIN>
-<MAIN>
     <?php
 
     session_start();
@@ -100,9 +98,7 @@
                             echo "<div class='sucesso'><p>Cliente cadastrado com sucesso! Redirecionando...</p></div>";
                             registrarLog("O cliente $nome foi cadastrado por " . $_SESSION['login'], "INSERT");
 
-                            // ALTERAÇÃO: Redireciona para clientes.php após 3 segundos
                             header("refresh:3;url=clientes.php");
-                            // -------------------------------------------------------
 
                         } else {
                             echo "<div class='erro'><p>Erro ao cadastrar cliente: " . $stmt->error . "</p></div>";
