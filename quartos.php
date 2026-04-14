@@ -2,8 +2,6 @@
 session_start();
 include_once './conexao.php';
 include_once './validar.php';
-
-
 ?>
 
 <!DOCTYPE html>
@@ -33,6 +31,7 @@ include_once './validar.php';
         <?php if (isset($_SESSION['perfil']) && $_SESSION['perfil'] === 'adm'): ?>
             <a href="gravarquartos.php"><button>Cadastrar novo quarto</button></a>
             <a href="reservas.php"><button>Gerenciar reservas</button></a>
+            <a href="tipos_acomodacao.php"><button>Gerenciar tipos de acomodação</button></a>
         <?php endif; ?>
 
         <br><br>
