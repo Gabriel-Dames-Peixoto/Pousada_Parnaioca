@@ -70,8 +70,11 @@ $tipos        = $tipos_result ? $tipos_result->fetch_all(MYSQLI_ASSOC) : [];
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="2.css">
-    <title>Editar Quarto — Pousada Parnaioca</title>
+    <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
+    <title>Pousada Parnaióca</title>
+
 </head>
 
 <body>
