@@ -5,6 +5,7 @@ include_once './validar.php';
 
 exigirAdm();
 
+
 $idUsuario = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 $usuario = null;
 $erro = '';
@@ -29,6 +30,9 @@ if ($idUsuario <= 0) {
     }
 }
 
+$perfilUsuario = $usuario['perfil'] ?? '---';
+
+// 📋 Lista de páginas do sistema
 $abasMenu = [
     ['pagina' => 'inicio.php', 'nome' => 'Início', 'publica' => false],
     ['pagina' => 'quartos.php', 'nome' => 'Quartos', 'publica' => false],
@@ -44,6 +48,7 @@ $abasMenu = [
 
 $permissoesPerfil = [];
 
+// 🔎 Busca permissões do perfil
 if ($usuario) {
     $stmtPermissoes = $con->prepare("SELECT pagina, permitido FROM permissoes WHERE perfil = ?");
 
@@ -55,38 +60,11 @@ if ($usuario) {
     $stmtPermissoes->execute();
     $resultadoPermissoes = $stmtPermissoes->get_result();
 
-    while ($linhaPermissao = $resultadoPermissoes->fetch_assoc()) {
-        $permissoesPerfil[$linhaPermissao['pagina']] = (int) $linhaPermissao['permitido'];
+    while ($linha = $resultadoPermissoes->fetch_assoc()) {
+        $permissoesPerfil[$linha['pagina']] = (int)$linha['permitido'];
     }
 
     $stmtPermissoes->close();
-}
-
-$abasPermitidas = [];
-$abasBloqueadas = [];
-
-foreach ($abasMenu as $aba) {
-    if ($aba['publica']) {
-        $aba['status_texto'] = 'Sempre liberada';
-        $aba['status_classe'] = 'status-publico';
-        $aba['observacao'] = 'Página pública do sistema.';
-        $abasPermitidas[] = $aba;
-        continue;
-    }
-
-    $permitido = $permissoesPerfil[$aba['pagina']] ?? 0;
-
-    if ($permitido === 1) {
-        $aba['status_texto'] = 'Permitido';
-        $aba['status_classe'] = 'status-permitido';
-        $aba['observacao'] = 'Liberada para o perfil ' . $usuario['perfil'] . '.';
-        $abasPermitidas[] = $aba;
-    } else {
-        $aba['status_texto'] = 'Bloqueado';
-        $aba['status_classe'] = 'status-bloqueado';
-        $aba['observacao'] = 'Sem liberação cadastrada para o perfil ' . $usuario['perfil'] . '.';
-        $abasBloqueadas[] = $aba;
-    }
 }
 ?>
 
@@ -95,13 +73,12 @@ foreach ($abasMenu as $aba) {
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Permissões</title>
     <link rel="stylesheet" href="2.css">
-    <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
-    <title>Pousada Parnoica - Permissões</title>
 </head>
 
 <body>
+
     <header>
         <nav>
             <ul>
@@ -111,69 +88,89 @@ foreach ($abasMenu as $aba) {
     </header>
 
     <main>
-        <h1>Permissões do Usuário</h1>
 
-        <?php if ($erro !== ''): ?>
+        <h1>Permissões - <?php echo htmlspecialchars($usuario['login'] ?? '---'); ?></h1>
+
+        <?php if ($erro): ?>
             <p class="erro"><?php echo htmlspecialchars($erro); ?></p>
-            <p><a href="usuarios.php">Voltar para usuários</a></p>
         <?php else: ?>
-            <section class="permission-summary">
-                <p><strong>Login:</strong> <?php echo htmlspecialchars($usuario['login']); ?></p>
-                <p><strong>Perfil:</strong> <?php echo htmlspecialchars($usuario['perfil']); ?></p>
-                <p><strong>Status:</strong> <?php echo (int) $usuario['status'] === 1 ? 'Ativo' : 'Inativo'; ?></p>
-                <p><strong>Abas liberadas:</strong> <?php echo count($abasPermitidas); ?></p>
-            </section>
-
             <div class="table-container">
                 <table>
                     <tr>
                         <th>Aba</th>
                         <th>Página</th>
-                        <th>Permissão</th>
-                        <th>Observação</th>
+                        <th>Status</th>
+                        <th>Alterar</th>
                     </tr>
-                    <?php foreach ($abasPermitidas as $aba): ?>
+
+                    <?php foreach ($abasMenu as $aba):
+
+                        if ($aba['publica']) continue;
+
+                        $permitido = $permissoesPerfil[$aba['pagina']] ?? 0;
+                    ?>
+
                         <tr>
                             <td><?php echo htmlspecialchars($aba['nome']); ?></td>
                             <td><?php echo htmlspecialchars($aba['pagina']); ?></td>
-                            <td><span class="<?php echo htmlspecialchars($aba['status_classe']); ?>"><?php echo htmlspecialchars($aba['status_texto']); ?></span></td>
-                            <td><?php echo htmlspecialchars($aba['observacao']); ?></td>
+
+                            <td>
+                                <span class="<?php echo $permitido ? 'status-permitido' : 'status-bloqueado'; ?>">
+                                    <?php echo $permitido ? 'Permitido' : 'Bloqueado'; ?>
+                                </span>
+                            </td>
+
+                            <td>
+                                <label class="switch">
+                                    <input type="checkbox"
+                                        data-id="<?php echo $idUsuario; ?>"
+                                        data-pagina="<?php echo $aba['pagina']; ?>"
+                                        <?php echo $permitido ? 'checked' : ''; ?>>
+                                    <span class="slider"></span>
+                                </label>
+                            </td>
                         </tr>
+
+
                     <?php endforeach; ?>
+
                 </table>
             </div>
 
-            <?php if (!empty($abasBloqueadas)): ?>
-                <h2>Abas sem permissão</h2>
-                <div class="table-container">
-                    <table>
-                        <tr>
-                            <th>Aba</th>
-                            <th>Página</th>
-                            <th>Permissão</th>
-                            <th>Observação</th>
-                            <th>Alterar Permissão</th>
-                        </tr>
-                        <?php foreach ($abasBloqueadas as $aba): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($aba['nome']); ?></td>
-                                <td><?php echo htmlspecialchars($aba['pagina']); ?></td>
-                                <td><span class="<?php echo htmlspecialchars($aba['status_classe']); ?>"><?php echo htmlspecialchars($aba['status_texto']); ?></span></td>
-                                <td><?php echo htmlspecialchars($aba['observacao']); ?></td>
-                                <td><a href="alterar_permissao.php?id=<?php echo $idUsuario; ?>&pagina=<?php echo urlencode($aba['pagina']); ?>">Alterar</a></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </table>
-                </div>
             <?php endif; ?>
 
-            <p><a href="usuarios.php">Voltar para usuários</a></p>
-        <?php endif; ?>
     </main>
 
     <footer>
-        <p>&copy; 2026 Pousada Parnaioca. Todos os direitos reservados.</p>
+        <p>&copy; 2026 Pousada Parnaioca</p>
     </footer>
+
+    <script>
+        document.querySelectorAll('input[type="checkbox"]').forEach(el => {
+            el.addEventListener('change', function() {
+
+                const id = this.dataset.id;
+                const pagina = this.dataset.pagina;
+                const permitido = this.checked ? 1 : 0;
+
+                fetch('alterar_permissao_ajax.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: `id=${id}&pagina=${pagina}&permitido=${permitido}`
+                    })
+                    .then(res => res.text())
+                    .then(res => {
+                        console.log(res);
+                    })
+                    .catch(() => {
+                        alert('Erro ao alterar permissão');
+                    });
+            });
+        });
+    </script>
+
 </body>
 
 </html>
