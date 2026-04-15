@@ -60,9 +60,9 @@ Construção de dashboard com os seguintes dados
 - Sistema devera mostrar quem esta hospedado atualmente(Quarto/pessoa/data inicial e data final)✅
 
 
-Tecnologias e observações:‼️
+Tecnologias e observações:
  
-- Deve ser criado o modelo lógico do banco de dados, utilizando o brModelo ou outro programa de sua preferência.
+- Deve ser criado o modelo lógico do banco de dados, utilizando o brModelo ou outro programa de sua preferência.‼️
 - Deve ser utilizado o fluxo de versionamento no github. ✅
  
 Opções para utilizar no Front-end:

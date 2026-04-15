@@ -109,7 +109,7 @@ include_once './validar.php';
 
                 echo "<h2>" . htmlspecialchars($row["quarto"]) . " - $statusTexto</h2>";
 
-                echo "Preço base (5 noites): R$ " . number_format($row["preco"], 2, ',', '.') . "<br>";
+                echo "Diária: R$ " . number_format($row["preco"], 2, ',', '.') . "<br>";
                 echo "<small>(Valor varia conforme quantidade de dias a mais ou a menos)</small><br><br>";
 
                 echo "<a href='informacoes_quarto.php?id=" . $row["id"] . "'>Informações adicionais</a><br>";
