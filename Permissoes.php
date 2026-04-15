@@ -152,6 +152,7 @@ foreach ($abasMenu as $aba) {
                             <th>Página</th>
                             <th>Permissão</th>
                             <th>Observação</th>
+                            <th>Alterar Permissão</th>
                         </tr>
                         <?php foreach ($abasBloqueadas as $aba): ?>
                             <tr>
@@ -159,6 +160,7 @@ foreach ($abasMenu as $aba) {
                                 <td><?php echo htmlspecialchars($aba['pagina']); ?></td>
                                 <td><span class="<?php echo htmlspecialchars($aba['status_classe']); ?>"><?php echo htmlspecialchars($aba['status_texto']); ?></span></td>
                                 <td><?php echo htmlspecialchars($aba['observacao']); ?></td>
+                                <td><a href="alterar_permissao.php?id=<?php echo $idUsuario; ?>&pagina=<?php echo urlencode($aba['pagina']); ?>">Alterar</a></td>
                             </tr>
                         <?php endforeach; ?>
                     </table>
