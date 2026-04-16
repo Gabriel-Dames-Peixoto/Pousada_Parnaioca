@@ -27,46 +27,53 @@ include_once './validar.php';
             <h1>Editar Cadastro</h1>
 
             <?php
-            // --- BLOCO 1: PROCESSA A ATUALIZAÇÃO (POST) ---
             if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-                $id = $_POST['id'];
-                $nome = $_POST['nome'];
-                $email = $_POST['email'];
-                $telefone = $_POST['telefone'];
-                $estado = $_POST['estado'];
-                $cidade = $_POST['cidade'];
-                $status = $_POST['status'];
+                $id       = (int)$_POST['id'];
+                $nome     = trim($_POST['nome']     ?? '');
+                $email    = trim($_POST['email']    ?? '');
+                $telefone = trim($_POST['telefone'] ?? '');
+                $estado   = trim($_POST['estado']   ?? '');
+                $cidade   = trim($_POST['cidade']   ?? '');
 
-                
-                $sql = "UPDATE clientes SET nome = ?, email = ?, telefone = ?, estado = ?, cidade = ?, status = ? WHERE id = ?";
+                // ✅ CORREÇÃO: só admin pode alterar o status do cliente
+                if (isAdm()) {
+                    $status = (int)($_POST['status'] ?? 1);
+                } else {
+                    // Mantém o status atual — busca do banco
+                    $stmt_status = $con->prepare("SELECT status FROM clientes WHERE id = ?");
+                    $stmt_status->bind_param("i", $id);
+                    $stmt_status->execute();
+                    $row_status = $stmt_status->get_result()->fetch_assoc();
+                    $status = (int)($row_status['status'] ?? 1);
+                    $stmt_status->close();
+                }
+
+                $sql  = "UPDATE clientes SET nome=?, email=?, telefone=?, estado=?, cidade=?, status=? WHERE id=?";
                 $stmt = $con->prepare($sql);
-                $stmt->bind_param("ssssssi", $nome, $email, $telefone, $estado, $cidade, $status, $id);
+                $stmt->bind_param("sssssii", $nome, $email, $telefone, $estado, $cidade, $status, $id);
 
                 if ($stmt->execute()) {
                     registrarLog("Dados do cliente $nome foram atualizados por " . $_SESSION['login'], "UPDATE");
                     echo "<p class='sucesso'>Cadastro atualizado com sucesso! Redirecionando...</p>";
                     header("refresh:3;url=clientes.php");
                 } else {
-                    echo "<p class='erro'>Erro ao atualizar cadastro: " . $stmt->error . "</p>";
+                    echo "<p class='erro'>Erro ao atualizar cadastro: " . htmlspecialchars($stmt->error) . "</p>";
                 }
                 $stmt->close();
             }
 
-            // --- BLOCO 2: BUSCA OS DADOS PARA PREENCHER O FORMULÁRIO (GET) ---
-            $id = isset($_GET['id']) ? $_GET['id'] : (isset($_POST['id']) ? $_POST['id'] : null);
+            $id = isset($_GET['id']) ? (int)$_GET['id'] : (isset($_POST['id']) ? (int)$_POST['id'] : null);
             $cliente = [];
 
             if ($id) {
-                $sql = "SELECT * FROM clientes WHERE id = ?";
+                $sql  = "SELECT * FROM clientes WHERE id = ?";
                 $stmt = $con->prepare($sql);
                 $stmt->bind_param("i", $id);
                 $stmt->execute();
-                $result = $stmt->get_result();
-                $cliente = $result->fetch_assoc();
+                $cliente = $stmt->get_result()->fetch_assoc();
                 $stmt->close();
             }
 
-            // Se o cliente não for encontrado, você pode exibir um aviso
             if (!$cliente && $_SERVER['REQUEST_METHOD'] !== 'POST') {
                 echo "<p class='erro'>Cliente não encontrado!</p>";
             }
@@ -77,7 +84,8 @@ include_once './validar.php';
 
                 <div>
                     <label for="nome">Nome:</label>
-                    <input type="text" id="nome" name="nome" value="<?= htmlspecialchars($cliente['nome'] ?? '') ?>" required>
+                    <input type="text" id="nome" name="nome"
+                        value="<?= htmlspecialchars($cliente['nome'] ?? '') ?>" required>
                 </div>
                 <div>
                     <label for="data_nascimento">Data de Nascimento:</label>
@@ -85,34 +93,51 @@ include_once './validar.php';
                         value="<?= htmlspecialchars($cliente['data_nascimento'] ?? '') ?>" required>
                 </div>
                 <div>
-                    <p><label for="cpf">CPF:</label>
-                        <input type="text" id="cpf" name="cpf" value="<?= htmlspecialchars($cliente['cpf'] ?? '') ?>" readonly><br>
+                    <p>
+                        <label for="cpf">CPF:</label>
+                        <input type="text" id="cpf" name="cpf"
+                            value="<?= htmlspecialchars($cliente['cpf'] ?? '') ?>" readonly>
                         <small>(CPF não pode ser alterado)</small>
                     </p>
                 </div>
                 <div>
                     <label for="email">E-mail:</label>
-                    <input type="email" id="email" name="email" value="<?= htmlspecialchars($cliente['email'] ?? '') ?>" required>
+                    <input type="email" id="email" name="email"
+                        value="<?= htmlspecialchars($cliente['email'] ?? '') ?>" required>
                 </div>
                 <div>
                     <label for="telefone">Telefone:</label>
-                    <input type="text" id="telefone" name="telefone" value="<?= htmlspecialchars($cliente['telefone'] ?? '') ?>" required>
+                    <input type="text" id="telefone" name="telefone"
+                        value="<?= htmlspecialchars($cliente['telefone'] ?? '') ?>" required>
                 </div>
                 <div>
                     <label for="estado">Estado:</label>
-                    <input type="text" id="estado" name="estado" value="<?= htmlspecialchars($cliente['estado'] ?? '') ?>" required>
+                    <input type="text" id="estado" name="estado"
+                        value="<?= htmlspecialchars($cliente['estado'] ?? '') ?>" required>
                 </div>
                 <div>
                     <label for="cidade">Cidade:</label>
-                    <input type="text" id="cidade" name="cidade" value="<?= htmlspecialchars($cliente['cidade'] ?? '') ?>" required>
+                    <input type="text" id="cidade" name="cidade"
+                        value="<?= htmlspecialchars($cliente['cidade'] ?? '') ?>" required>
                 </div>
-                <div>
-                    <label for="status">Status:</label>
-                    <select id="status" name="status" required>
-                        <option value="1" <?= (isset($cliente['status']) && $cliente['status'] == 1) ? 'selected' : '' ?>>Ativo</option>
-                        <option value="0" <?= (isset($cliente['status']) && $cliente['status'] == 0) ? 'selected' : '' ?>>Inativo</option>
-                    </select>
-                </div>
+
+                <?php if (isAdm()): ?>
+                    <!-- ✅ CORREÇÃO: campo status visível e funcional apenas para admin -->
+                    <div>
+                        <label for="status">Status:</label>
+                        <select id="status" name="status" required>
+                            <option value="1" <?= (isset($cliente['status']) && $cliente['status'] == 1) ? 'selected' : '' ?>>Ativo</option>
+                            <option value="0" <?= (isset($cliente['status']) && $cliente['status'] == 0) ? 'selected' : '' ?>>Inativo</option>
+                        </select>
+                    </div>
+                <?php else: ?>
+                    <!-- Não-admin: exibe somente o status atual, sem possibilidade de alterar -->
+                    <div>
+                        <label>Status:</label>
+                        <span><?= (isset($cliente['status']) && $cliente['status'] == 1) ? '🟢 Ativo' : '🔴 Inativo' ?></span>
+                        <small>(apenas administradores podem alterar o status)</small>
+                    </div>
+                <?php endif; ?>
 
                 <button type="submit">Atualizar</button>
             </form>
