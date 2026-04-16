@@ -39,7 +39,6 @@ $abasMenu = [
     ['pagina' => 'dashboard.php', 'nome' => 'Dashboard', 'publica' => false],
     ['pagina' => 'relatorio_financeiro.php', 'nome' => 'Financeiro', 'publica' => false],
     ['pagina' => 'contato.php', 'nome' => 'Contato', 'publica' => true],
-    ['pagina' => 'sair.php', 'nome' => 'Sair', 'publica' => true],
 ];
 
 $permissoesPerfil = [];
