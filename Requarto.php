@@ -65,12 +65,9 @@ if (isset($_POST['reservar'])) {
             }
             $valorFinal = round($valorFinal, 2);
 
-            // ✅ CORREÇÃO: usar transação + SELECT ... FOR UPDATE para evitar
-            //    condição de corrida em acessos simultâneos
             $con->begin_transaction();
 
             try {
-                // Bloqueia as linhas do quarto enquanto verifica conflito
                 $stmt_check = $con->prepare("
                     SELECT id FROM reservas
                     WHERE quarto_id = ?
