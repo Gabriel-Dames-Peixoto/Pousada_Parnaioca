@@ -40,7 +40,6 @@ exigirAdm();
 
             if ($nome && $data_nascimento && $cpf && $email && $telefone && $estado && $cidade) {
 
-                // ✅ CORREÇÃO: bloqueia por CPF sozinho (não CPF+telefone)
                 $stmt_check = $con->prepare("SELECT id FROM clientes WHERE cpf = ?");
                 $stmt_check->bind_param("s", $cpf);
                 $stmt_check->execute();
@@ -86,7 +85,6 @@ exigirAdm();
             </div>
             <div>
                 <label for="cpf">CPF:</label>
-                <!-- ✅ CORREÇÃO: script movido para APÓS o input -->
                 <input type="text" id="cpf" name="cpf" maxlength="14"
                     placeholder="000.000.000-00" required>
             </div>
@@ -110,8 +108,6 @@ exigirAdm();
         </form>
 
     </main>
-
-    <!-- ✅ CORREÇÃO: script movido para o final do body, depois que o DOM existe -->
     <script>
         document.getElementById('cpf').addEventListener('input', function() {
             let value = this.value.replace(/\D/g, '');

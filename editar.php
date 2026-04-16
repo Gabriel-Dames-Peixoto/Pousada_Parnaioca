@@ -35,11 +35,11 @@ include_once './validar.php';
                 $estado   = trim($_POST['estado']   ?? '');
                 $cidade   = trim($_POST['cidade']   ?? '');
 
-                // ✅ CORREÇÃO: só admin pode alterar o status do cliente
+
                 if (isAdm()) {
                     $status = (int)($_POST['status'] ?? 1);
                 } else {
-                    // Mantém o status atual — busca do banco
+
                     $stmt_status = $con->prepare("SELECT status FROM clientes WHERE id = ?");
                     $stmt_status->bind_param("i", $id);
                     $stmt_status->execute();
@@ -122,21 +122,21 @@ include_once './validar.php';
                 </div>
 
                 <?php if (isAdm()): ?>
-                    <!-- ✅ CORREÇÃO: campo status visível e funcional apenas para admin -->
-                    <div>
-                        <label for="status">Status:</label>
-                        <select id="status" name="status" required>
-                            <option value="1" <?= (isset($cliente['status']) && $cliente['status'] == 1) ? 'selected' : '' ?>>Ativo</option>
-                            <option value="0" <?= (isset($cliente['status']) && $cliente['status'] == 0) ? 'selected' : '' ?>>Inativo</option>
-                        </select>
-                    </div>
+
+                <div>
+                    <label for="status">Status:</label>
+                    <select id="status" name="status" required>
+                        <option value="1" <?= (isset($cliente['status']) && $cliente['status'] == 1) ? 'selected' : '' ?>>Ativo</option>
+                        <option value="0" <?= (isset($cliente['status']) && $cliente['status'] == 0) ? 'selected' : '' ?>>Inativo</option>
+                    </select>
+                </div>
                 <?php else: ?>
-                    <!-- Não-admin: exibe somente o status atual, sem possibilidade de alterar -->
-                    <div>
-                        <label>Status:</label>
-                        <span><?= (isset($cliente['status']) && $cliente['status'] == 1) ? '🟢 Ativo' : '🔴 Inativo' ?></span>
-                        <small>(apenas administradores podem alterar o status)</small>
-                    </div>
+
+                <div>
+                    <label>Status:</label>
+                    <span><?= (isset($cliente['status']) && $cliente['status'] == 1) ? '🟢 Ativo' : '🔴 Inativo' ?></span>
+                    <small>(apenas administradores podem alterar o status)</small>
+                </div>
                 <?php endif; ?>
 
                 <button type="submit">Atualizar</button>
