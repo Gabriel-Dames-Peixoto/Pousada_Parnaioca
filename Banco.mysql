@@ -64,8 +64,6 @@ CREATE TABLE reservas (
     data_cancelamento datetime DEFAULT NULL,
     motivo_cancelamento text,
     KEY quarto_id (quarto_id),
-    KEY cliente_id (cliente_id),
-    KEY quarto_id (quarto_id),
     KEY cliente_id (cliente_id)
 );
 

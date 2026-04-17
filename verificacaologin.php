@@ -24,7 +24,6 @@ $result = mysqli_stmt_get_result($stmt);
 
 if ($row = mysqli_fetch_assoc($result)) {
 
-    // Valida senha (md5 — manter compatibilidade com cadastros existentes)
     if (md5($senha) === $row['senha']) {
 
         if ($row['status'] == 1) {
