@@ -1,0 +1,14 @@
+{
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.expand": false,
+  "explorer.fileNesting.patterns": {
+    "index.php": "login.php, login_processar.php, login_verificar_cadastro.php, logout.php, sessao_validar.php, conexao.php",
+    "usuarios.php": "usuarios_cadastrar.php, usuarios_gravar.php, usuarios_editar.php, usuarios_permissoes.php",
+    "clientes.php": "clientes_cadastrar.php, clientes_editar.php, clientes_inativar.php",
+    "quartos.php": "quartos_cadastrar.php, quartos_editar.php, quartos_detalhes.php, quartos_tipos.php",
+    "reservas.php": "reservas_cadastrar.php, reservas_buscar.php, reservas_cancelar.php, reservas_finalizar.php",
+    "quartos_detalhes.php": "frigobar_cadastrar.php, frigobar_editar.php, frigobar_buscar.php",
+    "relatorio_financeiro.php": "relatorio_clientes_status.php, relatorio_clientes_datas.php",
+    "Banco.mysql": "database/*.sql, docs/*.md"
+  }
+}

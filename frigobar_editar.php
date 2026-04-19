@@ -1,10 +1,10 @@
 <?php
 session_start();
 include_once './conexao.php';
-include_once './validar.php';
+include_once './sessao_validar.php';
 
 if (!isset($_SESSION['login']) || $_SESSION['status'] != 1 || $_SESSION['perfil'] != 'adm') {
-    header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
+    header("Location: login.php?erro=" . urlencode("Acesso negado. Faça login."));
     exit();
 }
 
@@ -47,7 +47,7 @@ $quarto_data = $resQuarto->fetch_assoc();
 <body>
     <header>
         <nav>
-            <ul><?php include_once 'Menu.php'; ?></ul>
+            <ul><?php include_once 'menu.php'; ?></ul>
         </nav>
     </header>
 
@@ -77,7 +77,7 @@ $quarto_data = $resQuarto->fetch_assoc();
             </select><br><br>
 
             <input type="submit" value="Salvar Alterações">
-            <input type="button" value="Cancelar" onclick="window.location.href='informacoes_quarto.php?id=<?php echo $quarto_id; ?>'">
+            <input type="button" value="Cancelar" onclick="window.location.href='quartos_detalhes.php?id=<?php echo $quarto_id; ?>'">
         </form>
 
         <?php
@@ -100,7 +100,7 @@ $quarto_data = $resQuarto->fetch_assoc();
                     registrarLog("O item $nome do frigobar do quarto $resquarto alterado por " . $_SESSION['login'], "UPDATE");
                     echo "<p style='color: green;'>Item atualizado com sucesso!</p>";
                     // Redireciona de volta após 2 segundos
-                    echo "<script>setTimeout(function(){ window.location.href='informacoes_quarto.php?id=$quarto_id'; }, 2000);</script>";
+                    echo "<script>setTimeout(function(){ window.location.href='quartos_detalhes.php?id=$quarto_id'; }, 2000);</script>";
                 } else {
                     echo "<p style='color: red;'>Erro ao atualizar: " . $stmt->error . "</p>";
                 }
@@ -112,3 +112,4 @@ $quarto_data = $resQuarto->fetch_assoc();
 </body>
 
 </html>
+

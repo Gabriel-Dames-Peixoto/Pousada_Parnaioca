@@ -7,4 +7,4 @@
     <li><a href="dashboard.php">Dashboard</a></li>
 <?php endif; ?>
 <li><a href="contato.php">Contato</a></li>
-<li><a href="sair.php">Sair</a></li>
+<li><a href="logout.php">Sair</a></li>

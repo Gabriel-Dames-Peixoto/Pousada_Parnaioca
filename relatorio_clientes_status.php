@@ -1,7 +1,7 @@
 <?php
 session_start();
 include_once './conexao.php';
-include_once './validar.php';
+include_once './sessao_validar.php';
 
 
 
@@ -183,7 +183,7 @@ $total_inativos = $totais['inativos'] ?? 0;
 
     <header>
         <nav>
-            <ul><?php include_once 'Menu.php'; ?></ul>
+            <ul><?php include_once 'menu.php'; ?></ul>
         </nav>
     </header>
 

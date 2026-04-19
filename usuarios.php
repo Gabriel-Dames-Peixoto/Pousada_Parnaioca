@@ -1,7 +1,7 @@
 <?php
 session_start();
 include_once './conexao.php';
-include_once './validar.php';
+include_once './sessao_validar.php';
 ?>
 
 <!DOCTYPE html>
@@ -19,7 +19,7 @@ include_once './validar.php';
     <header>
         <nav>
             <ul>
-                <?php include_once 'Menu.php'; ?>
+                <?php include_once 'menu.php'; ?>
             </ul>
         </nav>
     </header>
@@ -38,7 +38,7 @@ include_once './validar.php';
                 value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
 
             <button type="submit">Pesquisar</button>
-            <button type="button" onclick="window.location.href='cadastrouso.php'">Novo Usuário</button>
+            <button type="button" onclick="window.location.href='usuarios_cadastrar.php'">Novo Usuário</button>
         </form>
 
         <div class="table-container">
@@ -111,10 +111,10 @@ include_once './validar.php';
                         <td>" . htmlspecialchars($row['perfil']) . "</td>
                         <td>" . $textoStatus . "</td>
                         <td>
-                            <a href='editaruso.php?id=" . htmlspecialchars($row['id']) . "'>Editar</a>
+                            <a href='usuarios_editar.php?id=" . htmlspecialchars($row['id']) . "'>Editar</a>
                         </td>
                         <td>
-                            <a href='Permissoes.php?id=" . htmlspecialchars($row['id']) . "'>Permissões</a>
+                            <a href='usuarios_permissoes.php?id=" . htmlspecialchars($row['id']) . "'>Permissões</a>
                         </td>
                     </tr>";
                 }
@@ -137,3 +137,4 @@ include_once './validar.php';
 </body>
 
 </html>
+

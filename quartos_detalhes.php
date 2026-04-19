@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once './conexao.php';
-include_once './validar.php';
+include_once './sessao_validar.php';
 
 
 
@@ -44,7 +44,7 @@ if (isset($_POST['toggle_frigobar']) && $_SESSION['perfil'] === 'adm') {
     $stmt_update->close();
 
 
-    header("Location: informacoes_quarto.php?id=" . $id_quarto);
+    header("Location: quartos_detalhes.php?id=" . $id_quarto);
     exit();
 }
 
@@ -71,7 +71,7 @@ $stmt_res->close();
     <header>
         <nav>
             <ul>
-                <?php include_once 'Menu.php'; ?>
+                <?php include_once 'menu.php'; ?>
             </ul>
         </nav>
     </header>
@@ -128,7 +128,7 @@ $stmt_res->close();
 
                 <?php if ($_SESSION['perfil'] === 'adm'): ?>
                     <button type="button"
-                        onclick="location.href='cFrigobar.php?id=<?= $id_quarto ?>'">
+                        onclick="location.href='frigobar_cadastrar.php?id=<?= $id_quarto ?>'">
                         Cadastrar Item
                     </button>
                 <?php endif; ?>
@@ -197,7 +197,7 @@ $stmt_res->close();
                                         <?= $row['status'] ? 'Ativo' : 'Inativo' ?>
                                     </td>
                                     <td>
-                                        <a href="edFrigobar.php?id=<?= $row['id'] ?>">Editar</a>
+                                        <a href="frigobar_editar.php?id=<?= $row['id'] ?>">Editar</a>
                                     </td>
                                 <?php endif; ?>
                             </tr>
@@ -219,7 +219,7 @@ $stmt_res->close();
 ========================== -->
         <div style="margin-top:20px;">
             <button onclick="location.href='quartos.php'">Voltar</button>
-            <button onclick="location.href='Requarto.php?id=<?= $id_quarto ?>'">Reservar</button>
+            <button onclick="location.href='reservas_cadastrar.php?id=<?= $id_quarto ?>'">Reservar</button>
         </div>
 
     </main>
@@ -231,3 +231,4 @@ $stmt_res->close();
 </body>
 
 </html>
+

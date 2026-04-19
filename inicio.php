@@ -1,7 +1,7 @@
 <?php
 session_start();
 include_once './conexao.php';
-include_once './validar.php';
+include_once './sessao_validar.php';
 
 ?>
 <!DOCTYPE html>
@@ -20,7 +20,7 @@ include_once './validar.php';
         <nav>
             <ul>
                 <?php
-                include_once 'Menu.php';
+                include_once 'menu.php';
                 ?>
             </ul>
         </nav>

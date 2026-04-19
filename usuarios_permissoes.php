@@ -1,7 +1,7 @@
 <?php
 session_start();
 include_once './conexao.php';
-include_once './validar.php';
+include_once './sessao_validar.php';
 
 exigirAdm();
 
@@ -35,7 +35,7 @@ $abasMenu = [
     ['pagina' => 'reservas.php', 'nome' => 'Reservas', 'publica' => false],
     ['pagina' => 'clientes.php', 'nome' => 'Clientes', 'publica' => false],
     ['pagina' => 'usuarios.php', 'nome' => 'Usuários', 'publica' => false],
-    ['pagina' => 'tipos_acomodacao.php', 'nome' => 'Tipos', 'publica' => false],
+    ['pagina' => 'quartos_tipos.php', 'nome' => 'Tipos', 'publica' => false],
     ['pagina' => 'dashboard.php', 'nome' => 'Dashboard', 'publica' => false],
     ['pagina' => 'relatorio_financeiro.php', 'nome' => 'Financeiro', 'publica' => false],
     ['pagina' => 'contato.php', 'nome' => 'Contato', 'publica' => true],
@@ -104,7 +104,7 @@ foreach ($abasMenu as $aba) {
     <header>
         <nav>
             <ul>
-                <?php include_once 'Menu.php'; ?>
+                <?php include_once 'menu.php'; ?>
             </ul>
         </nav>
     </header>

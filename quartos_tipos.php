@@ -1,7 +1,7 @@
 <?php
 session_start();
 include_once './conexao.php';
-include_once './validar.php';
+include_once './sessao_validar.php';
 
 exigirAdm();
 
@@ -19,7 +19,7 @@ if (isset($_GET['toggle']) && isset($_GET['id'])) {
 
     $acao = $novo_status ? 'ativado' : 'inativado';
     registrarLog("Tipo de acomodação ID $id_toggle foi $acao por " . $_SESSION['login'], 'UPDATE');
-    header('Location: tipos_acomodacao.php?ok=' . urlencode("Tipo $acao com sucesso."));
+    header('Location: quartos_tipos.php?ok=' . urlencode("Tipo $acao com sucesso."));
     exit();
 }
 
@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['nome'])) {
 
     if ($stmt_c->execute()) {
         registrarLog("Tipo de acomodação \"$nome\" cadastrado por " . $_SESSION['login'], 'INSERT');
-        header('Location: tipos_acomodacao.php?ok=' . urlencode("Tipo \"$nome\" cadastrado."));
+        header('Location: quartos_tipos.php?ok=' . urlencode("Tipo \"$nome\" cadastrado."));
         exit();
     } else {
         if ($con->errno === 1062) {
@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['editar_id'])) {
         $stmt_e->execute();
         $stmt_e->close();
         registrarLog("Tipo de acomodação ID $editar_id renomeado para \"$editar_nome\" por " . $_SESSION['login'], 'UPDATE');
-        header('Location: tipos_acomodacao.php?ok=' . urlencode('Tipo atualizado.'));
+        header('Location: quartos_tipos.php?ok=' . urlencode('Tipo atualizado.'));
         exit();
     }
 }
@@ -78,7 +78,7 @@ $tipos = $con->query('SELECT * FROM tipos_acomodacao ORDER BY nome ASC')->fetch_
 
     <header>
         <nav>
-            <ul><?php include_once 'Menu.php'; ?></ul>
+            <ul><?php include_once 'menu.php'; ?></ul>
         </nav>
     </header>
 
@@ -127,9 +127,9 @@ $tipos = $con->query('SELECT * FROM tipos_acomodacao ORDER BY nome ASC')->fetch_
                                 <td><?= $t['status'] ? '🟢 Ativo' : '🔴 Inativo' ?></td>
                                 <td>
                                     <?php if ($t['status']): ?>
-                                        <a href="tipos_acomodacao.php?toggle=inativar&id=<?= $t['id'] ?>">Inativar</a>
+                                        <a href="quartos_tipos.php?toggle=inativar&id=<?= $t['id'] ?>">Inativar</a>
                                     <?php else: ?>
-                                        <a href="tipos_acomodacao.php?toggle=ativar&id=<?= $t['id'] ?>">Ativar</a>
+                                        <a href="quartos_tipos.php?toggle=ativar&id=<?= $t['id'] ?>">Ativar</a>
                                     <?php endif; ?>
                                 </td>
                             </tr>

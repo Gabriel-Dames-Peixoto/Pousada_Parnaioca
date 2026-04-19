@@ -1,7 +1,7 @@
 <?php
 session_start();
 include_once './conexao.php';
-include_once './validar.php';
+include_once './sessao_validar.php';
 ?>
 
 <!DOCTYPE html>
@@ -61,11 +61,11 @@ include_once './validar.php';
                 echo "<div class='calendario' data-id='" . $row['id'] . "' data-reservas='" . $jsonReservas . "'></div>";
 
                 echo "<br>";
-                echo '<a href="Requarto.php?id=' . $row['id'] . '">Reservar</a>';
+                echo '<a href="reservas_cadastrar.php?id=' . $row['id'] . '">Reservar</a>';
                 if ($_SESSION['perfil'] == 'adm') {
 
-                    echo ' | <a href="CanReserva.php">Cancelar</a> | ';
-                    echo '<a href="FiReserva.php">Finalizar reserva</a>';
+                    echo ' | <a href="reservas_cancelar.php">Cancelar</a> | ';
+                    echo '<a href="reservas_finalizar.php">Finalizar reserva</a>';
                 }
                 echo "</div>";
             }
@@ -209,7 +209,7 @@ include_once './validar.php';
                         el.onclick = () => {
                             let data = `${ano}-${String(mes+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
                             let quarto = calendarioDiv.dataset.id;
-                            window.location.href = `Requarto.php?id=${quarto}&data=${data}`;
+                            window.location.href = `reservas_cadastrar.php?id=${quarto}&data=${data}`;
                         };
                     }
 

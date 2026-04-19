@@ -3,7 +3,7 @@
 
 session_start();
 include_once './conexao.php';
-include_once './validar.php';
+
 
 // Função para verificar cadastro
 function verificarCadastro($login, $con)
@@ -128,3 +128,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </body>
 
 </html>
+

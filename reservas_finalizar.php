@@ -1,7 +1,7 @@
 <?php
 session_start();
 include_once './conexao.php';
-include_once './validar.php';
+include_once './sessao_validar.php';
 
 exigirAdm();
 
@@ -283,7 +283,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             container.style.display = 'block';
             select.innerHTML = '<option value="">⏳ Carregando...</option>';
 
-            fetch('buscar_reservas.php?quarto_id=' + quartoId + '&status=ativa')
+            fetch('reservas_buscar.php?quarto_id=' + quartoId + '&status=ativa')
                 .then(r => r.json())
                 .then(data => {
                     select.innerHTML = '<option value="">-- Selecione a reserva --</option>';
@@ -316,7 +316,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             frigobar.innerHTML = '<p class="loading">⏳ Carregando itens do frigobar...</p>';
 
-            fetch('buscar_frigobar.php?quarto_id=' + quartoId)
+            fetch('frigobar_buscar.php?quarto_id=' + quartoId)
                 .then(r => r.text())
                 .then(html => {
                     frigobar.innerHTML = html;

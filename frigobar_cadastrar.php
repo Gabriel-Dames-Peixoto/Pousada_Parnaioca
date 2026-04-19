@@ -1,7 +1,7 @@
 <?php
 session_start();
 include_once './conexao.php';
-include_once './validar.php';
+include_once './sessao_validar.php';
 
 exigirAdm();
 ?>
@@ -20,7 +20,7 @@ exigirAdm();
 
     <header>
         <nav>
-            <ul><?php include_once 'Menu.php'; ?></ul>
+            <ul><?php include_once 'menu.php'; ?></ul>
         </nav>
     </header>
 
@@ -94,7 +94,7 @@ exigirAdm();
                     );
                     echo "<p style='color:green;'>Item cadastrado com sucesso!</p>";
                     echo "<input type='button' value='Voltar para o quarto'
-                      onclick='window.location.href=\"informacoes_quarto.php?id=" . (int)$quarto_id . "\"'>";
+                      onclick='window.location.href=\"quartos_detalhes.php?id=" . (int)$quarto_id . "\"'>";
                 } else {
                     echo "<p style='color:red;'>Erro ao cadastrar: " . htmlspecialchars($stmt->error) . "</p>";
                 }

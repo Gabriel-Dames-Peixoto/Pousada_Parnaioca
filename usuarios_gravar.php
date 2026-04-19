@@ -1,6 +1,6 @@
 <?php
 session_start();
-include_once './validar.php';
+include_once './sessao_validar.php';
 
 // Recebe os dados do formulário
 $login = $_POST["usuario"];
@@ -17,7 +17,7 @@ $check->execute();
 $check->store_result();
 
 if ($check->num_rows > 0) {
-    header("Location: cadastrouso.php?erro=" . urlencode("Usuário '$login' já existe."));
+    header("Location: usuarios_cadastrar.php?erro=" . urlencode("Usuário '$login' já existe."));
     exit();
 }
 $check->close();
@@ -33,7 +33,7 @@ if ($stmt) {
         header("Location: usuarios.php?sucesso=" . urlencode("Cadastro realizado com sucesso!"));
         exit();
     } else {
-        header("Location: cadastrouso.php?erro=" . urlencode("Erro ao gravar no banco."));
+        header("Location: usuarios_cadastrar.php?erro=" . urlencode("Erro ao gravar no banco."));
         exit();
     }
 } else {
@@ -41,3 +41,5 @@ if ($stmt) {
 }
 
 mysqli_close($con);
+
+

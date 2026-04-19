@@ -47,7 +47,7 @@
                 <?php if ($logado): ?>
                     <?php include_once 'menu.php'; ?>
                 <?php else: ?>
-                    <li><a href="index.php">Início</a></li>
+                    <li><a href="login.php">Início</a></li>
                 <?php endif; ?>
             </ul>
         </nav>
