@@ -14,7 +14,7 @@ if (!isset($_SESSION['login'])) {
     exit();
 }
 
-$timeout = 10 * 60; // segundos
+$timeout = 30 * 60; // segundos
 
 if (!isset($_SESSION['tempo']) || ($_SESSION['tempo'] + $timeout) < time()) {
     $usuario  = $_SESSION['login'] ?? '';
