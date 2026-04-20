@@ -1,7 +1,7 @@
 <?php
 session_start();
 include_once './conexao.php';
-include_once './validar.php';
+include_once './sessao_validar.php';
 
 $id_quarto = $_GET['id'] ?? null;
 $id_quarto = filter_var($id_quarto, FILTER_VALIDATE_INT);
@@ -32,7 +32,7 @@ if (isset($_POST['reservar'])) {
     $usuario_id    = $_SESSION['id']         ?? null;
 
     if (!$usuario_id) {
-        header("Location: index.php?erro=Sessão inválida. Faça login novamente.");
+        header("Location: login.php?erro=Sessão inválida. Faça login novamente.");
         exit();
     }
 

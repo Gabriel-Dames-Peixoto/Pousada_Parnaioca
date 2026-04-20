@@ -1,7 +1,7 @@
 <?php
 session_start();
 include_once './conexao.php';
-include_once './validar.php';
+include_once './sessao_validar.php';
 
 ?>
 <!DOCTYPE html>
@@ -38,7 +38,7 @@ include_once './validar.php';
                 }
                 ?>
 
-                <form method="POST" action="gravar.php" class="form-login">
+                <form method="POST" action="usuarios_gravar.php" class="form-login">
                     <div class="form-group">
                         <label for="usuario">Usuário:</label>
                         <input type="text" id="usuario" name="usuario" required>

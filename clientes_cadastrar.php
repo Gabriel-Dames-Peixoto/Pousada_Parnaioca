@@ -1,7 +1,7 @@
 <?php
 session_start();
 include_once './conexao.php';
-include_once './validar.php';
+include_once './sessao_validar.php';
 exigirAdm();
 ?>
 
@@ -20,7 +20,7 @@ exigirAdm();
     <header>
         <nav>
             <ul>
-                <?php include_once 'Menu.php'; ?>
+                <?php include_once 'menu.php'; ?>
             </ul>
         </nav>
     </header>
@@ -73,7 +73,7 @@ exigirAdm();
         }
         ?>
 
-        <form action="cadastrar.php" method="POST">
+        <form action="clientes_cadastrar.php" method="POST">
             <div>
                 <label for="nome">Nome:</label>
                 <input type="text" id="nome" name="nome" required>

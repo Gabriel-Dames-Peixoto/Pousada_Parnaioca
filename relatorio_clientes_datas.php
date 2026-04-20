@@ -1,7 +1,7 @@
 <?php
 session_start();
 include_once './conexao.php';
-include_once './validar.php';
+include_once './sessao_validar.php';
 
 
 
@@ -180,7 +180,7 @@ if ($data_inicio && $data_fim) {
 <body>
     <header>
         <nav>
-            <ul><?php include_once 'Menu.php'; ?></ul>
+            <ul><?php include_once 'menu.php'; ?></ul>
         </nav>
     </header>
 

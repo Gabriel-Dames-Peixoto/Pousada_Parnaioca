@@ -3,7 +3,7 @@
 
 session_start();
 include_once './conexao.php';
-include_once './validar.php';
+include_once './sessao_validar.php';
 
 exigirAdm();
 
@@ -59,7 +59,7 @@ $tipos        = $tipos_result ? $tipos_result->fetch_all(MYSQLI_ASSOC) : [];
         <nav>
             <ul>
                 <?php
-                include_once 'Menu.php';
+                include_once 'menu.php';
                 ?>
             </ul>
         </nav>
@@ -80,7 +80,7 @@ $tipos        = $tipos_result ? $tipos_result->fetch_all(MYSQLI_ASSOC) : [];
                     <option value="<?= htmlspecialchars($t['nome']) ?>"><?= htmlspecialchars($t['nome']) ?></option>
                 <?php endforeach; ?>
             </select>
-            <small> <a href="tipos_acomodacao.php" target="_blank">Gerenciar tipos</a></small>
+            <small> <a href="quartos_tipos.php" target="_blank">Gerenciar tipos</a></small>
             <br><br>
 
             <label for="descricao">Descrição:</label>

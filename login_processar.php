@@ -6,7 +6,7 @@ $login = $_POST['login'] ?? '';
 $senha = $_POST['senha'] ?? '';
 
 if (empty($login) || empty($senha)) {
-    header('Location: index.php?erro=' . urlencode('Preencha todos os campos.'));
+    header('Location: login.php?erro=' . urlencode('Preencha todos os campos.'));
     exit();
 }
 
@@ -47,14 +47,15 @@ if ($row = mysqli_fetch_assoc($result)) {
             header('Location: inicio.php');
             exit();
         } else {
-            header('Location: index.php?erro=' . urlencode('Usuário bloqueado. Contate o administrador.'));
+            header('Location: login.php?erro=' . urlencode('Usuário bloqueado. Contate o administrador.'));
             exit();
         }
     } else {
-        header('Location: index.php?erro=' . urlencode('Senha inválida.'));
+        header('Location: login.php?erro=' . urlencode('Senha inválida.'));
         exit();
     }
 } else {
-    header('Location: index.php?erro=' . urlencode('Usuário não encontrado.'));
+    header('Location: login.php?erro=' . urlencode('Usuário não encontrado.'));
     exit();
 }
+

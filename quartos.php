@@ -1,7 +1,7 @@
 <?php
 session_start();
 include_once './conexao.php';
-include_once './validar.php';
+include_once './sessao_validar.php';
 ?>
 
 <!DOCTYPE html>
@@ -20,22 +20,22 @@ include_once './validar.php';
     <header>
         <nav>
             <ul>
-                <?php include_once 'Menu.php'; ?>
+                <?php include_once 'menu.php'; ?>
             </ul>
         </nav>
     </header>
 
     <main>
         <h1>Quartos disponíveis</h1>
-        <form method="GET" action="gravarquartos.php">
+        <form method="GET" action="quartos_cadastrar.php">
             <?php if (isset($_SESSION['perfil']) && $_SESSION['perfil'] === 'adm'): ?>
-                <a href="gravarquartos.php"><button>Cadastrar novo quarto</button></a>
+                <a href="quartos_cadastrar.php"><button>Cadastrar novo quarto</button></a>
         </form>
         <form method="GET" action="reservas.php">
             <a href="reservas.php"><button>Gerenciar reservas</button></a>
         </form>
-        <form method="GET" action="tipos_acomodacao.php">
-            <a href="tipos_acomodacao.php"><button>Gerenciar tipos de acomodação</button></a>
+        <form method="GET" action="quartos_tipos.php">
+            <a href="quartos_tipos.php"><button>Gerenciar tipos de acomodação</button></a>
         </form>
     <?php endif; ?>
     </form>
@@ -117,16 +117,16 @@ include_once './validar.php';
             echo "Diária: R$ " . number_format($row["preco"], 2, ',', '.') . "<br>";
             echo "<small>(Valor varia conforme quantidade de dias a mais ou a menos)</small><br><br>";
 
-            echo "<a href='informacoes_quarto.php?id=" . $row["id"] . "'>Informações adicionais</a><br>";
+            echo "<a href='quartos_detalhes.php?id=" . $row["id"] . "'>Informações adicionais</a><br>";
 
             if (!$ocupado) {
-                echo "<a href='Requarto.php?id=" . $row["id"] . "'>Reservar</a><br>";
+                echo "<a href='reservas_cadastrar.php?id=" . $row["id"] . "'>Reservar</a><br>";
             } else {
                 echo "<span style='color:gray;'>Indisponível no momento</span><br>";
             }
 
             if (isset($_SESSION['perfil']) && $_SESSION['perfil'] === 'adm') {
-                echo "<a href='edquarto.php?id=" . $row["id"] . "'>Editar</a>";
+                echo "<a href='quartos_editar.php?id=" . $row["id"] . "'>Editar</a>";
             }
 
             echo "</div><hr>";

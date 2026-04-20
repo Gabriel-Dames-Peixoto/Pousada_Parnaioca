@@ -1,7 +1,7 @@
 <?php
 session_start();
 include_once './conexao.php';
-include_once './validar.php';
+include_once './sessao_validar.php';
 
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -91,7 +91,7 @@ if ($id_busca) {
     <header>
         <nav>
             <ul>
-                <?php include_once 'Menu.php'; ?>
+                <?php include_once 'menu.php'; ?>
             </ul>
         </nav>
     </header>
@@ -107,7 +107,7 @@ if ($id_busca) {
 
             <?php if ($usuario): ?>
 
-                <form action="editaruso.php" method="POST">
+                <form action="usuarios_editar.php" method="POST">
 
                     <input type="hidden" name="id" value="<?= $usuario['id'] ?>">
 
@@ -154,3 +154,4 @@ if ($id_busca) {
 </body>
 
 </html>
+

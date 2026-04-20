@@ -1,11 +1,11 @@
 <?php
 session_start();
 include_once './conexao.php';
-include_once './validar.php';
+include_once './sessao_validar.php';
 
 
 if (!isset($_SESSION['login']) || $_SESSION['status'] != 1 || $_SESSION['perfil'] != 'adm') {
-    header("Location: index.php?erro=" . urlencode("Acesso negado. Faça login."));
+    header("Location: login.php?erro=" . urlencode("Acesso negado. Faça login."));
     exit();
 }
 
@@ -334,7 +334,7 @@ $stmt->close();
 <body>
     <header>
         <nav>
-            <ul><?php include_once 'Menu.php'; ?></ul>
+            <ul><?php include_once 'menu.php'; ?></ul>
         </nav>
     </header>
 
@@ -493,3 +493,4 @@ $stmt->close();
 </body>
 
 </html>
+

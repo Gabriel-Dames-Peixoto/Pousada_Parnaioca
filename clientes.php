@@ -1,7 +1,7 @@
 <?php
 session_start();
 include_once './conexao.php';
-include_once './validar.php';
+include_once './sessao_validar.php';
 
 
 // 🔎 Filtros
@@ -25,7 +25,7 @@ $search = $_GET['search'] ?? '';
     <header>
         <nav>
             <ul>
-                <?php include_once 'Menu.php'; ?>
+                <?php include_once 'menu.php'; ?>
             </ul>
         </nav>
     </header>
@@ -46,7 +46,7 @@ $search = $_GET['search'] ?? '';
 
             <button type="submit">Pesquisar</button>
 
-            <button type="button" onclick="window.location.href='cadastrar.php'">
+            <button type="button" onclick="window.location.href='clientes_cadastrar.php'">
                 Novo Cliente
             </button>
         </form>
@@ -118,7 +118,7 @@ $search = $_GET['search'] ?? '';
                 <td>" . htmlspecialchars($row['email']) . "</td>
                 <td>$textoStatus</td>
                 <td>
-                    <a href='editar.php?id=" . $row['id'] . "'>Editar</a>
+                    <a href='clientes_editar.php?id=" . $row['id'] . "'>Editar</a>
                 </td>
               </tr>";
                 }

@@ -10,7 +10,7 @@ if (!isset($con)) {
 
 if (!isset($_SESSION['login'])) {
     session_destroy();
-    header('Location: index.php?msg=' . urlencode('Faça login para continuar.'));
+    header('Location: login.php?msg=' . urlencode('Faça login para continuar.'));
     exit();
 }
 
@@ -26,7 +26,7 @@ if (!isset($_SESSION['tempo']) || ($_SESSION['tempo'] + $timeout) < time()) {
     fclose($log);
 
     session_destroy();
-    header('Location: index.php?msg=' . urlencode('Sessão expirada. Faça login novamente.'));
+    header('Location: login.php?msg=' . urlencode('Sessão expirada. Faça login novamente.'));
     exit();
 }
 
@@ -37,9 +37,10 @@ $nivel_sessao  = (int)($_SESSION['nivel'] ?? 1);
 
 $pagina_atual = basename($_SERVER['PHP_SELF']);
 
-$paginas_publicas = ['index.php', 'contato.php', 'sair.php', 'verificacaologin.php'];
+$paginas_publicas = ['index.php', 'login.php', 'contato.php', 'logout.php', 'login_processar.php', 'login_verificar_cadastro.php'];
+$paginas_livres_pos_login = ['inicio.php'];
 
-if (!in_array($pagina_atual, $paginas_publicas)) {
+if (!in_array($pagina_atual, $paginas_publicas) && !in_array($pagina_atual, $paginas_livres_pos_login)) {
 
     $stmt_perm = $con->prepare(
         "SELECT permitido FROM permissoes WHERE perfil = ? AND pagina = ?"
@@ -79,3 +80,4 @@ function exigirAdm(): void
         exit();
     }
 }
+

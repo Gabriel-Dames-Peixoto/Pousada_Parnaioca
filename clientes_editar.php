@@ -1,7 +1,7 @@
 <?php
 session_start();
 include_once './conexao.php';
-include_once './validar.php';
+include_once './sessao_validar.php';
 ?>
 <!DOCTYPE html>
 <html>
@@ -18,7 +18,7 @@ include_once './validar.php';
     <header>
         <nav>
             <ul>
-                <?php include_once 'Menu.php'; ?>
+                <?php include_once 'menu.php'; ?>
             </ul>
         </nav>
     </header>
@@ -79,7 +79,7 @@ include_once './validar.php';
             }
             ?>
 
-            <form action="editar.php" method="POST">
+            <form action="clientes_editar.php" method="POST">
                 <input type="hidden" name="id" value="<?= htmlspecialchars($cliente['id'] ?? '') ?>">
 
                 <div>
