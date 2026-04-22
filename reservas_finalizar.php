@@ -26,7 +26,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mensagem = "<p class='erro'>Selecione uma reserva válida.</p>";
     } else {
 
-        // 🔥 BUSCA DADOS NECESSÁRIOS
         $check = $con->prepare('
             SELECT r.status, r.data_checkin, r.data_checkout, q.quarto, q.preco
             FROM reservas r
@@ -45,32 +44,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
 
             // =========================
-            // 🧠 CALCULAR NOITES DO PACOTE
+            // 🧠 DATAS DA RESERVA
             // =========================
             $data_checkin  = new DateTime($res['data_checkin']);
             $data_checkout = new DateTime($res['data_checkout']);
 
-            $noites = $data_checkin->diff($data_checkout)->days;
+            // Noites contratadas no pacote
+            $noites_pacote = (int)$data_checkin->diff($data_checkout)->days;
+            if ($noites_pacote <= 0) $noites_pacote = 1;
 
-            if ($noites <= 0) {
-                $noites = 1;
-            }
+            // Dias efetivamente utilizados até a data de checkout da reserva
+            // Usa o menor entre: data de hoje e data de checkout contratada
+            $hoje = new DateTime();
+            $hoje->setTime(0, 0, 0);
+            $data_saida_efetiva = $hoje < $data_checkout ? $hoje : $data_checkout;
 
-            // 💰 VALOR DA DIÁRIA (PACOTE / NOITES)
-            $valor_diaria = $res['preco'] / $noites;
+            $dias_usados = (int)$data_checkin->diff($data_saida_efetiva)->days;
+            if ($dias_usados <= 0) $dias_usados = 1;
 
-            // =========================
-            // 📆 DIAS USADOS REAIS
-            // =========================
-            $data_saida = new DateTime();
-
-            $dias_usados = $data_checkin->diff($data_saida)->days;
-
-            if ($dias_usados <= 0) {
-                $dias_usados = 1;
-            }
-
-            $valor_diarias = $dias_usados * $valor_diaria;
+            // Valor da diária = preço base ÷ noites do pacote
+            $valor_diaria  = $res['preco'] / $noites_pacote;
+            $valor_diarias = round($valor_diaria * $dias_usados, 2);
 
             // =========================
             // 🍫 CONSUMO DO FRIGOBAR
@@ -112,21 +106,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     // Atualizar estoque
                     if ($item['quantidade'] - $qtd <= 0) {
-                        $baixa = $con->prepare('
-                            UPDATE frigobar
-                            SET quantidade = 0, status = 0
-                            WHERE id = ?
-                        ');
+                        $baixa = $con->prepare('UPDATE frigobar SET quantidade = 0, status = 0 WHERE id = ?');
                         $baixa->bind_param('i', $item_id);
                     } else {
-                        $baixa = $con->prepare('
-                            UPDATE frigobar
-                            SET quantidade = quantidade - ?
-                            WHERE id = ?
-                        ');
+                        $baixa = $con->prepare('UPDATE frigobar SET quantidade = quantidade - ? WHERE id = ?');
                         $baixa->bind_param('ii', $qtd, $item_id);
                     }
-
                     $baixa->execute();
                     $baixa->close();
                 }
@@ -137,9 +122,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // =========================
             $valor_final = round($valor_diarias + $total_consumo, 2);
 
-            // =========================
-            // 🔁 FINALIZAR RESERVA
-            // =========================
             $update = $con->prepare('
                 UPDATE reservas
                 SET status = \'finalizada\',
@@ -167,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $aviso_estoque
                 <p class='sucesso'>
                     Reserva finalizada com sucesso!<br>
-                    Pacote: <strong>{$noites} noites</strong><br>
+                    Pacote: <strong>{$noites_pacote} noite(s)</strong><br>
                     Diária: <strong>R$ " . number_format($valor_diaria, 2, ',', '.') . "</strong><br>
                     Dias utilizados: <strong>{$dias_usados}</strong><br>
                     Valor das diárias: <strong>R$ " . number_format($valor_diarias, 2, ',', '.') . "</strong><br>

@@ -3,6 +3,26 @@ session_start();
 include_once './conexao.php';
 include_once './sessao_validar.php';
 
+// Valida CPF matematicamente
+function validarCPF(string $cpf): bool
+{
+    $cpf = preg_replace('/\D/', '', $cpf);
+
+    if (strlen($cpf) !== 11 || preg_match('/^(\d)\1{10}$/', $cpf)) {
+        return false;
+    }
+
+    for ($t = 9; $t < 11; $t++) {
+        $soma = 0;
+        for ($i = 0; $i < $t; $i++) {
+            $soma += $cpf[$i] * ($t + 1 - $i);
+        }
+        $digito = ((10 * $soma) % 11) % 10;
+        if ($cpf[$t] != $digito) return false;
+    }
+
+    return true;
+}
 ?>
 
 <!DOCTYPE html>
@@ -38,37 +58,75 @@ include_once './sessao_validar.php';
             $estado          = trim($_POST['estado']          ?? '');
             $cidade          = trim($_POST['cidade']          ?? '');
 
-            if ($nome && $data_nascimento && $cpf && $email && $telefone && $estado && $cidade) {
+            $erros = [];
 
-                $stmt_check = $con->prepare("SELECT id FROM clientes WHERE cpf = ?");
-                $stmt_check->bind_param("s", $cpf);
-                $stmt_check->execute();
-                $stmt_check->store_result();
+            if (!$nome || !$data_nascimento || !$cpf || !$email || !$telefone || !$estado || !$cidade) {
+                $erros[] = "Preencha todos os campos.";
+            }
 
-                if ($stmt_check->num_rows > 0) {
-                    echo "<div class='erro'><p>Cliente com este CPF já está cadastrado. <a href='clientes.php'>Ver clientes</a></p></div>";
-                } else {
-                    $sql = "INSERT INTO clientes (nome, data_nascimento, cpf, email, telefone, estado, cidade)
-                            VALUES (?, ?, ?, ?, ?, ?, ?)";
-
-                    if ($stmt = $con->prepare($sql)) {
-                        $stmt->bind_param("sssssss", $nome, $data_nascimento, $cpf, $email, $telefone, $estado, $cidade);
-
-                        if ($stmt->execute()) {
-                            registrarLog("O cliente $nome foi cadastrado por " . $_SESSION['login'], "INSERT");
-                            echo "<div class='sucesso'><p>Cliente cadastrado com sucesso! Redirecionando...</p></div>";
-                            header("refresh:3;url=clientes.php");
-                        } else {
-                            echo "<div class='erro'><p>Erro ao cadastrar cliente: " . htmlspecialchars($stmt->error) . "</p></div>";
-                        }
-                        $stmt->close();
-                    } else {
-                        echo "<div class='erro'><p>Erro na preparação da consulta: " . htmlspecialchars($con->error) . "</p></div>";
-                    }
+            // Validação de data de nascimento
+            if ($data_nascimento) {
+                $dt = DateTime::createFromFormat('Y-m-d', $data_nascimento);
+                $hoje = new DateTime();
+                if (!$dt || $dt > $hoje) {
+                    $erros[] = "Data de nascimento inválida ou no futuro.";
                 }
-                $stmt_check->close();
+            }
+
+            // Validação matemática do CPF
+            if (!validarCPF($cpf)) {
+                $erros[] = "CPF inválido. Verifique os dígitos informados.";
+            }
+
+            // Validação de e-mail
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $erros[] = "E-mail inválido.";
+            }
+
+            if (empty($erros)) {
+                // Verifica CPF duplicado
+                $stmt_cpf = $con->prepare("SELECT id FROM clientes WHERE cpf = ?");
+                $stmt_cpf->bind_param("s", $cpf);
+                $stmt_cpf->execute();
+                $stmt_cpf->store_result();
+                if ($stmt_cpf->num_rows > 0) {
+                    $erros[] = "Já existe um cliente cadastrado com este CPF.";
+                }
+                $stmt_cpf->close();
+
+                // Verifica e-mail duplicado
+                $stmt_email = $con->prepare("SELECT id FROM clientes WHERE email = ?");
+                $stmt_email->bind_param("s", $email);
+                $stmt_email->execute();
+                $stmt_email->store_result();
+                if ($stmt_email->num_rows > 0) {
+                    $erros[] = "Já existe um cliente cadastrado com este e-mail.";
+                }
+                $stmt_email->close();
+            }
+
+            if (!empty($erros)) {
+                foreach ($erros as $erro) {
+                    echo "<div class='erro'><p>" . htmlspecialchars($erro) . "</p></div>";
+                }
             } else {
-                echo "<div class='erro'><p>Preencha todos os campos.</p></div>";
+                $sql = "INSERT INTO clientes (nome, data_nascimento, cpf, email, telefone, estado, cidade)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+                if ($stmt = $con->prepare($sql)) {
+                    $stmt->bind_param("sssssss", $nome, $data_nascimento, $cpf, $email, $telefone, $estado, $cidade);
+
+                    if ($stmt->execute()) {
+                        registrarLog("O cliente $nome foi cadastrado por " . $_SESSION['login'], "INSERT");
+                        echo "<div class='sucesso'><p>Cliente cadastrado com sucesso! Redirecionando...</p></div>";
+                        header("refresh:3;url=clientes.php");
+                    } else {
+                        echo "<div class='erro'><p>Erro ao cadastrar cliente: " . htmlspecialchars($stmt->error) . "</p></div>";
+                    }
+                    $stmt->close();
+                } else {
+                    echo "<div class='erro'><p>Erro na preparação da consulta: " . htmlspecialchars($con->error) . "</p></div>";
+                }
             }
         }
         ?>
@@ -109,6 +167,7 @@ include_once './sessao_validar.php';
 
     </main>
     <script>
+        // Máscara CPF
         document.getElementById('cpf').addEventListener('input', function() {
             let value = this.value.replace(/\D/g, '');
             if (value.length > 11) value = value.substring(0, 11);
@@ -116,6 +175,31 @@ include_once './sessao_validar.php';
             value = value.replace(/(\d{3})(\d)/, '$1.$2');
             value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
             this.value = value;
+        });
+
+        // Validação CPF no front antes de submeter
+        function validarCPF(cpf) {
+            cpf = cpf.replace(/\D/g, '');
+            if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+            let soma = 0,
+                resto;
+            for (let i = 1; i <= 9; i++) soma += parseInt(cpf[i - 1]) * (11 - i);
+            resto = (soma * 10) % 11;
+            if (resto === 10 || resto === 11) resto = 0;
+            if (resto !== parseInt(cpf[9])) return false;
+            soma = 0;
+            for (let i = 1; i <= 10; i++) soma += parseInt(cpf[i - 1]) * (12 - i);
+            resto = (soma * 10) % 11;
+            if (resto === 10 || resto === 11) resto = 0;
+            return resto === parseInt(cpf[10]);
+        }
+
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const cpf = document.getElementById('cpf').value;
+            if (!validarCPF(cpf)) {
+                e.preventDefault();
+                alert('CPF inválido. Verifique os dígitos informados.');
+            }
         });
     </script>
 

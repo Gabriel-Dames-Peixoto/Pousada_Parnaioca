@@ -482,6 +482,9 @@ $stmt->close();
                 <a href="relatorio_clientes_datas.php">
                     <button style="width:auto; padding:10px 20px;">📋 Clientes por Período</button>
                 </a>
+                <a href="logs_sistema.php">
+                    <button style="width:auto; padding:10px 20px;">📋 Logs do Sistema</button>
+                </a>
             </div>
         </div>
 
@@ -493,4 +496,3 @@ $stmt->close();
 </body>
 
 </html>
-

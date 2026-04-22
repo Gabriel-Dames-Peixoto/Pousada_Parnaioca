@@ -29,45 +29,70 @@ include_once './sessao_validar.php';
             <?php
             if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $id       = (int)$_POST['id'];
-                $nome     = trim($_POST['nome']     ?? '');
-                $email    = trim($_POST['email']    ?? '');
-                $telefone = trim($_POST['telefone'] ?? '');
-                $estado   = trim($_POST['estado']   ?? '');
-                $cidade   = trim($_POST['cidade']   ?? '');
+                $nome     = trim($_POST['nome']            ?? '');
+                $dn       = trim($_POST['data_nascimento'] ?? '');
+                $email    = trim($_POST['email']           ?? '');
+                $telefone = trim($_POST['telefone']        ?? '');
+                $estado   = trim($_POST['estado']          ?? '');
+                $cidade   = trim($_POST['cidade']          ?? '');
 
+                $erros = [];
 
-                if (isAdm()) {
-                    $status = (int)($_POST['status'] ?? 1);
+                // Valida data de nascimento
+                if ($dn) {
+                    $dt   = DateTime::createFromFormat('Y-m-d', $dn);
+                    $hoje = new DateTime();
+                    $min  = new DateTime('1900-01-01');
+
+                    if (!$dt || $dt > $hoje) {
+                        $erros[] = "Data de nascimento inválida ou no futuro.";
+                    } elseif ($dt < $min) {
+                        $erros[] = "Data de nascimento anterior a 1900 não é permitida.";
+                    }
                 } else {
-
-                    $stmt_status = $con->prepare("SELECT status FROM clientes WHERE id = ?");
-                    $stmt_status->bind_param("i", $id);
-                    $stmt_status->execute();
-                    $row_status = $stmt_status->get_result()->fetch_assoc();
-                    $status = (int)($row_status['status'] ?? 1);
-                    $stmt_status->close();
+                    $erros[] = "Data de nascimento é obrigatória.";
                 }
 
-                $sql  = "UPDATE clientes SET nome=?, email=?, telefone=?, estado=?, cidade=?, status=? WHERE id=?";
-                $stmt = $con->prepare($sql);
-                $stmt->bind_param("sssssii", $nome, $email, $telefone, $estado, $cidade, $status, $id);
-
-                if ($stmt->execute()) {
-                    registrarLog("Dados do cliente $nome foram atualizados por " . $_SESSION['login'], "UPDATE");
-                    echo "<p class='sucesso'>Cadastro atualizado com sucesso! Redirecionando...</p>";
-                    header("refresh:3;url=clientes.php");
-                } else {
-                    echo "<p class='erro'>Erro ao atualizar cadastro: " . htmlspecialchars($stmt->error) . "</p>";
+                if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    $erros[] = "E-mail inválido.";
                 }
-                $stmt->close();
+
+                if (!empty($erros)) {
+                    foreach ($erros as $e) {
+                        echo "<p class='erro'>" . htmlspecialchars($e) . "</p>";
+                    }
+                } else {
+                    if (isAdm()) {
+                        $status = (int)($_POST['status'] ?? 1);
+                    } else {
+                        $stmt_s = $con->prepare("SELECT status FROM clientes WHERE id = ?");
+                        $stmt_s->bind_param("i", $id);
+                        $stmt_s->execute();
+                        $row_s  = $stmt_s->get_result()->fetch_assoc();
+                        $status = (int)($row_s['status'] ?? 1);
+                        $stmt_s->close();
+                    }
+
+                    $sql  = "UPDATE clientes SET nome=?, data_nascimento=?, email=?, telefone=?, estado=?, cidade=?, status=? WHERE id=?";
+                    $stmt = $con->prepare($sql);
+                    $stmt->bind_param("ssssssii", $nome, $dn, $email, $telefone, $estado, $cidade, $status, $id);
+
+                    if ($stmt->execute()) {
+                        registrarLog("Dados do cliente $nome foram atualizados por " . $_SESSION['login'], "UPDATE");
+                        echo "<p class='sucesso'>Cadastro atualizado com sucesso! Redirecionando...</p>";
+                        header("refresh:3;url=clientes.php");
+                    } else {
+                        echo "<p class='erro'>Erro ao atualizar cadastro: " . htmlspecialchars($stmt->error) . "</p>";
+                    }
+                    $stmt->close();
+                }
             }
 
-            $id = isset($_GET['id']) ? (int)$_GET['id'] : (isset($_POST['id']) ? (int)$_POST['id'] : null);
+            $id      = isset($_GET['id']) ? (int)$_GET['id'] : (isset($_POST['id']) ? (int)$_POST['id'] : null);
             $cliente = [];
 
             if ($id) {
-                $sql  = "SELECT * FROM clientes WHERE id = ?";
-                $stmt = $con->prepare($sql);
+                $stmt = $con->prepare("SELECT * FROM clientes WHERE id = ?");
                 $stmt->bind_param("i", $id);
                 $stmt->execute();
                 $cliente = $stmt->get_result()->fetch_assoc();
@@ -90,6 +115,8 @@ include_once './sessao_validar.php';
                 <div>
                     <label for="data_nascimento">Data de Nascimento:</label>
                     <input type="date" id="data_nascimento" name="data_nascimento"
+                        min="1900-01-01"
+                        max="<?= date('Y-m-d') ?>"
                         value="<?= htmlspecialchars($cliente['data_nascimento'] ?? '') ?>" required>
                 </div>
                 <div>
@@ -122,21 +149,19 @@ include_once './sessao_validar.php';
                 </div>
 
                 <?php if (isAdm()): ?>
-
-                <div>
-                    <label for="status">Status:</label>
-                    <select id="status" name="status" required>
-                        <option value="1" <?= (isset($cliente['status']) && $cliente['status'] == 1) ? 'selected' : '' ?>>Ativo</option>
-                        <option value="0" <?= (isset($cliente['status']) && $cliente['status'] == 0) ? 'selected' : '' ?>>Inativo</option>
-                    </select>
-                </div>
+                    <div>
+                        <label for="status">Status:</label>
+                        <select id="status" name="status" required>
+                            <option value="1" <?= (isset($cliente['status']) && $cliente['status'] == 1) ? 'selected' : '' ?>>Ativo</option>
+                            <option value="0" <?= (isset($cliente['status']) && $cliente['status'] == 0) ? 'selected' : '' ?>>Inativo</option>
+                        </select>
+                    </div>
                 <?php else: ?>
-
-                <div>
-                    <label>Status:</label>
-                    <span><?= (isset($cliente['status']) && $cliente['status'] == 1) ? '🟢 Ativo' : '🔴 Inativo' ?></span>
-                    <small>(apenas administradores podem alterar o status)</small>
-                </div>
+                    <div>
+                        <label>Status:</label>
+                        <span><?= (isset($cliente['status']) && $cliente['status'] == 1) ? '🟢 Ativo' : '🔴 Inativo' ?></span>
+                        <small>(apenas administradores podem alterar o status)</small>
+                    </div>
                 <?php endif; ?>
 
                 <button type="submit">Atualizar</button>
