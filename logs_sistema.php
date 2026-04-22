@@ -296,12 +296,15 @@ $acoes_lista = $acoes_res->fetch_all(MYSQLI_ASSOC);
                     <tbody>
                         <?php foreach ($logs as $log):
                             $acao_lower = strtolower($log['acao'] ?? '');
-                            $classe_acao = match ($acao_lower) {
-                                'insert' => 'acao-insert',
-                                'update' => 'acao-update',
-                                'delete' => 'acao-delete',
-                                default  => 'acao-outros',
-                            };
+                            if ($acao_lower === 'insert') {
+                                $classe_acao = 'acao-insert';
+                            } elseif ($acao_lower === 'update') {
+                                $classe_acao = 'acao-update';
+                            } elseif ($acao_lower === 'delete') {
+                                $classe_acao = 'acao-delete';
+                            } else {
+                                $classe_acao = 'acao-outros';
+                            }
                         ?>
                             <tr>
                                 <td><?= $log['id'] ?></td>

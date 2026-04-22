@@ -15,7 +15,6 @@ function menu_link(string $href, string $label, string $pagina_atual): string
     <?= menu_link('clientes.php',           'Clientes',   $pagina_atual) ?>
     <?= menu_link('usuarios.php',           'Usuários',   $pagina_atual) ?>
     <?= menu_link('dashboard.php',          'Dashboard',  $pagina_atual) ?>
-    <?= menu_link('logs_sistema.php',       'Logs',       $pagina_atual) ?>
 <?php endif; ?>
 <?= menu_link('contato.php', 'Contato', $pagina_atual) ?>
 <?= menu_link('logout.php',  'Sair',    $pagina_atual) ?>
