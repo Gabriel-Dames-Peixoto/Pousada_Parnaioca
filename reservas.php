@@ -62,11 +62,9 @@ include_once './sessao_validar.php';
 
                 echo "<br>";
                 echo '<a href="reservas_cadastrar.php?id=' . $row['id'] . '">Reservar</a>';
-                if ($_SESSION['perfil'] == 'adm') {
-
-                    echo ' | <a href="reservas_cancelar.php">Cancelar</a> | ';
-                    echo '<a href="reservas_finalizar.php">Finalizar reserva</a>';
-                }
+                echo ' | <a href="reservas_cancelar.php">Cancelar</a> | ';
+                echo '<a href="reservas_finalizar.php">Finalizar reserva</a>';
+                
                 echo "</div>";
             }
             echo "</div>";
