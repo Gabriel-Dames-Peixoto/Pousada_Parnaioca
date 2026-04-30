@@ -126,12 +126,12 @@ $stmt_res->close();
 
                 <button type="submit">🔍</button>
 
-                <?php if ($_SESSION['perfil'] === 'adm'): ?>
+                
                     <button type="button"
                         onclick="location.href='frigobar_cadastrar.php?id=<?= $id_quarto ?>'">
                         Cadastrar Item
                     </button>
-                <?php endif; ?>
+                
             </form>
 
             <?php if ($_SESSION['perfil'] === 'adm'): ?>

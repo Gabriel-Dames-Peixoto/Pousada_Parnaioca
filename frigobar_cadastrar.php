@@ -3,7 +3,6 @@ session_start();
 include_once './conexao.php';
 include_once './sessao_validar.php';
 
-exigirAdm();
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
