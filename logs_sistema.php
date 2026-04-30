@@ -5,15 +5,14 @@ include_once './sessao_validar.php';
 
 exigirAdm();
 
-$busca      = trim($_GET['busca']  ?? '');
-$acao       = trim($_GET['acao']   ?? '');
+$busca      = trim($_GET['busca'] ?? '');
+$acao       = trim($_GET['acao'] ?? '');
 $data_ini   = trim($_GET['data_ini'] ?? '');
 $data_fim   = trim($_GET['data_fim'] ?? '');
 $por_pagina = 50;
 $pagina     = max(1, (int)($_GET['pag'] ?? 1));
 $offset     = ($pagina - 1) * $por_pagina;
 
-// Monta query com filtros opcionais
 $where  = "WHERE 1=1";
 $params = [];
 $types  = '';
@@ -21,30 +20,31 @@ $types  = '';
 if ($busca !== '') {
     $where .= " AND mensagem LIKE ?";
     $params[] = "%{$busca}%";
-    $types   .= 's';
+    $types .= 's';
 }
 
 if ($acao !== '') {
     $where .= " AND acao = ?";
     $params[] = $acao;
-    $types   .= 's';
+    $types .= 's';
 }
 
 if ($data_ini !== '') {
     $where .= " AND DATE(data_hora) >= ?";
     $params[] = $data_ini;
-    $types   .= 's';
+    $types .= 's';
 }
 
 if ($data_fim !== '') {
     $where .= " AND DATE(data_hora) <= ?";
     $params[] = $data_fim;
-    $types   .= 's';
+    $types .= 's';
 }
 
-// Total de registros para paginação
 $stmt_count = $con->prepare("SELECT COUNT(*) FROM logs_sistema $where");
-if (!empty($params)) $stmt_count->bind_param($types, ...$params);
+if (!empty($params)) {
+    $stmt_count->bind_param($types, ...$params);
+}
 $stmt_count->execute();
 $stmt_count->bind_result($total_registros);
 $stmt_count->fetch();
@@ -52,19 +52,19 @@ $stmt_count->close();
 
 $total_paginas = (int)ceil($total_registros / $por_pagina);
 
-// Registros da página atual
-$params_pag   = $params;
-$types_pag    = $types . 'ii';
+$params_pag = $params;
+$types_pag = $types . 'ii';
 $params_pag[] = $por_pagina;
 $params_pag[] = $offset;
 
 $stmt = $con->prepare("SELECT id, data_hora, acao, mensagem FROM logs_sistema $where ORDER BY data_hora DESC LIMIT ? OFFSET ?");
-if (!empty($params_pag)) $stmt->bind_param($types_pag, ...$params_pag);
+if (!empty($params_pag)) {
+    $stmt->bind_param($types_pag, ...$params_pag);
+}
 $stmt->execute();
 $logs = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-// Lista de ações distintas para o filtro
 $acoes_res = $con->query("SELECT DISTINCT acao FROM logs_sistema WHERE acao IS NOT NULL ORDER BY acao ASC");
 $acoes_lista = $acoes_res->fetch_all(MYSQLI_ASSOC);
 ?>
@@ -76,7 +76,7 @@ $acoes_lista = $acoes_res->fetch_all(MYSQLI_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="2.css">
     <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
-    <title>Logs do Sistema — Pousada Parnaioca</title>
+    <title>Logs do Sistema - Pousada Parnaioca</title>
     <style>
         .filter-card {
             background: #f8f9fa;
@@ -198,11 +198,18 @@ $acoes_lista = $acoes_res->fetch_all(MYSQLI_ASSOC);
             text-decoration: none;
         }
 
-        .btn-dashboard {
+        .btn-toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .btn-dashboard,
+        .btn-print {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: #2c3e50;
             color: white;
             border: none;
             padding: 8px 18px;
@@ -211,7 +218,10 @@ $acoes_lista = $acoes_res->fetch_all(MYSQLI_ASSOC);
             font-weight: bold;
             font-size: 0.9rem;
             text-decoration: none;
-            margin-bottom: 20px;
+        }
+
+        .btn-dashboard {
+            background: #2c3e50;
         }
 
         .btn-dashboard:hover {
@@ -220,11 +230,18 @@ $acoes_lista = $acoes_res->fetch_all(MYSQLI_ASSOC);
             text-decoration: none;
         }
 
-        @media print {
+        .btn-print {
+            background: #4a5568;
+        }
 
+        .btn-print:hover {
+            background: #2d3748;
+        }
+
+        @media print {
             header,
             .filter-card,
-            .btn-dashboard,
+            .btn-toolbar,
             .paginacao,
             footer {
                 display: none;
@@ -246,9 +263,12 @@ $acoes_lista = $acoes_res->fetch_all(MYSQLI_ASSOC);
     </header>
 
     <main>
-        <h1>📋 Logs do Sistema</h1>
+        <h1>Logs do Sistema</h1>
 
-        <a href="dashboard.php" class="btn-dashboard">← Voltar ao Dashboard</a>
+        <div class="btn-toolbar">
+            <a href="dashboard.php" class="btn-dashboard">Voltar ao Dashboard</a>
+            <button type="button" class="btn-print" onclick="window.print()">Imprimir</button>
+        </div>
 
         <div class="filter-card">
             <form method="GET">
@@ -257,7 +277,7 @@ $acoes_lista = $acoes_res->fetch_all(MYSQLI_ASSOC);
                     <input type="text" name="busca" value="<?= htmlspecialchars($busca) ?>" placeholder="ex: admin, quarto...">
                 </div>
                 <div class="form-group">
-                    <label>Ação:</label>
+                    <label>Acao:</label>
                     <select name="acao">
                         <option value="">Todas</option>
                         <?php foreach ($acoes_lista as $a): ?>
@@ -272,11 +292,11 @@ $acoes_lista = $acoes_res->fetch_all(MYSQLI_ASSOC);
                     <input type="date" name="data_ini" value="<?= htmlspecialchars($data_ini) ?>">
                 </div>
                 <div class="form-group">
-                    <label>Até:</label>
+                    <label>Ate:</label>
                     <input type="date" name="data_fim" value="<?= htmlspecialchars($data_fim) ?>">
                 </div>
-                <button type="submit">🔍 Filtrar</button>
-                <a href="logs_sistema.php" style="font-size:0.85rem; padding: 8px 12px; background:#e0e0e0; border-radius:6px; color:#555; text-decoration:none;">✕ Limpar</a>
+                <button type="submit">Filtrar</button>
+                <a href="logs_sistema.php" style="font-size:0.85rem; padding: 8px 12px; background:#e0e0e0; border-radius:6px; color:#555; text-decoration:none;">Limpar</a>
             </form>
         </div>
 
@@ -289,7 +309,7 @@ $acoes_lista = $acoes_res->fetch_all(MYSQLI_ASSOC);
                         <tr>
                             <th>#</th>
                             <th>Data/Hora</th>
-                            <th>Ação</th>
+                            <th>Acao</th>
                             <th>Mensagem</th>
                         </tr>
                     </thead>
@@ -309,7 +329,7 @@ $acoes_lista = $acoes_res->fetch_all(MYSQLI_ASSOC);
                             <tr>
                                 <td><?= $log['id'] ?></td>
                                 <td><?= date('d/m/Y H:i:s', strtotime($log['data_hora'])) ?></td>
-                                <td><span class="<?= $classe_acao ?>"><?= htmlspecialchars($log['acao'] ?? '—') ?></span></td>
+                                <td><span class="<?= $classe_acao ?>"><?= htmlspecialchars($log['acao'] ?? '-') ?></span></td>
                                 <td style="text-align:left;"><?= htmlspecialchars($log['mensagem']) ?></td>
                             </tr>
                         <?php endforeach; ?>
@@ -317,12 +337,10 @@ $acoes_lista = $acoes_res->fetch_all(MYSQLI_ASSOC);
                 </table>
             </div>
 
-            <!-- Paginação -->
             <?php if ($total_paginas > 1):
-                // Monta query string sem pag
                 $qs = http_build_query(array_filter([
-                    'busca'    => $busca,
-                    'acao'     => $acao,
+                    'busca' => $busca,
+                    'acao' => $acao,
                     'data_ini' => $data_ini,
                     'data_fim' => $data_fim,
                 ]));
@@ -330,7 +348,7 @@ $acoes_lista = $acoes_res->fetch_all(MYSQLI_ASSOC);
             ?>
                 <div class="paginacao">
                     <?php if ($pagina > 1): ?>
-                        <a href="?<?= $qs ?>pag=<?= $pagina - 1 ?>">‹ Anterior</a>
+                        <a href="?<?= $qs ?>pag=<?= $pagina - 1 ?>">Anterior</a>
                     <?php endif; ?>
 
                     <?php for ($p = max(1, $pagina - 3); $p <= min($total_paginas, $pagina + 3); $p++): ?>
@@ -342,7 +360,7 @@ $acoes_lista = $acoes_res->fetch_all(MYSQLI_ASSOC);
                     <?php endfor; ?>
 
                     <?php if ($pagina < $total_paginas): ?>
-                        <a href="?<?= $qs ?>pag=<?= $pagina + 1 ?>">Próxima ›</a>
+                        <a href="?<?= $qs ?>pag=<?= $pagina + 1 ?>">Proxima</a>
                     <?php endif; ?>
                 </div>
             <?php endif; ?>
