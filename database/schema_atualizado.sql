@@ -6,7 +6,7 @@ CREATE TABLE usuarios (
     login VARCHAR(100) NOT NULL UNIQUE,
     senha VARCHAR(32) NOT NULL,
     perfil ENUM('adm', 'user') NOT NULL,
-    status VARCHAR(255) DEFAULT '1',
+    status int DEFAULT '1',
     nivel TINYINT NOT NULL DEFAULT '2' COMMENT '2=administrador, 1=funcionario'
 );
 
