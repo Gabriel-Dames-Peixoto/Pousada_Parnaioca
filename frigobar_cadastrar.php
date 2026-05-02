@@ -83,9 +83,11 @@ include_once './sessao_validar.php';
                 INSERT INTO frigobar (nome, quantidade, valor, quarto_id)
                 VALUES (?, ?, ?, ?)
             ');
-                $stmt->bind_param('sidi', $nome, $quantidade, $valor_final, $quarto_id);
 
-                if ($stmt->execute()) {
+                try {
+                    $stmt->bind_param('sidi', $nome, $quantidade, $valor_final, $quarto_id);
+                    $stmt->execute();
+
                     $nome_quarto = $quarto['quarto'] ?? "ID $quarto_id";
                     registrarLog(
                         "O item $nome foi cadastrado no frigobar do quarto $nome_quarto por " . $_SESSION['login'],
@@ -94,10 +96,11 @@ include_once './sessao_validar.php';
                     echo "<p style='color:green;'>Item cadastrado com sucesso!</p>";
                     echo "<input type='button' value='Voltar para o quarto'
                       onclick='window.location.href=\"quartos_detalhes.php?id=" . (int)$quarto_id . "\"'>";
-                } else {
-                    echo "<p style='color:red;'>Erro ao cadastrar: " . htmlspecialchars($stmt->error) . "</p>";
+                } catch (mysqli_sql_exception $e) {
+                    echo "<p style='color:red;'>Erro ao cadastrar: " . htmlspecialchars($e->getMessage()) . "</p>";
+                } finally {
+                    $stmt->close();
                 }
-                $stmt->close();
             } else {
                 echo "<p style='color:red;'>Preencha todos os campos corretamente.</p>";
             }

@@ -38,7 +38,7 @@ $nivel_sessao  = (int)($_SESSION['nivel'] ?? 1);
 $pagina_atual = basename($_SERVER['PHP_SELF']);
 
 $paginas_publicas = ['index.php', 'login.php', 'contato.php', 'logout.php', 'login_processar.php', 'login_verificar_cadastro.php'];
-$paginas_livres_pos_login = ['inicio.php'];
+$paginas_livres_pos_login = ['inicio.php', 'reservas_checkin.php', 'reservas_estender.php'];
 
 if (!in_array($pagina_atual, $paginas_publicas) && !in_array($pagina_atual, $paginas_livres_pos_login)) {
 

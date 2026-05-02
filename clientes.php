@@ -114,7 +114,7 @@ $search = $_GET['search'] ?? '';
                 <td>" . htmlspecialchars($row['id']) . "</td>
                 <td>" . htmlspecialchars($row['nome']) . "</td>
                 <td>" . date('d/m/Y', strtotime($row['data_nascimento'])) . "</td>
-                <td>" . htmlspecialchars($row['cpf']) . "</td>
+                <td>" . htmlspecialchars(formatarCPF($row['cpf'])) . "</td>
                 <td>" . htmlspecialchars($row['email']) . "</td>
                 <td>$textoStatus</td>
                 <td>

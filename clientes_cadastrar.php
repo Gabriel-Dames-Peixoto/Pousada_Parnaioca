@@ -52,8 +52,8 @@ function validarCPF(string $cpf): bool
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $nome            = trim($_POST['nome']            ?? '');
             $data_nascimento = trim($_POST['data_nascimento'] ?? '');
-            $cpf             = trim($_POST['cpf']             ?? '');
-            $email           = trim($_POST['email']           ?? '');
+            $cpf             = normalizarCPF($_POST['cpf']    ?? '');
+            $email           = strtolower(trim($_POST['email'] ?? ''));
             $telefone        = trim($_POST['telefone']        ?? '');
             $estado          = trim($_POST['estado']          ?? '');
             $cidade          = trim($_POST['cidade']          ?? '');
@@ -73,10 +73,12 @@ function validarCPF(string $cpf): bool
                 }
             }
 
+            /*
             // Validação matemática do CPF
             if (!validarCPF($cpf)) {
-                $erros[] = "CPF inválido. Verifique os dígitos informados.";
+                $erros[] = "CPF inválido. Não use sequências repetidas e confira os dígitos informados.";
             }
+            */
 
             // Validação de e-mail
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -85,7 +87,7 @@ function validarCPF(string $cpf): bool
 
             if (empty($erros)) {
                 // Verifica CPF duplicado
-                $stmt_cpf = $con->prepare("SELECT id FROM clientes WHERE cpf = ?");
+                $stmt_cpf = $con->prepare("SELECT id FROM clientes WHERE REPLACE(REPLACE(REPLACE(cpf, '.', ''), '-', ''), ' ', '') = ?");
                 $stmt_cpf->bind_param("s", $cpf);
                 $stmt_cpf->execute();
                 $stmt_cpf->store_result();
@@ -114,16 +116,18 @@ function validarCPF(string $cpf): bool
                         VALUES (?, ?, ?, ?, ?, ?, ?)";
 
                 if ($stmt = $con->prepare($sql)) {
-                    $stmt->bind_param("sssssss", $nome, $data_nascimento, $cpf, $email, $telefone, $estado, $cidade);
+                    try {
+                        $stmt->bind_param("sssssss", $nome, $data_nascimento, $cpf, $email, $telefone, $estado, $cidade);
+                        $stmt->execute();
 
-                    if ($stmt->execute()) {
                         registrarLog("O cliente $nome foi cadastrado por " . $_SESSION['login'], "INSERT");
                         echo "<div class='sucesso'><p>Cliente cadastrado com sucesso! Redirecionando...</p></div>";
                         header("refresh:3;url=clientes.php");
-                    } else {
-                        echo "<div class='erro'><p>Erro ao cadastrar cliente: " . htmlspecialchars($stmt->error) . "</p></div>";
+                    } catch (mysqli_sql_exception $e) {
+                        echo "<div class='erro'><p>Erro ao cadastrar cliente: " . htmlspecialchars($e->getMessage()) . "</p></div>";
+                    } finally {
+                        $stmt->close();
                     }
-                    $stmt->close();
                 } else {
                     echo "<div class='erro'><p>Erro na preparação da consulta: " . htmlspecialchars($con->error) . "</p></div>";
                 }
@@ -134,33 +138,33 @@ function validarCPF(string $cpf): bool
         <form action="clientes_cadastrar.php" method="POST">
             <div>
                 <label for="nome">Nome:</label>
-                <input type="text" id="nome" name="nome" required>
+                <input type="text" id="nome" name="nome" value="<?= htmlspecialchars($_POST['nome'] ?? '') ?>" required>
             </div>
             <div>
                 <label for="data_nascimento">Data de Nascimento:</label>
                 <input type="date" id="data_nascimento" name="data_nascimento"
-                    min="1900-01-01" max="<?= date('Y-m-d') ?>" required>
+                    min="1900-01-01" max="<?= date('Y-m-d') ?>" value="<?= htmlspecialchars($_POST['data_nascimento'] ?? '') ?>" required>
             </div>
             <div>
                 <label for="cpf">CPF:</label>
                 <input type="text" id="cpf" name="cpf" maxlength="14"
-                    placeholder="000.000.000-00" required>
+                    placeholder="000.000.000-00" value="<?= htmlspecialchars($_POST['cpf'] ?? '') ?>" required>
             </div>
             <div>
                 <label for="email">E-mail:</label>
-                <input type="email" id="email" name="email" required>
+                <input type="email" id="email" name="email" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" required>
             </div>
             <div>
                 <label for="telefone">Telefone:</label>
-                <input type="text" id="telefone" name="telefone" maxlength="15" required>
+                <input type="text" id="telefone" name="telefone" maxlength="15" value="<?= htmlspecialchars($_POST['telefone'] ?? '') ?>" required>
             </div>
             <div>
                 <label for="estado">Estado:</label>
-                <input type="text" id="estado" name="estado" required>
+                <input type="text" id="estado" name="estado" value="<?= htmlspecialchars($_POST['estado'] ?? '') ?>" required>
             </div>
             <div>
                 <label for="cidade">Cidade:</label>
-                <input type="text" id="cidade" name="cidade" required>
+                <input type="text" id="cidade" name="cidade" value="<?= htmlspecialchars($_POST['cidade'] ?? '') ?>" required>
             </div>
             <input type="submit" value="Cadastrar">
         </form>
@@ -194,13 +198,15 @@ function validarCPF(string $cpf): bool
             return resto === parseInt(cpf[10]);
         }
 
+        /*
         document.querySelector('form').addEventListener('submit', function(e) {
             const cpf = document.getElementById('cpf').value;
             if (!validarCPF(cpf)) {
                 e.preventDefault();
-                alert('CPF inválido. Verifique os dígitos informados.');
+                alert('CPF inválido. Sequências como 111.111.111-11 não são aceitas. Confira os dígitos informados.');
             }
         });
+        */
     </script>
 
 </body>

@@ -31,7 +31,7 @@ include_once './sessao_validar.php';
                 $id       = (int)$_POST['id'];
                 $nome     = trim($_POST['nome']            ?? '');
                 $dn       = trim($_POST['data_nascimento'] ?? '');
-                $email    = trim($_POST['email']           ?? '');
+                $email    = strtolower(trim($_POST['email'] ?? ''));
                 $telefone = trim($_POST['telefone']        ?? '');
                 $estado   = trim($_POST['estado']          ?? '');
                 $cidade   = trim($_POST['cidade']          ?? '');
@@ -56,6 +56,15 @@ include_once './sessao_validar.php';
                 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                     $erros[] = "E-mail inválido.";
                 }
+
+                $stmt_email = $con->prepare("SELECT id FROM clientes WHERE email = ? AND id <> ?");
+                $stmt_email->bind_param("si", $email, $id);
+                $stmt_email->execute();
+                $stmt_email->store_result();
+                if ($stmt_email->num_rows > 0) {
+                    $erros[] = "Ja existe outro cliente cadastrado com este e-mail.";
+                }
+                $stmt_email->close();
 
                 if (!empty($erros)) {
                     foreach ($erros as $e) {
@@ -123,7 +132,7 @@ include_once './sessao_validar.php';
                     <p>
                         <label for="cpf">CPF:</label>
                         <input type="text" id="cpf" name="cpf"
-                            value="<?= htmlspecialchars($cliente['cpf'] ?? '') ?>" readonly>
+                            value="<?= htmlspecialchars(formatarCPF($cliente['cpf'] ?? '')) ?>" readonly>
                         <small>(CPF não pode ser alterado)</small>
                     </p>
                 </div>

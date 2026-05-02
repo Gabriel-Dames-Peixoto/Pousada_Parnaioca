@@ -3,160 +3,191 @@ session_start();
 include_once './conexao.php';
 include_once './sessao_validar.php';
 
-
 $mensagem = '';
 
-$stmt_quartos = $con->prepare('
+$stmt_quartos = $con->prepare("
     SELECT DISTINCT q.id, q.quarto
     FROM quartos q
     INNER JOIN reservas r ON r.quarto_id = q.id
-    WHERE r.status = \'ativa\'
+    WHERE r.status = 'ativa'
+      AND r.data_checkin_real IS NOT NULL
     ORDER BY q.quarto ASC
-');
+");
 $stmt_quartos->execute();
 $quartos_com_reserva = $stmt_quartos->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt_quartos->close();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
-    $id_reserva = (int)($_POST['id_reserva'] ?? 0);
+    $id_reserva = filter_input(INPUT_POST, 'id_reserva', FILTER_VALIDATE_INT);
 
     if (!$id_reserva) {
-        $mensagem = "<p class='erro'>Selecione uma reserva válida.</p>";
+        $mensagem = "<p class='erro'>Selecione uma reserva valida.</p>";
     } else {
+        $con->begin_transaction();
 
-        $check = $con->prepare('
-            SELECT r.status, r.data_checkin, r.data_checkout, q.quarto, q.preco
-            FROM reservas r
-            INNER JOIN quartos q ON r.quarto_id = q.id
-            WHERE r.id = ?
-        ');
-        $check->bind_param('i', $id_reserva);
-        $check->execute();
-        $res = $check->get_result()->fetch_assoc();
-        $check->close();
+        try {
+            $check = $con->prepare("
+                SELECT
+                    r.id,
+                    r.status,
+                    r.quarto_id,
+                    r.data_checkin,
+                    r.hora_checkin,
+                    r.data_checkin_real,
+                    r.data_checkout,
+                    r.hora_checkout,
+                    q.quarto,
+                    q.preco
+                FROM reservas r
+                INNER JOIN quartos q ON r.quarto_id = q.id
+                WHERE r.id = ?
+                FOR UPDATE
+            ");
+            $check->bind_param('i', $id_reserva);
+            $check->execute();
+            $reserva = $check->get_result()->fetch_assoc();
+            $check->close();
 
-        if (!$res) {
-            $mensagem = "<p class='erro'>Reserva não encontrada.</p>";
-        } elseif ($res['status'] !== 'ativa') {
-            $mensagem = "<p class='erro'>Só é possível finalizar reservas ativas.</p>";
-        } else {
+            if (!$reserva) {
+                throw new RuntimeException('Reserva nao encontrada.');
+            }
 
-            // =========================
-            // 🧠 DATAS DA RESERVA
-            // =========================
-            $data_checkin  = new DateTime($res['data_checkin']);
-            $data_checkout = new DateTime($res['data_checkout']);
+            if ($reserva['status'] !== 'ativa') {
+                throw new RuntimeException('So e possivel finalizar reservas ativas.');
+            }
 
-            // Noites contratadas no pacote
-            $noites_pacote = (int)$data_checkin->diff($data_checkout)->days;
-            if ($noites_pacote <= 0) $noites_pacote = 1;
+            if (empty($reserva['data_checkin_real'])) {
+                throw new RuntimeException('Realize o check-in antes de finalizar a reserva.');
+            }
 
-            // Dias efetivamente utilizados até a data de checkout da reserva
-            // Usa o menor entre: data de hoje e data de checkout contratada
-            $hoje = new DateTime();
-            $hoje->setTime(0, 0, 0);
-            $data_saida_efetiva = $hoje < $data_checkout ? $hoje : $data_checkout;
+            $inicioReservado = DateTime::createFromFormat('Y-m-d H:i:s', $reserva['data_checkin'] . ' ' . $reserva['hora_checkin']);
+            $checkinReal     = new DateTime($reserva['data_checkin_real']);
+            $checkoutReal    = DateTime::createFromFormat('Y-m-d H:i:s', $reserva['data_checkout'] . ' ' . $reserva['hora_checkout']);
+            $agora           = new DateTime();
 
-            $dias_usados = (int)$data_checkin->diff($data_saida_efetiva)->days;
-            if ($dias_usados <= 0) $dias_usados = 1;
+            if (!$inicioReservado || !$checkinReal || !$checkoutReal) {
+                throw new RuntimeException('A reserva possui datas invalidas e nao pode ser finalizada.');
+            }
 
-            // Valor da diária = preço base ÷ noites do pacote
-            $valor_diaria  = $res['preco'] / $noites_pacote;
-            $valor_diarias = round($valor_diaria * $dias_usados, 2);
+            $fimEfetivo = $agora < $checkoutReal ? clone $agora : clone $checkoutReal;
 
-            // =========================
-            // 🍫 CONSUMO DO FRIGOBAR
-            // =========================
-            $total_consumo = 0.00;
-            $erros_estoque = [];
+            $noitesPacote = max(1, (int)$inicioReservado->diff($checkoutReal)->days);
+            $diasCobrados = max(1, (int)$inicioReservado->diff($fimEfetivo)->days);
 
+            $valorDiaria  = round(((float)$reserva['preco']) / $noitesPacote, 2);
+            $valorDiarias = round($valorDiaria * $diasCobrados, 2);
+
+            $consumos = [];
             if (!empty($_POST['frigobar_id']) && is_array($_POST['frigobar_id'])) {
+                foreach ($_POST['frigobar_id'] as $index => $itemId) {
+                    $itemId = (int)$itemId;
+                    $qtd    = (int)($_POST['quantidade'][$index] ?? 0);
 
-                foreach ($_POST['frigobar_id'] as $index => $item_id) {
-                    $item_id = (int)$item_id;
-                    $qtd     = (int)($_POST['quantidade'][$index] ?? 0);
-
-                    if ($qtd <= 0) continue;
-
-                    $busca = $con->prepare('SELECT nome, valor, quantidade FROM frigobar WHERE id = ?');
-                    $busca->bind_param('i', $item_id);
-                    $busca->execute();
-                    $item = $busca->get_result()->fetch_assoc();
-                    $busca->close();
-
-                    if (!$item) continue;
-
-                    if ($qtd > $item['quantidade']) {
-                        $erros_estoque[] = "Estoque insuficiente para \"{$item['nome']}\": solicitado $qtd, disponível {$item['quantidade']}.";
-                        continue;
+                    if ($itemId > 0 && $qtd > 0) {
+                        if (!isset($consumos[$itemId])) {
+                            $consumos[$itemId] = 0;
+                        }
+                        $consumos[$itemId] += $qtd;
                     }
-
-                    $subtotal       = round($item['valor'] * $qtd, 2);
-                    $total_consumo += $subtotal;
-
-                    $insert = $con->prepare('
-                        INSERT INTO consumo_frigobar (reserva_id, frigobar_id, quantidade, valor_total)
-                        VALUES (?, ?, ?, ?)
-                    ');
-                    $insert->bind_param('iiid', $id_reserva, $item_id, $qtd, $subtotal);
-                    $insert->execute();
-                    $insert->close();
-
-                    // Atualizar estoque
-                    if ($item['quantidade'] - $qtd <= 0) {
-                        $baixa = $con->prepare('UPDATE frigobar SET quantidade = 0, status = 0 WHERE id = ?');
-                        $baixa->bind_param('i', $item_id);
-                    } else {
-                        $baixa = $con->prepare('UPDATE frigobar SET quantidade = quantidade - ? WHERE id = ?');
-                        $baixa->bind_param('ii', $qtd, $item_id);
-                    }
-                    $baixa->execute();
-                    $baixa->close();
                 }
             }
 
-            // =========================
-            // 💰 TOTAL FINAL
-            // =========================
-            $valor_final = round($valor_diarias + $total_consumo, 2);
+            $total_consumo = 0.00;
+            $erros_estoque = [];
 
-            $update = $con->prepare('
+            foreach ($consumos as $itemId => $qtd) {
+                $busca = $con->prepare("
+                    SELECT id, nome, valor, quantidade, quarto_id, status
+                    FROM frigobar
+                    WHERE id = ?
+                    FOR UPDATE
+                ");
+                $busca->bind_param('i', $itemId);
+                $busca->execute();
+                $item = $busca->get_result()->fetch_assoc();
+                $busca->close();
+
+                if (!$item || (int)$item['quarto_id'] !== (int)$reserva['quarto_id'] || $item['status'] !== '1') {
+                    $erros_estoque[] = "Item de frigobar invalido para esta reserva.";
+                    continue;
+                }
+
+                if ($qtd > (int)$item['quantidade']) {
+                    $erros_estoque[] = "Estoque insuficiente para \"" . $item['nome'] . "\": solicitado $qtd, disponivel {$item['quantidade']}.";
+                    continue;
+                }
+
+                $subtotal       = round(((float)$item['valor']) * $qtd, 2);
+                $total_consumo += $subtotal;
+
+                $insert = $con->prepare("
+                    INSERT INTO consumo_frigobar (reserva_id, frigobar_id, quantidade, valor_total)
+                    VALUES (?, ?, ?, ?)
+                ");
+                $insert->bind_param('iiid', $id_reserva, $itemId, $qtd, $subtotal);
+                $insert->execute();
+                $insert->close();
+
+                if (((int)$item['quantidade'] - $qtd) <= 0) {
+                    $baixa = $con->prepare("UPDATE frigobar SET quantidade = 0, status = '0' WHERE id = ?");
+                    $baixa->bind_param('i', $itemId);
+                } else {
+                    $baixa = $con->prepare("UPDATE frigobar SET quantidade = quantidade - ? WHERE id = ?");
+                    $baixa->bind_param('ii', $qtd, $itemId);
+                }
+                $baixa->execute();
+                $baixa->close();
+            }
+
+            $valor_final = round($valorDiarias + $total_consumo, 2);
+
+            $update = $con->prepare("
                 UPDATE reservas
-                SET status = \'finalizada\',
+                SET status = 'finalizada',
                     data_finalizacao = NOW(),
                     valor_total = ?
                 WHERE id = ?
-            ');
+            ");
             $update->bind_param('di', $valor_final, $id_reserva);
             $update->execute();
             $update->close();
 
+            $con->commit();
+
             registrarLog(
-                "A reserva do quarto {$res['quarto']} foi finalizada pelo usuário " . $_SESSION['login'],
+                "A reserva do quarto {$reserva['quarto']} foi finalizada pelo usuario " . $_SESSION['login'],
                 'UPDATE'
             );
 
             $aviso_estoque = '';
             if (!empty($erros_estoque)) {
-                $aviso_estoque = "<p class='aviso'><strong>Atenção:</strong> "
+                $aviso_estoque = "<p class='aviso'><strong>Atencao:</strong> "
                     . implode('<br>', array_map('htmlspecialchars', $erros_estoque))
                     . '</p>';
+            }
+
+            $mensagemCobranca = 'A cobranca considera todo o periodo reservado do quarto.';
+            if ($checkinReal > $inicioReservado) {
+                $mensagemCobranca = 'A cobranca considera os dias reservados desde o check-in previsto, mesmo com chegada apos essa data.';
             }
 
             $mensagem = "
                 $aviso_estoque
                 <p class='sucesso'>
                     Reserva finalizada com sucesso!<br>
-                    Pacote: <strong>{$noites_pacote} noite(s)</strong><br>
-                    Diária: <strong>R$ " . number_format($valor_diaria, 2, ',', '.') . "</strong><br>
-                    Dias utilizados: <strong>{$dias_usados}</strong><br>
-                    Valor das diárias: <strong>R$ " . number_format($valor_diarias, 2, ',', '.') . "</strong><br>
+                    Pacote: <strong>{$noitesPacote} noite(s)</strong><br>
+                    Diaria: <strong>R$ " . number_format($valorDiaria, 2, ',', '.') . "</strong><br>
+                    Dias cobrados: <strong>{$diasCobrados}</strong><br>
+                    Valor das diarias: <strong>R$ " . number_format($valorDiarias, 2, ',', '.') . "</strong><br>
                     Consumo do frigobar: <strong>R$ " . number_format($total_consumo, 2, ',', '.') . "</strong><br>
-                    Total final: <strong>R$ " . number_format($valor_final, 2, ',', '.') . "</strong>
+                    Total final: <strong>R$ " . number_format($valor_final, 2, ',', '.') . "</strong><br>
+                    <small>{$mensagemCobranca}</small>
                 </p>
                 <p><a href='reservas.php'>Ir para Reservas</a></p>
             ";
+        } catch (Throwable $e) {
+            $con->rollback();
+            $mensagem = "<p class='erro'>" . htmlspecialchars($e->getMessage() ?: 'Erro ao finalizar a reserva.') . "</p>";
         }
     }
 }
@@ -169,7 +200,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <link rel="stylesheet" href="2.css">
     <link rel="shortcut icon" href="./imagens/ipousada.png" type="image/x-icon">
-    <title>Finalizar Reserva — Pousada Parnaioca</title>
+    <title>Finalizar Reserva - Pousada Parnaioca</title>
     <style>
         .step-label {
             font-weight: bold;
@@ -262,9 +293,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             container.style.display = 'block';
-            select.innerHTML = '<option value="">⏳ Carregando...</option>';
+            select.innerHTML = '<option value="">Carregando...</option>';
 
-            fetch('reservas_buscar.php?quarto_id=' + quartoId + '&status=ativa')
+            fetch('reservas_buscar.php?quarto_id=' + quartoId + '&status=ativa&filtro=hospedadas')
                 .then(r => r.json())
                 .then(data => {
                     select.innerHTML = '<option value="">-- Selecione a reserva --</option>';
@@ -276,7 +307,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         const opt = document.createElement('option');
                         opt.value = r.id;
                         opt.dataset.quarto = r.quarto_id;
-                        opt.textContent = `#${r.id} — ${r.cliente} — ${r.quarto} — ${r.periodo} — ${r.usuario}`;
+                        opt.textContent = `#${r.id} - ${r.cliente} - ${r.quarto} - ${r.periodo} - ${r.usuario}`;
                         select.appendChild(opt);
                     });
                 })
@@ -295,7 +326,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             btnFin.style.display = 'none';
             if (!quartoId || !reservaId) return;
 
-            frigobar.innerHTML = '<p class="loading">⏳ Carregando itens do frigobar...</p>';
+            frigobar.innerHTML = '<p class="loading">Carregando itens do frigobar...</p>';
 
             fetch('frigobar_buscar.php?quarto_id=' + quartoId)
                 .then(r => r.text())

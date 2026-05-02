@@ -29,6 +29,7 @@ $sql_hospedados = "
     JOIN quartos  q ON q.id = r.quarto_id
     JOIN clientes c ON c.id = r.cliente_id
     WHERE r.status = 'ativa'
+      AND r.data_checkin_real IS NOT NULL
       AND CURDATE() BETWEEN r.data_checkin AND r.data_checkout
 ";
 

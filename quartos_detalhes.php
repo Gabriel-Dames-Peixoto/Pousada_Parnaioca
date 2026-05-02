@@ -36,10 +36,15 @@ $status_frigobar = $dados_frig['status_frigobar'] ?? 1;
 
 if (isset($_POST['toggle_frigobar']) && $_SESSION['perfil'] === 'adm') {
 
-    $novo_status = ($status_frigobar == 1) ? 0 : 1;
+    if (!$dados_frig) {
+        header("Location: quartos_detalhes.php?id=" . $id_quarto . "&erro=" . urlencode("Cadastre itens no frigobar antes de alterar o status."));
+        exit();
+    }
+
+    $novo_status = ($status_frigobar == '1') ? '0' : '1';
 
     $stmt_update = $con->prepare("UPDATE frigobar SET status_frigobar = ? WHERE quarto_id = ?");
-    $stmt_update->bind_param("ii", $novo_status, $id_quarto);
+    $stmt_update->bind_param("si", $novo_status, $id_quarto);
     $stmt_update->execute();
     $stmt_update->close();
 
@@ -77,6 +82,10 @@ $stmt_res->close();
     </header>
 
     <main>
+
+        <?php if (!empty($_GET['erro'])): ?>
+            <p class="erro"><?= htmlspecialchars($_GET['erro']) ?></p>
+        <?php endif; ?>
 
 
         <section class="quarto-info">
