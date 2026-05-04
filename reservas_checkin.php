@@ -57,8 +57,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new RuntimeException('Esta reserva ainda nao iniciou e nao pode receber check-in.');
             }
 
-            $diasReservados = max(1, (int)$inicioPrevisto->diff(obterInicioReserva($reserva['data_checkin'], $reserva['hora_checkin']))->days);
-
             $update = $con->prepare("UPDATE reservas SET data_checkin_real = NOW() WHERE id = ?");
             $update->bind_param("i", $id_reserva);
             $update->execute();
@@ -86,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <header>
         <nav>
-            <ul><?php include_once 'menu.php'; ?></ul>
+            <ul><?php include_once 'Menu.php'; ?></ul>
         </nav>
     </header>
 

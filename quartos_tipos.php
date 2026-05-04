@@ -78,7 +78,7 @@ $tipos = $con->query('SELECT * FROM tipos_acomodacao ORDER BY nome ASC')->fetch_
 
     <header>
         <nav>
-            <ul><?php include_once 'menu.php'; ?></ul>
+            <ul><?php include_once 'Menu.php'; ?></ul>
         </nav>
     </header>
 

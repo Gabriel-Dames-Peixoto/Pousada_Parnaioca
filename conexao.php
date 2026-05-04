@@ -5,6 +5,39 @@ $con = mysqli_connect("localhost", "root", "", "parnaiocagabriel")
 mysqli_set_charset($con, 'utf8mb4');
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
+function colunaExiste(mysqli $con, string $tabela, string $coluna): bool
+{
+    $stmt = $con->prepare("
+        SELECT COUNT(*) AS total
+        FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = ?
+          AND COLUMN_NAME = ?
+    ");
+    $stmt->bind_param("ss", $tabela, $coluna);
+    $stmt->execute();
+    $resultado = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    return (int)($resultado['total'] ?? 0) > 0;
+}
+
+function garantirEstruturaReservas(mysqli $con): void
+{
+    $ajustes = [
+        'data_checkin_real' => "ALTER TABLE reservas ADD COLUMN data_checkin_real DATETIME DEFAULT NULL AFTER hora_checkin",
+        'data_ultima_extensao' => "ALTER TABLE reservas ADD COLUMN data_ultima_extensao DATETIME DEFAULT NULL AFTER hora_checkout",
+    ];
+
+    foreach ($ajustes as $coluna => $sql) {
+        if (!colunaExiste($con, 'reservas', $coluna)) {
+            $con->query($sql);
+        }
+    }
+}
+
+garantirEstruturaReservas($con);
+
 function registrarLog($mensagem, $acao)
 {
     global $con;

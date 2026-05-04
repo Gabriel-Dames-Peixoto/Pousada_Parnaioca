@@ -258,7 +258,7 @@ $acoes_lista = $acoes_res->fetch_all(MYSQLI_ASSOC);
 
     <header>
         <nav>
-            <ul><?php include_once 'menu.php'; ?></ul>
+            <ul><?php include_once 'Menu.php'; ?></ul>
         </nav>
     </header>
 

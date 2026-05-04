@@ -20,7 +20,7 @@ include_once './sessao_validar.php';
         <nav>
             <ul>
                 <?php
-                include_once 'menu.php';
+                include_once 'Menu.php';
                 ?>
             </ul>
         </nav>

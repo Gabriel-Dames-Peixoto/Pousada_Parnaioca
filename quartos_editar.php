@@ -80,7 +80,7 @@ $tipos        = $tipos_result ? $tipos_result->fetch_all(MYSQLI_ASSOC) : [];
 <body>
     <header>
         <nav>
-            <ul><?php include_once 'menu.php'; ?></ul>
+            <ul><?php include_once 'Menu.php'; ?></ul>
         </nav>
     </header>
     <main>

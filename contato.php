@@ -45,7 +45,7 @@
         <nav>
             <ul>
                 <?php if ($logado): ?>
-                    <?php include_once 'menu.php'; ?>
+                    <?php include_once 'Menu.php'; ?>
                 <?php else: ?>
                     <li><a href="login.php">Início</a></li>
                 <?php endif; ?>

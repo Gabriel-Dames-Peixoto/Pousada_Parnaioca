@@ -239,7 +239,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <header>
         <nav>
-            <ul><?php include_once 'menu.php'; ?></ul>
+            <ul><?php include_once 'Menu.php'; ?></ul>
         </nav>
     </header>
 

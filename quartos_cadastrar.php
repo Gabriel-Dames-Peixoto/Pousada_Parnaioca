@@ -59,7 +59,7 @@ $tipos        = $tipos_result ? $tipos_result->fetch_all(MYSQLI_ASSOC) : [];
         <nav>
             <ul>
                 <?php
-                include_once 'menu.php';
+                include_once 'Menu.php';
                 ?>
             </ul>
         </nav>
